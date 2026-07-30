@@ -21,9 +21,10 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install packages
+      - name: Install dependencies
         run: |
-          pip install pandas requests google-cloud-bigquery pyarrow db-dtypes
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
