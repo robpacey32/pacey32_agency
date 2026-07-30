@@ -32,4 +32,4 @@ jobs:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
       - name: Run Weather API
-        run: python weather/weatherAPI.py
+        run: python -u weather/weatherAPI.py
