@@ -1,0 +1,45 @@
+name: City tax refresh
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Runs monthly. The Python code only refreshes cities whose
+    # latest successful load is at least three calendar months old.
+    - cron: "20 5 1 * *"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  refresh-city-tax:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run city tax pipeline
+        env:
+          GCP_PROJECT: pacey32-agency
+          TEAM_TABLE: pacey32-agency.Team.TeamList
+          TAX_TABLE: pacey32-agency.City.city_tax
+          REFRESH_MONTHS: "3"
+          HTTP_USER_AGENT: pacey32-agency-city-tax/1.0
+        run: python costofliving/tax.py
