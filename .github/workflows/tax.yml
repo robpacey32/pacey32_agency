@@ -42,4 +42,4 @@ jobs:
           TAX_TABLE: pacey32-agency.City.city_tax
           REFRESH_MONTHS: "3"
           HTTP_USER_AGENT: pacey32-agency-city-tax/1.0
-        run: python costofliving/tax.py
+        run: python tax/tax.py
