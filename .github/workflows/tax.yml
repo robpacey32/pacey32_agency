@@ -1,4 +1,4 @@
-name: City tax refresh
+name: Refresh Tax Data
 
 on:
   workflow_dispatch:
