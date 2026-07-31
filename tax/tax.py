@@ -364,8 +364,8 @@ def get_nhl_cities_to_refresh() -> pd.DataFrame:
 # ============================================================
 
 GEOCODE_SEARCH_OVERRIDES = {
-    "St. Louis": "Saint Louis Missouri",
-    "St. Paul": "Saint Paul Minnesota",
+    "St. Louis": "Saint Louis, Missouri",
+    "St. Paul": "Saint Paul, Minnesota",
 }
 
 GEOCODE_EXPECTED_ADMIN1 = {
