@@ -31,5 +31,5 @@ jobs:
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
-      - name: Run Cost of Living API
+      - name: Run City Geocoder Table
         run: python citysummary/citysummary_geocode.py
