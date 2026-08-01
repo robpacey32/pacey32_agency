@@ -8,3 +8,4 @@ google-cloud-bigquery-storage
 pandas-gbq>=0.26.1
 beautifulsoup4
 timezonefinder
+google-genai
