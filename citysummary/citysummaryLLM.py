@@ -640,7 +640,7 @@ def main() -> None:
     print("RUN SUMMARY")
     print("=" * 70)
     print(f"Selected:    {len(cities)}")
-    print(f"Successful:  {successful_count)")
+    print(f"Successful:  {successful_count}")
     print(f"Failed:      {len(failures)}")
 
     if failures:
