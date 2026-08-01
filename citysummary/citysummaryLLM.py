@@ -294,35 +294,26 @@ def target_schema() -> list[bigquery.SchemaField]:
     ]
 
 
-def upload_summaries(
+def upload_summary(
     client_bq: bigquery.Client,
-    summary_df: pd.DataFrame,
+    summary: dict,
 ) -> None:
-    """Append generated summaries to the target BigQuery table."""
+    """Append a single generated summary."""
 
-    if summary_df.empty:
-        print("No summaries were generated.")
-        return
+    df = pd.DataFrame([summary])
 
     job_config = bigquery.LoadJobConfig(
         schema=target_schema(),
-        write_disposition=(
-            bigquery.WriteDisposition.WRITE_APPEND
-        ),
+        write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
     )
 
     load_job = client_bq.load_table_from_dataframe(
-        summary_df,
+        df,
         TARGET_TABLE,
         job_config=job_config,
     )
 
     load_job.result()
-
-    print(
-        f"Loaded {len(summary_df)} rows into "
-        f"{TARGET_TABLE}."
-    )
 
 
 # ============================================================
@@ -521,11 +512,12 @@ def generate_summary(
 
 def generate_summaries(
     gemini_client: genai.Client,
+    client_bq: bigquery.Client,
     cities: pd.DataFrame,
-) -> tuple[pd.DataFrame, list[dict]]:
-    """Generate summaries for all selected cities."""
+) -> tuple[int, list[dict]]:
+    """Generate summaries and immediately write each one to BigQuery."""
 
-    generated_rows: list[dict] = []
+    successes = 0
     failures: list[dict] = []
 
     total = len(cities)
@@ -534,25 +526,16 @@ def generate_summaries(
         cities.itertuples(index=False),
         start=1,
     ):
-        venue_location = clean_optional_text(
-            row.venueLocation
-        )
 
-        state_province = clean_optional_text(
-            row.state_province
-        )
-
-        country = clean_optional_text(
-            row.country
-        )
+        venue_location = clean_optional_text(row.venueLocation)
+        state_province = clean_optional_text(row.state_province)
+        country = clean_optional_text(row.country)
 
         print()
-        print(
-            f"[{position}/{total}] "
-            f"Generating {venue_location}"
-        )
+        print(f"[{position}/{total}] Generating {venue_location}")
 
         try:
+
             summary = generate_summary(
                 client=gemini_client,
                 venue_location=venue_location,
@@ -560,72 +543,45 @@ def generate_summaries(
                 country=country,
             )
 
-            generated_rows.append(
-                {
-                    "venueLocation":
-                        venue_location,
-                    "state_province":
-                        None
-                        if state_province == "Not supplied"
-                        else state_province,
-                    "country":
-                        None
-                        if country == "Not supplied"
-                        else country,
-                    "summary":
-                        summary,
-                    "model":
-                        MODEL,
-                    "prompt_version":
-                        PROMPT_VERSION,
-                    "generated_datetime":
-                        datetime.now(timezone.utc),
-                }
+            summary_row = {
+                "venueLocation": venue_location,
+                "state_province": None if state_province == "Not supplied" else state_province,
+                "country": None if country == "Not supplied" else country,
+                "summary": summary,
+                "model": MODEL,
+                "prompt_version": PROMPT_VERSION,
+                "generated_datetime": datetime.now(timezone.utc),
+            }
+
+            # Upload immediately
+            upload_summary(
+                client_bq=client_bq,
+                summary=summary_row,
             )
 
+            successes += 1
+
             print(
-                f"  Success: "
-                f"{len(summary.split())} words"
+                f"  Success ({len(summary.split())} words) - uploaded"
             )
 
         except Exception as error:
-            error_message = (
-                f"{type(error).__name__}: {error}"
-            )
+
+            error_message = f"{type(error).__name__}: {error}"
 
             failures.append(
                 {
-                    "venueLocation":
-                        venue_location,
-                    "error":
-                        error_message,
+                    "venueLocation": venue_location,
+                    "error": error_message,
                 }
             )
 
-            print(
-                f"  Failed: {error_message}"
-            )
+            print(f"  Failed: {error_message}")
 
-        # Keep below the free-tier request-per-minute limit.
         if position < total:
-            time.sleep(
-                REQUEST_DELAY_SECONDS
-            )
+            time.sleep(REQUEST_DELAY_SECONDS)
 
-    summary_df = pd.DataFrame(
-        generated_rows,
-        columns=[
-            "venueLocation",
-            "state_province",
-            "country",
-            "summary",
-            "model",
-            "prompt_version",
-            "generated_datetime",
-        ],
-    )
-
-    return summary_df, failures
+    return successes, failures
 
 
 # ============================================================
@@ -673,14 +629,10 @@ def main() -> None:
         )
         return
 
-    summary_df, failures = generate_summaries(
+    successful_count, failures = generate_summaries(
         gemini_client=gemini_client,
-        cities=cities,
-    )
-
-    upload_summaries(
         client_bq=client_bq,
-        summary_df=summary_df,
+        cities=cities,
     )
 
     print()
@@ -688,7 +640,7 @@ def main() -> None:
     print("RUN SUMMARY")
     print("=" * 70)
     print(f"Selected:    {len(cities)}")
-    print(f"Successful:  {len(summary_df)}")
+    print(f"Successful:  {successful_count)")
     print(f"Failed:      {len(failures)}")
 
     if failures:
