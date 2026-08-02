@@ -12,8 +12,10 @@ Behaviour:
     - If the target table exists, generate summaries only for cities that:
         - are missing from the target table; or
         - do not have the current prompt version.
-    - Retry automatically when the Gemini free-tier rate limit is reached.
-    - Append new summaries to BigQuery.
+    - Try multiple Gemini models in order.
+    - Retry automatically for rate limits and temporary service errors.
+    - Write each successful city to BigQuery immediately.
+    - Preserve completed cities if a later request fails.
 
 Required environment variables:
     GEMINI_API_KEY
@@ -36,7 +38,7 @@ from google import genai
 from google.api_core.exceptions import NotFound
 from google.cloud import bigquery
 from google.genai import types
-from google.genai.errors import ClientError
+from google.genai.errors import ClientError, ServerError
 
 
 # ============================================================
@@ -48,21 +50,36 @@ PROJECT_ID = "pacey32-agency"
 SOURCE_TABLE = f"{PROJECT_ID}.City.city_tax"
 TARGET_TABLE = f"{PROJECT_ID}.City.city_summary"
 
-MODEL = os.getenv(
+# GEMINI_MODEL can override the first model in GitHub Actions.
+PRIMARY_MODEL = os.getenv(
     "GEMINI_MODEL",
-    "gemini-flash-latest",
+    "models/gemini-3.1-flash-lite",
 )
+
+# Models are tried in order.
+MODELS = [
+    PRIMARY_MODEL,
+    "models/gemini-2.5-flash",
+    "models/gemini-2.0-flash",
+    "models/gemini-flash-lite-latest",
+]
+
+# Remove duplicate model names while preserving order.
+MODELS = list(dict.fromkeys(MODELS))
 
 # Increase this whenever the prompt changes materially.
 # Existing rows using an older version will then be regenerated.
 PROMPT_VERSION = "1.0"
 
-# Gemini free-tier limit shown by your account is five requests
-# per minute. A 13-second delay keeps the workflow below that.
+# Your free-tier limit was five requests per minute.
+# Thirteen seconds between successful cities stays below this.
 REQUEST_DELAY_SECONDS = 13
 
+# Number of complete passes through the model list for one city.
 MAX_RETRIES_PER_CITY = 5
+
 DEFAULT_RATE_LIMIT_WAIT_SECONDS = 15
+MAX_SERVICE_WAIT_SECONDS = 120
 
 FORCE_REFRESH = (
     os.getenv("FORCE_REFRESH", "false")
@@ -159,13 +176,14 @@ def build_city_query(
     """
     Build the city-selection query.
 
-    On the first run, every distinct city is selected.
+    First run:
+        Select every distinct city.
 
-    On later runs, cities are selected when:
-        - they do not exist in city_summary; or
-        - their stored prompt version differs from the current version.
+    Later runs:
+        Select cities that are missing or use an older prompt version.
 
-    FORCE_REFRESH selects every city regardless of existing data.
+    FORCE_REFRESH:
+        Select every distinct city.
     """
 
     if FORCE_REFRESH or not table_exists:
@@ -253,7 +271,7 @@ def read_cities(
 
 
 def target_schema() -> list[bigquery.SchemaField]:
-    """Return the explicit BigQuery schema."""
+    """Return the explicit BigQuery target schema."""
 
     return [
         bigquery.SchemaField(
@@ -296,19 +314,23 @@ def target_schema() -> list[bigquery.SchemaField]:
 
 def upload_summary(
     client_bq: bigquery.Client,
-    summary: dict,
+    summary_row: dict,
 ) -> None:
-    """Append a single generated summary."""
+    """Append one generated summary to BigQuery immediately."""
 
-    df = pd.DataFrame([summary])
+    summary_df = pd.DataFrame(
+        [summary_row]
+    )
 
     job_config = bigquery.LoadJobConfig(
         schema=target_schema(),
-        write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+        write_disposition=(
+            bigquery.WriteDisposition.WRITE_APPEND
+        ),
     )
 
     load_job = client_bq.load_table_from_dataframe(
-        df,
+        summary_df,
         TARGET_TABLE,
         job_config=job_config,
     )
@@ -320,7 +342,9 @@ def upload_summary(
 # GEMINI HELPERS
 # ============================================================
 
-def clean_optional_text(value: object) -> str:
+def clean_optional_text(
+    value: object,
+) -> str:
     """Convert nullable BigQuery values into clean prompt text."""
 
     if value is None:
@@ -344,7 +368,7 @@ def build_city_prompt(
     state_province: str,
     country: str,
 ) -> str:
-    """Build the Gemini user prompt for one city."""
+    """Build the user prompt for one city."""
 
     return f"""
 City: {venue_location}
@@ -359,12 +383,12 @@ but focus the paragraph primarily on the city itself.
 
 
 def extract_retry_seconds(
-    error: ClientError,
+    error: Exception,
 ) -> int:
     """
     Extract Google's suggested retry duration when available.
 
-    Example API text:
+    Example:
         Please retry in 6.290010441s.
     """
 
@@ -381,8 +405,6 @@ def extract_retry_seconds(
         match.group(1)
     )
 
-    # Add a small buffer so the next request is not made at
-    # the exact boundary of the quota window.
     return max(
         DEFAULT_RATE_LIMIT_WAIT_SECONDS,
         int(suggested_wait) + 2,
@@ -427,13 +449,57 @@ def validate_summary(
     return cleaned
 
 
+def get_status_code(
+    error: Exception,
+) -> Optional[int]:
+    """Return an HTTP-style status code from a Gemini exception."""
+
+    code = getattr(
+        error,
+        "code",
+        None,
+    )
+
+    if isinstance(code, int):
+        return code
+
+    status_code = getattr(
+        error,
+        "status_code",
+        None,
+    )
+
+    if isinstance(status_code, int):
+        return status_code
+
+    error_text = str(error)
+
+    match = re.search(
+        r"\b(429|500|502|503|504)\b",
+        error_text,
+    )
+
+    if match:
+        return int(
+            match.group(1)
+        )
+
+    return None
+
+
 def generate_summary(
     client: genai.Client,
     venue_location: str,
     state_province: str,
     country: str,
-) -> str:
-    """Generate and validate one city summary."""
+) -> tuple[str, str]:
+    """
+    Generate and validate one city summary.
+
+    Returns:
+        summary text;
+        model name actually used.
+    """
 
     prompt = build_city_prompt(
         venue_location=venue_location,
@@ -441,68 +507,134 @@ def generate_summary(
         country=country,
     )
 
+    last_error: Optional[Exception] = None
+
     for attempt in range(
         1,
         MAX_RETRIES_PER_CITY + 1,
     ):
-        try:
-            response = client.models.generate_content(
-                model=MODEL,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=SYSTEM_PROMPT,
-                    temperature=0.3,
-                ),
+        all_models_unavailable = True
+
+        for model_position, model in enumerate(
+            MODELS,
+            start=1,
+        ):
+            print(
+                f"  Trying {model} "
+                f"({model_position}/{len(MODELS)})"
             )
 
-            return validate_summary(
-                response.text
-            )
+            try:
+                response = client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=SYSTEM_PROMPT,
+                        temperature=0.3,
+                    ),
+                )
 
-        except ClientError as error:
-            status_code = getattr(
-                error,
-                "code",
-                None,
-            )
+                summary = validate_summary(
+                    response.text
+                )
 
-            if status_code != 429:
+                return summary, model
+
+            except (ClientError, ServerError) as error:
+                last_error = error
+
+                status_code = get_status_code(
+                    error
+                )
+
+                if status_code == 429:
+                    all_models_unavailable = False
+
+                    wait_seconds = extract_retry_seconds(
+                        error
+                    )
+
+                    print(
+                        f"  Rate limit reached for {model}. "
+                        f"Sleeping {wait_seconds} seconds..."
+                    )
+
+                    time.sleep(
+                        wait_seconds
+                    )
+
+                    # Retry the complete model list.
+                    break
+
+                if status_code in {
+                    500,
+                    502,
+                    503,
+                    504,
+                }:
+                    print(
+                        f"  {model} temporarily unavailable "
+                        f"({status_code})."
+                    )
+
+                    # Immediately try the next fallback model.
+                    continue
+
+                # Do not hide authentication, invalid model,
+                # malformed request or other permanent errors.
                 raise
 
-            wait_seconds = extract_retry_seconds(
-                error
+            except ValueError as error:
+                last_error = error
+                all_models_unavailable = False
+
+                print(
+                    f"  Invalid response from {model}: "
+                    f"{error}"
+                )
+
+                # Try another model before retrying the same one.
+                continue
+
+        else:
+            # The inner model loop finished without a break,
+            # meaning every model either failed temporarily or
+            # returned an invalid response.
+            if attempt == MAX_RETRIES_PER_CITY:
+                break
+
+            wait_seconds = min(
+                15 * (2 ** (attempt - 1)),
+                MAX_SERVICE_WAIT_SECONDS,
+            )
+
+            reason = (
+                "all models were temporarily unavailable"
+                if all_models_unavailable
+                else "no model returned a valid response"
             )
 
             print(
-                f"  Rate limit reached on attempt "
-                f"{attempt}/{MAX_RETRIES_PER_CITY}. "
+                f"  Attempt {attempt}/"
+                f"{MAX_RETRIES_PER_CITY}: {reason}. "
                 f"Sleeping {wait_seconds} seconds..."
             )
-
-            if attempt == MAX_RETRIES_PER_CITY:
-                raise RuntimeError(
-                    f"Gemini rate limit persisted after "
-                    f"{MAX_RETRIES_PER_CITY} attempts."
-                ) from error
 
             time.sleep(
                 wait_seconds
             )
 
-        except ValueError as error:
-            print(
-                f"  Invalid response on attempt "
-                f"{attempt}/{MAX_RETRIES_PER_CITY}: "
-                f"{error}"
-            )
+            continue
 
-            if attempt == MAX_RETRIES_PER_CITY:
-                raise
-
-            time.sleep(5)
+        # Reached when the model loop was broken, normally due
+        # to a 429 after already sleeping.
+        if attempt < MAX_RETRIES_PER_CITY:
+            continue
 
     raise RuntimeError(
-        "Summary generation ended unexpectedly."
+        f"Unable to generate a summary for {venue_location} "
+        f"after {MAX_RETRIES_PER_CITY} attempts across "
+        f"{len(MODELS)} models. Last error: {last_error}"
     )
 
 
@@ -515,7 +647,7 @@ def generate_summaries(
     client_bq: bigquery.Client,
     cities: pd.DataFrame,
 ) -> tuple[int, list[dict]]:
-    """Generate summaries and immediately write each one to BigQuery."""
+    """Generate each summary and upload it immediately."""
 
     successes = 0
     failures: list[dict] = []
@@ -526,17 +658,26 @@ def generate_summaries(
         cities.itertuples(index=False),
         start=1,
     ):
+        venue_location = clean_optional_text(
+            row.venueLocation
+        )
 
-        venue_location = clean_optional_text(row.venueLocation)
-        state_province = clean_optional_text(row.state_province)
-        country = clean_optional_text(row.country)
+        state_province = clean_optional_text(
+            row.state_province
+        )
+
+        country = clean_optional_text(
+            row.country
+        )
 
         print()
-        print(f"[{position}/{total}] Generating {venue_location}")
+        print(
+            f"[{position}/{total}] "
+            f"Generating {venue_location}"
+        )
 
         try:
-
-            summary = generate_summary(
+            summary, model_used = generate_summary(
                 client=gemini_client,
                 venue_location=venue_location,
                 state_province=state_province,
@@ -544,42 +685,68 @@ def generate_summaries(
             )
 
             summary_row = {
-                "venueLocation": venue_location,
-                "state_province": None if state_province == "Not supplied" else state_province,
-                "country": None if country == "Not supplied" else country,
-                "summary": summary,
-                "model": MODEL,
-                "prompt_version": PROMPT_VERSION,
-                "generated_datetime": datetime.now(timezone.utc),
+                "venueLocation":
+                    venue_location,
+                "state_province":
+                    None
+                    if state_province == "Not supplied"
+                    else state_province,
+                "country":
+                    None
+                    if country == "Not supplied"
+                    else country,
+                "summary":
+                    summary,
+                "model":
+                    model_used,
+                "prompt_version":
+                    PROMPT_VERSION,
+                "generated_datetime":
+                    datetime.now(timezone.utc),
             }
 
-            # Upload immediately
             upload_summary(
                 client_bq=client_bq,
-                summary=summary_row,
+                summary_row=summary_row,
             )
 
             successes += 1
 
             print(
-                f"  Success ({len(summary.split())} words) - uploaded"
+                f"  Success: "
+                f"{len(summary.split())} words"
+            )
+
+            print(
+                f"  Model used: {model_used}"
+            )
+
+            print(
+                f"  Uploaded to {TARGET_TABLE}"
             )
 
         except Exception as error:
-
-            error_message = f"{type(error).__name__}: {error}"
+            error_message = (
+                f"{type(error).__name__}: {error}"
+            )
 
             failures.append(
                 {
-                    "venueLocation": venue_location,
-                    "error": error_message,
+                    "venueLocation":
+                        venue_location,
+                    "error":
+                        error_message,
                 }
             )
 
-            print(f"  Failed: {error_message}")
+            print(
+                f"  Failed: {error_message}"
+            )
 
         if position < total:
-            time.sleep(REQUEST_DELAY_SECONDS)
+            time.sleep(
+                REQUEST_DELAY_SECONDS
+            )
 
     return successes, failures
 
@@ -597,9 +764,18 @@ def main() -> None:
     print(f"Project:         {PROJECT_ID}")
     print(f"Source table:    {SOURCE_TABLE}")
     print(f"Target table:    {TARGET_TABLE}")
-    print(f"Gemini model:    {MODEL}")
     print(f"Prompt version:  {PROMPT_VERSION}")
     print(f"Force refresh:   {FORCE_REFRESH}")
+    print("Model order:")
+
+    for model_position, model in enumerate(
+        MODELS,
+        start=1,
+    ):
+        print(
+            f"  {model_position}. {model}"
+        )
+
     print()
 
     gemini_client, client_bq = create_clients()
@@ -653,9 +829,8 @@ def main() -> None:
                 f"{failure['error']}"
             )
 
-        # Successful rows have already been written to BigQuery,
-        # but return a failure code so GitHub Actions highlights
-        # that some cities need another attempt.
+        # Successful rows have already been uploaded.
+        # Exit non-zero so GitHub Actions highlights remaining failures.
         sys.exit(1)
 
 
