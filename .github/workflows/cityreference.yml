@@ -1,0 +1,63 @@
+name: Refresh City Reference Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_refresh:
+        description: "Force re-geocoding of every city"
+        type: boolean
+        required: true
+        default: false
+
+      force_cities:
+        description: "Optional comma-separated list of cities to refresh (e.g. Edmonton,Stockholm)"
+        type: string
+        required: false
+        default: ""
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  refresh-city-reference:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Run City Reference Pipeline
+        env:
+          GCP_PROJECT: pacey32-agency
+          TEAM_TABLE: pacey32-agency.Team.TeamList
+          CITY_REFERENCE_TABLE: pacey32-agency.City.CityReference
+          CITY_REFERENCE_STAGING_TABLE: pacey32-agency.City.CityReference_staging
+          SOURCE_CITY_COLUMN: venueLocation
+          FORCE_REFRESH: ${{ github.event.inputs.force_refresh }}
+          FORCE_CITIES: ${{ github.event.inputs.force_cities }}
+          REQUEST_TIMEOUT: "60"
+          GEOCODE_SLEEP_SECONDS: "0.25"
+          HTTP_USER_AGENT: "pacey32-agency-city-reference/1.0"
+
+        run: |
+          python cityreference/city_reference.py
