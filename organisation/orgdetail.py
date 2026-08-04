@@ -261,12 +261,12 @@ def load_team_list(client: bigquery.Client) -> pd.DataFrame:
 
 def clean_wikipedia_text(value):
 
-    if value is None:
+    if pd.isna(value):
         return None
 
     value = str(value)
 
-    # Remove reference markers
+    # Remove Wikipedia reference markers
     value = re.sub(r"\[\s*\d+\s*\]", "", value)
 
     # Remove daggers
@@ -275,7 +275,9 @@ def clean_wikipedia_text(value):
     # Normalise whitespace
     value = " ".join(value.split())
 
-    return value.strip()
+    value = value.strip()
+
+    return value if value else None
 
 
 # ============================================================
