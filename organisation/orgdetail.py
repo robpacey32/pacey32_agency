@@ -589,31 +589,30 @@ def scrape_stanley_cups(
 
     cup_df = select_table(
         tables,
-        required_exact=("Season",),
-        required_contains=("Champion",),
-        label="Stanley Cup champions",
+        required_exact=("Team", "Wins"),
+        label="Stanley Cup Final era",
     )
-
-    champion_col = next(
-        c for c in cup_df.columns
-        if "Champion" in str(c)
-    )
-
-    cup_df = cup_df[[champion_col]].copy()
 
     cup_df = cup_df.rename(
         columns={
-            champion_col: "fullName"
+            "Team": "fullName",
+            "Wins": "stanley_cups",
         }
     )
 
-    cup_df["fullName"] = remove_references(cup_df["fullName"])
+    cup_df = cup_df[
+        [
+            "fullName",
+            "stanley_cups",
+        ]
+    ].copy()
 
-    cup_df = (
-        cup_df
-        .groupby("fullName", as_index=False)
-        .size()
-        .rename(columns={"size": "stanley_cups"})
+    for column in cup_df.columns:
+        cup_df[column] = remove_references(cup_df[column])
+
+    cup_df["stanley_cups"] = pd.to_numeric(
+        cup_df["stanley_cups"],
+        errors="coerce",
     )
 
     cup_df["join_team"] = cup_df["fullName"].apply(normalise_team_name)
