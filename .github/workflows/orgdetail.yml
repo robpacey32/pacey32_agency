@@ -3,10 +3,6 @@ name: Refresh Organisation Details
 on:
   workflow_dispatch:
 
-  schedule:
-    # 03:00 UTC on the 1st of every month
-    - cron: "0 3 1 * *"
-
 env:
   PYTHONUNBUFFERED: "1"
 
@@ -45,7 +41,7 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
       - name: Run Organisation Detail refresh
         run: |
