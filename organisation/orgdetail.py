@@ -489,6 +489,10 @@ def scrape_captains(
 
     tables = read_wikipedia_tables(session, URL_CAPTAINS)
 
+    # -------------------------
+    # Captains
+    # -------------------------
+
     captain_df = select_table(
         tables,
         required_exact=("Team", "Captain"),
@@ -499,7 +503,8 @@ def scrape_captains(
         columns={
             "Team": "fullName",
             "Captain": "captain",
-            "Alternate captains": "alternate_captains",
+            "Since": "captain_since",
+            "Pos": "captain_position",
         }
     )
 
@@ -507,31 +512,64 @@ def scrape_captains(
         [
             "fullName",
             "captain",
-            "alternate_captains",
+            "captain_since",
+            "captain_position",
         ]
     ].copy()
 
+    # -------------------------
+    # Alternate captains
+    # -------------------------
+
+    alternate_df = select_table(
+        tables,
+        required_exact=("Team", "Alternate captain(s)"),
+        label="Alternate captain table",
+    )
+
+    alternate_df = alternate_df.rename(
+        columns={
+            "Team": "fullName",
+            "Alternate captain(s)": "alternate_captain",
+        }
+    )
+
+    alternate_df = alternate_df[
+        [
+            "fullName",
+            "alternate_captain",
+        ]
+    ].copy()
+
+    # Clean both tables
     for column in captain_df.columns:
         captain_df[column] = remove_references(captain_df[column])
 
-    captain_df["alternate_captains"] = (
-        captain_df["alternate_captains"]
-        .fillna("")
-        .astype(str)
-        .str.replace(" and ", ",", regex=False)
+    for column in alternate_df.columns:
+        alternate_df[column] = remove_references(alternate_df[column])
+
+    # Collapse alternates to one row per NHL team
+    alternate_df = (
+        alternate_df
+        .groupby("fullName")["alternate_captain"]
+        .apply(list)
+        .reset_index()
     )
 
-    alternates = captain_df["alternate_captains"].str.split(",", expand=True)
-
-    for i in range(min(3, alternates.shape[1])):
-        captain_df[f"alternate_captain_{i+1}"] = (
-            alternates[i]
-            .fillna("")
-            .str.strip()
-            .replace("", pd.NA)
+    for i in range(3):
+        alternate_df[f"alternate_captain_{i+1}"] = (
+            alternate_df["alternate_captain"]
+            .apply(lambda x: x[i] if len(x) > i else None)
         )
 
-    captain_df = captain_df.drop(columns="alternate_captains")
+    alternate_df = alternate_df.drop(columns="alternate_captain")
+
+    # Merge captains + alternates
+    captain_df = captain_df.merge(
+        alternate_df,
+        on="fullName",
+        how="left",
+    )
 
     captain_df["join_team"] = captain_df["fullName"].apply(normalise_team_name)
 
