@@ -28,7 +28,18 @@ DESTINATION_TABLE_ID = os.getenv("DESTINATION_TABLE_ID", "OrganizationDetail_LLM
 SOURCE_TABLE = f"{PROJECT_ID}.{DATASET_ID}.{SOURCE_TABLE_ID}"
 DESTINATION_TABLE = f"{PROJECT_ID}.{DATASET_ID}.{DESTINATION_TABLE_ID}"
 
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+PRIMARY_MODEL = os.getenv(
+    "GEMINI_MODEL",
+    "models/gemini-3.1-flash-lite",
+)
+
+MODELS = [
+    PRIMARY_MODEL,
+    "models/gemini-2.5-flash",
+    "models/gemini-2.0-flash",
+    "models/gemini-flash-lite-latest",
+]
+
 PROMPT_VERSION = os.getenv("PROMPT_VERSION", "1.0")
 FORCE_REFRESH = os.getenv("FORCE_REFRESH", "false").strip().lower() in {
     "1", "true", "yes", "y"
@@ -247,8 +258,13 @@ def generate_team_summary(
     gemini_client: genai.Client,
     row: pd.Series,
 ) -> dict[str, str]:
+
     team_name = safe_value(row.get("fullName"))
-    grounding_tool = types.Tool(google_search=types.GoogleSearch())
+
+    grounding_tool = types.Tool(
+        google_search=types.GoogleSearch()
+    )
+
     config = types.GenerateContentConfig(
         system_instruction=SYSTEM_PROMPT,
         temperature=0.25,
@@ -256,29 +272,63 @@ def generate_team_summary(
         tools=[grounding_tool],
     )
 
-    for attempt in range(1, MAX_RETRIES + 1):
-        try:
-            response = gemini_client.models.generate_content(
-                model=GEMINI_MODEL,
-                contents=build_user_prompt(row),
-                config=config,
-            )
-            if not response.text:
-                raise RuntimeError("Gemini returned an empty response.")
-            return validate_generated_content(extract_json_object(response.text))
-        except Exception as exc:
-            if attempt >= MAX_RETRIES:
-                raise RuntimeError(
-                    f"Gemini failed for {team_name} after {MAX_RETRIES} attempts: {exc}"
-                ) from exc
-            delay = min(60.0, 2 ** attempt * 2.0)
-            print(
-                f"Gemini attempt {attempt} failed for {team_name}: {exc}. "
-                f"Retrying after {delay:.0f}s."
-            )
-            time.sleep(delay)
+    last_error = None
 
-    raise RuntimeError(f"Unexpected generation failure for {team_name}.")
+    for model in MODELS:
+
+        print(f"Trying model: {model}")
+
+        for attempt in range(1, MAX_RETRIES + 1):
+
+            try:
+
+                response = gemini_client.models.generate_content(
+                    model=model,
+                    contents=build_user_prompt(row),
+                    config=config,
+                )
+
+                if not response.text:
+                    raise RuntimeError(
+                        "Gemini returned an empty response."
+                    )
+
+                result = validate_generated_content(
+                    extract_json_object(response.text)
+                )
+
+                result["_model"] = model
+
+                return result
+
+            except Exception as exc:
+
+                last_error = exc
+
+                if attempt < MAX_RETRIES:
+
+                    delay = min(60.0, 2 ** attempt * 2.0)
+
+                    print(
+                        f"{model} attempt {attempt} failed for "
+                        f"{team_name}: {exc}. "
+                        f"Retrying after {delay:.0f}s."
+                    )
+
+                    time.sleep(delay)
+
+                else:
+
+                    print(
+                        f"{model} failed after "
+                        f"{MAX_RETRIES} attempts."
+                    )
+
+                    break
+
+    raise RuntimeError(
+        f"All Gemini models failed for {team_name}: {last_error}"
+    )
 
 
 def build_existing_lookup(existing_df: pd.DataFrame) -> dict[str, dict[str, Any]]:
@@ -302,7 +352,7 @@ def row_requires_refresh(
         return True, "missing"
     if existing.get("prompt_version") != PROMPT_VERSION:
         return True, "prompt version changed"
-    if existing.get("model") != GEMINI_MODEL:
+    if existing.get("model") != PRIMARY_MODEL:
         return True, "model changed"
 
     for column in (
@@ -329,7 +379,7 @@ def build_output_row(
         "organization_summary": generated["organization_summary"],
         "fanbase_media_pressure": generated["fanbase_media_pressure"],
         "prompt_version": PROMPT_VERSION,
-        "model": GEMINI_MODEL,
+        "model": generated["_model"],
         "generated_datetime": generated_datetime,
     }
 
@@ -389,7 +439,8 @@ def main() -> None:
     started_at = datetime.now(timezone.utc)
     print(f"Organisation LLM refresh started at {started_at.isoformat()}")
     print(
-        f"Model={GEMINI_MODEL}; prompt_version={PROMPT_VERSION}; "
+        f"Primary model={PRIMARY_MODEL}; "
+        f"prompt_version={PROMPT_VERSION}; "
         f"force_refresh={FORCE_REFRESH}"
     )
 
