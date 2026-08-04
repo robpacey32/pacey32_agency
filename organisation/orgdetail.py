@@ -482,109 +482,110 @@ def scrape_ahl(
     ahl_df["join_team"] = ahl_df["fullName"].apply(normalise_team_name)
     return add_source_metadata(ahl_df, "ahl", URL_AHL, scrape_ts)
 
-def scrape_captains() -> pd.DataFrame:
+def scrape_captains(
+    session: requests.Session,
+    scrape_ts: datetime,
+) -> pd.DataFrame:
 
-    tables = get_tables(URL_CAPTAINS)
+    tables = read_wikipedia_tables(session, URL_CAPTAINS)
 
-    df = None
-
-    for table in tables:
-
-        table = flatten_columns(table)
-
-        cols = table.columns.tolist()
-
-        if "Team" in cols and "Captain" in cols:
-            df = table.copy()
-            break
-
-    if df is None:
-        raise RuntimeError("Captain table not found.")
-
-    df = df.rename(columns={
-        "Team": "fullName",
-        "Captain": "captain",
-        "Alternate captains": "alternate_captains"
-    })
-
-    df = df[[
-        "fullName",
-        "captain",
-        "alternate_captains"
-    ]].copy()
-
-    for col in df.columns:
-        df[col] = (
-            df[col]
-            .astype(str)
-            .str.replace(r"\[.*?\]", "", regex=True)
-            .str.strip()
-        )
-
-    # Split alternates into separate columns
-    alternates = (
-        df["alternate_captains"]
-        .str.split(",", expand=True)
+    captain_df = select_table(
+        tables,
+        required_exact=("Team", "Captain"),
+        label="Captain table",
     )
 
-    for i in range(alternates.shape[1]):
-        df[f"alternate_captain_{i+1}"] = (
-            alternates[i].str.strip()
-        )
+    captain_df = captain_df.rename(
+        columns={
+            "Team": "fullName",
+            "Captain": "captain",
+            "Alternate captains": "alternate_captains",
+        }
+    )
 
-    df.drop(columns="alternate_captains", inplace=True)
+    captain_df = captain_df[
+        [
+            "fullName",
+            "captain",
+            "alternate_captains",
+        ]
+    ].copy()
 
-    df["join_team"] = df["fullName"].apply(normalise_team_name)
+    for column in captain_df.columns:
+        captain_df[column] = remove_references(captain_df[column])
 
-    df["captain_source_url"] = URL_CAPTAINS
-    df["captain_last_updated"] = datetime.now(timezone.utc)
-
-    return df
-
-def scrape_stanley_cups() -> pd.DataFrame:
-
-    tables = get_tables(URL_STANLEY_CUPS)
-
-    df = None
-
-    for table in tables:
-
-        table = flatten_columns(table)
-
-        cols = table.columns.tolist()
-
-        if "Season" in cols and "Winning team" in cols:
-            df = table.copy()
-            break
-
-    if df is None:
-        raise RuntimeError("Stanley Cup table not found.")
-
-    df = df[["Winning team"]].copy()
-
-    df["Winning team"] = (
-        df["Winning team"]
+    captain_df["alternate_captains"] = (
+        captain_df["alternate_captains"]
+        .fillna("")
         .astype(str)
-        .str.replace(r"\[.*?\]", "", regex=True)
-        .str.strip()
+        .str.replace(" and ", ",", regex=False)
     )
 
-    cups = (
-        df.groupby("Winning team")
+    alternates = captain_df["alternate_captains"].str.split(",", expand=True)
+
+    for i in range(min(3, alternates.shape[1])):
+        captain_df[f"alternate_captain_{i+1}"] = (
+            alternates[i]
+            .fillna("")
+            .str.strip()
+            .replace("", pd.NA)
+        )
+
+    captain_df = captain_df.drop(columns="alternate_captains")
+
+    captain_df["join_team"] = captain_df["fullName"].apply(normalise_team_name)
+
+    return add_source_metadata(
+        captain_df,
+        "captain",
+        URL_CAPTAINS,
+        scrape_ts,
+    )
+
+def scrape_stanley_cups(
+    session: requests.Session,
+    scrape_ts: datetime,
+) -> pd.DataFrame:
+
+    tables = read_wikipedia_tables(session, URL_STANLEY_CUPS)
+
+    cup_df = select_table(
+        tables,
+        required_exact=("Season",),
+        required_contains=("Champion",),
+        label="Stanley Cup champions",
+    )
+
+    champion_col = next(
+        c for c in cup_df.columns
+        if "Champion" in str(c)
+    )
+
+    cup_df = cup_df[[champion_col]].copy()
+
+    cup_df = cup_df.rename(
+        columns={
+            champion_col: "fullName"
+        }
+    )
+
+    cup_df["fullName"] = remove_references(cup_df["fullName"])
+
+    cup_df = (
+        cup_df
+        .groupby("fullName", as_index=False)
         .size()
-        .reset_index(name="stanley_cups")
+        .rename(columns={"size": "stanley_cups"})
     )
 
-    cups = cups.rename(columns={
-        "Winning team": "fullName"
-    })
+    cup_df["join_team"] = cup_df["fullName"].apply(normalise_team_name)
 
-    cups["join_team"] = cups["fullName"].apply(normalise_team_name)
-
-    cups["stanley_cup_source_url"] = URL_STANLEY_CUPS
-    cups["stanley_cup_last_updated"] = datetime.now(timezone.utc)
-
-    return cups
+    return add_source_metadata(
+        cup_df,
+        "stanley_cup",
+        URL_STANLEY_CUPS,
+        scrape_ts,
+    )
 
 # ============================================================
 # Merge, QA and upload
@@ -735,8 +736,8 @@ def main() -> None:
     gm_df = scrape_general_managers(session, scrape_ts)
     owner_df = scrape_owners(session, scrape_ts)
     ahl_df = scrape_ahl(session, scrape_ts)
-    captain_df = scrape_captains()
-    cup_df = scrape_stanley_cups()
+    captain_df = scrape_captains(session, scrape_ts)
+    cup_df = scrape_stanley_cups(session, scrape_ts)
 
     organisation_df = merge_organisation_data(
         team_df=team_df,
