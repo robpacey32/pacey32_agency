@@ -24,7 +24,7 @@ import requests
 from google.cloud import bigquery
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
+from bs4 import BeautifulSoup
 
 # ============================================================
 # Configuration
@@ -258,6 +258,24 @@ def load_team_list(client: bigquery.Client) -> pd.DataFrame:
 
     print(f"{len(team_df)} teams loaded from Team.TeamList")
     return team_df
+
+def clean_wikipedia_text(value):
+
+    if value is None:
+        return None
+
+    value = str(value)
+
+    # Remove reference markers
+    value = re.sub(r"\[\s*\d+\s*\]", "", value)
+
+    # Remove daggers
+    value = value.replace("†", "")
+
+    # Normalise whitespace
+    value = " ".join(value.split())
+
+    return value.strip()
 
 
 # ============================================================
@@ -517,69 +535,126 @@ def scrape_captains(
         ]
     ].copy()
 
-    # -------------------------
-    # Alternate captains
-    # -------------------------
-
-    alternate_df = select_table(
-        tables,
-        required_exact=("Team", "Alternate captain(s)"),
-        label="Alternate captain table",
-    )
-
-    alternate_df = alternate_df.rename(
-        columns={
-            "Team": "fullName",
-            "Alternate captain(s)": "alternate_captain",
-        }
-    )
-
-    alternate_df = alternate_df[
-        [
-            "fullName",
-            "alternate_captain",
-        ]
-    ].copy()
-
-    # Clean both tables
+    # Clean captain table
     for column in captain_df.columns:
-        captain_df[column] = remove_references(captain_df[column])
+        captain_df[column] = captain_df[column].apply(clean_wikipedia_text)
 
-    for column in alternate_df.columns:
-        alternate_df[column] = remove_references(alternate_df[column])
+    # Remove the two blank rows in the Wikipedia table
+    captain_df = captain_df.dropna(subset=["fullName"]).copy()
 
-    # Wikipedia only lists the team on the first row
-    alternate_df["fullName"] = alternate_df["fullName"].ffill()
-
-    # Remove any remaining blank/header rows
-    alternate_df = alternate_df[
-        alternate_df["fullName"].notna()
+    captain_df = captain_df[
+        captain_df["fullName"].astype(str).str.strip() != ""
     ].copy()
 
-    alternate_df = alternate_df[
-        alternate_df["alternate_captain"].notna()
-    ].copy()
 
-    # Collapse to one row per team
-    alternate_df = (
-        alternate_df
-        .groupby("fullName")["alternate_captain"]
-        .apply(list)
-        .reset_index()
-    )
+    # -------------------------
+    # Alternate captains (BeautifulSoup)
+    # -------------------------
 
-    max_alternates = min(
-        6,
-        alternate_df["alternate_captain"].str.len().max()
-    )
+    response = session.get(URL_CAPTAINS)
+    response.raise_for_status()
 
-    for i in range(max_alternates):
-        alternate_df[f"alternate_captain_{i+1}"] = (
-            alternate_df["alternate_captain"]
-            .apply(lambda x: x[i] if len(x) > i else None)
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    tables = soup.find_all("table", class_="wikitable")
+
+    alternate_table = None
+
+    for table in tables:
+        caption = table.find("caption")
+        if caption and "alternate captains" in caption.get_text(strip=True).lower():
+            alternate_table = table
+            break
+
+    if alternate_table is None:
+        raise RuntimeError("Alternate captain table not found.")
+
+    records = []
+
+    current_team = None
+    current_alternates = []
+
+    rows = alternate_table.find_all("tr")
+
+    for row in rows[1:]:
+
+        cells = row.find_all(["td", "th"])
+
+        texts = [
+            clean_wikipedia_text(
+                c.get_text(" ", strip=True)
+            )
+            for c in cells
+        ]
+
+        # Ignore blank rows
+        if len(texts) == 0:
+            continue
+
+        # First team in table
+        if len(texts) == 4:
+
+            if current_team is not None:
+
+                record = {"fullName": current_team}
+
+                for i in range(6):
+                    record[f"alternate_captain_{i+1}"] = (
+                        current_alternates[i]
+                        if i < len(current_alternates)
+                        else None
+                    )
+
+                records.append(record)
+
+            current_team = texts[0]
+            current_alternates = [texts[1]]
+
+        # New team heading
+        elif len(texts) == 1:
+
+            if current_team is not None:
+
+                record = {"fullName": current_team}
+
+                for i in range(6):
+                    record[f"alternate_captain_{i+1}"] = (
+                        current_alternates[i]
+                        if i < len(current_alternates)
+                        else None
+                    )
+
+                records.append(record)
+
+            current_team = texts[0]
+            current_alternates = []
+
+        # Additional alternate
+        elif len(texts) == 3:
+
+            current_alternates.append(texts[0])
+
+    # Last team
+
+    record = {"fullName": current_team}
+
+    for i in range(6):
+        record[f"alternate_captain_{i+1}"] = (
+            current_alternates[i]
+            if i < len(current_alternates)
+            else None
         )
 
-    alternate_df = alternate_df.drop(columns="alternate_captain")
+    records.append(record)
+
+    alternate_df = pd.DataFrame(records)
+
+    alternate_df["fullName"] = alternate_df["fullName"].apply(clean_wikipedia_text)
+
+    for i in range(6):
+        column = f"alternate_captain_{i+1}"
+        if column in alternate_df.columns:
+            alternate_df[column] = alternate_df[column].apply(clean_wikipedia_text)
 
     # Merge captains + alternates
     captain_df = captain_df.merge(
@@ -589,6 +664,10 @@ def scrape_captains(
     )
 
     captain_df["join_team"] = captain_df["fullName"].apply(normalise_team_name)
+
+    captain_df = captain_df.dropna(subset=["join_team"]).copy()
+
+    print(f"Captain dataset: {len(captain_df)} rows")
 
     return add_source_metadata(
         captain_df,
