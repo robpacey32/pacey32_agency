@@ -1459,8 +1459,14 @@ def print_summary(
         )
         .reset_index()
         .sort_values(
-            "total_km",
-            ascending=False,
+            [
+                "season",
+                "total_km",
+            ],
+            ascending=[
+                False,
+                False
+            ],
         )
     )
 
