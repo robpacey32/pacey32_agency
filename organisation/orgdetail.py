@@ -541,6 +541,9 @@ def scrape_captains(
         ]
     ].copy()
 
+    # Wikipedia only lists the team on the first row.
+    alternate_df["fullName"] = alternate_df["fullName"].ffill()
+
     # Clean both tables
     for column in captain_df.columns:
         captain_df[column] = remove_references(captain_df[column])
