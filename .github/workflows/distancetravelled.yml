@@ -2,6 +2,21 @@ name: Refresh Team Travel Data
 
 on:
   workflow_dispatch:
+    inputs:
+      run_stage_1:
+        description: "Build Travel_1_ScheduleExpanded"
+        type: boolean
+        default: true
+
+      run_stage_2:
+        description: "Build Travel_2_Legs"
+        type: boolean
+        default: true
+
+      run_stage_3:
+        description: "Build Travel_3_Summary"
+        type: boolean
+        default: true
 
 env:
   PYTHONUNBUFFERED: "1"
@@ -34,7 +49,12 @@ jobs:
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
+      #########################################################
+      # Stage 1
+      #########################################################
+
       - name: Build Travel_1_ScheduleExpanded
+        if: ${{ inputs.run_stage_1 }}
         env:
           GCP_PROJECT: pacey32-agency
 
@@ -49,21 +69,32 @@ jobs:
           EXPECTED_TEAM_COUNT: "32"
           EXPECTED_GAMES_PER_TEAM: "82"
 
-          # Set to false while the season is still incomplete
           STRICT_GAME_COUNT_VALIDATION: "false"
 
         run: python distancetravelled/1_ScheduleExpanded.py
 
+      #########################################################
+      # Stage 2
+      #########################################################
+
       - name: Build Travel_2_Legs
+        if: ${{ inputs.run_stage_2 }}
         env:
-           GCP_PROJECT: pacey32-agency
-           SOURCE_TABLE: pacey32-agency.Team.Travel_1_ScheduleExpanded
-           DESTINATION_TABLE: pacey32-agency.Team.Travel_2_Legs
+          GCP_PROJECT: pacey32-agency
+          SOURCE_TABLE: pacey32-agency.Team.Travel_1_ScheduleExpanded
+          DESTINATION_TABLE: pacey32-agency.Team.Travel_2_Legs
+
         run: python distancetravelled/2_TravelLegs.py
 
-      # - name: Build Travel_3_Summary
-      #   env:
-      #     GCP_PROJECT: pacey32-agency
-      #     SOURCE_TABLE: pacey32-agency.Team.Travel_2_Legs
-      #     DESTINATION_TABLE: pacey32-agency.Team.Travel_3_Summary
-      #   run: python distancetravelled/3_summary.py
+      #########################################################
+      # Stage 3
+      #########################################################
+
+      - name: Build Travel_3_Summary
+        if: ${{ inputs.run_stage_3 }}
+        env:
+          GCP_PROJECT: pacey32-agency
+          SOURCE_TABLE: pacey32-agency.Team.Travel_2_Legs
+          DESTINATION_TABLE: pacey32-agency.Team.Travel_3_Summary
+
+        run: python distancetravelled/3_summary.py
