@@ -52,7 +52,7 @@ jobs:
           # Set to false while the season is still incomplete
           STRICT_GAME_COUNT_VALIDATION: "false"
 
-        run: python distancetravelled/1_scheduleexpanded.py
+        run: python distancetravelled/1_ScheduleExpanded.py
 
       # - name: Build Travel_2_Legs
       #   env:
