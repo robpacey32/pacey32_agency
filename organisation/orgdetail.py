@@ -55,6 +55,15 @@ URL_OWNERS = (
     "List_of_current_NHL_franchise_owners"
 )
 URL_AHL = "https://en.wikipedia.org/wiki/American_Hockey_League"
+URL_CAPTAINS = (
+    "https://en.wikipedia.org/wiki/"
+    "List_of_current_NHL_captains_and_alternate_captains"
+)
+
+URL_STANLEY_CUPS = (
+    "https://en.wikipedia.org/wiki/"
+    "List_of_Stanley_Cup_champions"
+)
 
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "60"))
 SCRAPE_DELAY_SECONDS = float(os.getenv("SCRAPE_DELAY_SECONDS", "0.5"))
@@ -473,6 +482,109 @@ def scrape_ahl(
     ahl_df["join_team"] = ahl_df["fullName"].apply(normalise_team_name)
     return add_source_metadata(ahl_df, "ahl", URL_AHL, scrape_ts)
 
+def scrape_captains() -> pd.DataFrame:
+
+    tables = get_tables(URL_CAPTAINS)
+
+    df = None
+
+    for table in tables:
+
+        table = flatten_columns(table)
+
+        cols = table.columns.tolist()
+
+        if "Team" in cols and "Captain" in cols:
+            df = table.copy()
+            break
+
+    if df is None:
+        raise RuntimeError("Captain table not found.")
+
+    df = df.rename(columns={
+        "Team": "fullName",
+        "Captain": "captain",
+        "Alternate captains": "alternate_captains"
+    })
+
+    df = df[[
+        "fullName",
+        "captain",
+        "alternate_captains"
+    ]].copy()
+
+    for col in df.columns:
+        df[col] = (
+            df[col]
+            .astype(str)
+            .str.replace(r"\[.*?\]", "", regex=True)
+            .str.strip()
+        )
+
+    # Split alternates into separate columns
+    alternates = (
+        df["alternate_captains"]
+        .str.split(",", expand=True)
+    )
+
+    for i in range(alternates.shape[1]):
+        df[f"alternate_captain_{i+1}"] = (
+            alternates[i].str.strip()
+        )
+
+    df.drop(columns="alternate_captains", inplace=True)
+
+    df["join_team"] = df["fullName"].apply(normalise_team_name)
+
+    df["captain_source_url"] = URL_CAPTAINS
+    df["captain_last_updated"] = datetime.now(timezone.utc)
+
+    return df
+
+def scrape_stanley_cups() -> pd.DataFrame:
+
+    tables = get_tables(URL_STANLEY_CUPS)
+
+    df = None
+
+    for table in tables:
+
+        table = flatten_columns(table)
+
+        cols = table.columns.tolist()
+
+        if "Season" in cols and "Winning team" in cols:
+            df = table.copy()
+            break
+
+    if df is None:
+        raise RuntimeError("Stanley Cup table not found.")
+
+    df = df[["Winning team"]].copy()
+
+    df["Winning team"] = (
+        df["Winning team"]
+        .astype(str)
+        .str.replace(r"\[.*?\]", "", regex=True)
+        .str.strip()
+    )
+
+    cups = (
+        df.groupby("Winning team")
+        .size()
+        .reset_index(name="stanley_cups")
+    )
+
+    cups = cups.rename(columns={
+        "Winning team": "fullName"
+    })
+
+    cups["join_team"] = cups["fullName"].apply(normalise_team_name)
+
+    cups["stanley_cup_source_url"] = URL_STANLEY_CUPS
+    cups["stanley_cup_last_updated"] = datetime.now(timezone.utc)
+
+    return cups
 
 # ============================================================
 # Merge, QA and upload
@@ -527,6 +639,8 @@ def merge_organisation_data(
     gm_df: pd.DataFrame,
     owner_df: pd.DataFrame,
     ahl_df: pd.DataFrame,
+    captain_df: pd.DataFrame,
+    cup_df: pd.DataFrame,
 ) -> pd.DataFrame:
     sources = {
         "arenas": arena_df,
@@ -534,6 +648,8 @@ def merge_organisation_data(
         "general managers": gm_df,
         "owners": owner_df,
         "AHL affiliates": ahl_df,
+        "captains": captain_df,
+        "stanley_cups": cup_df,
     }
 
     for name, dataframe in sources.items():
@@ -548,6 +664,8 @@ def merge_organisation_data(
         gm_df,
         owner_df,
         ahl_df,
+        captain_df,
+        cup_df,
     ):
         organisation_df = organisation_df.merge(
             dataframe.drop(columns=["fullName"]),
@@ -617,6 +735,8 @@ def main() -> None:
     gm_df = scrape_general_managers(session, scrape_ts)
     owner_df = scrape_owners(session, scrape_ts)
     ahl_df = scrape_ahl(session, scrape_ts)
+    captain_df = scrape_captains()
+    cup_df = scrape_stanley_cups()
 
     organisation_df = merge_organisation_data(
         team_df=team_df,
@@ -625,6 +745,8 @@ def main() -> None:
         gm_df=gm_df,
         owner_df=owner_df,
         ahl_df=ahl_df,
+        captain_df=captain_df,
+        cup_df=cup_df
     )
 
     upload_to_bigquery(client, organisation_df)
