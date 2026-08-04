@@ -541,9 +541,6 @@ def scrape_captains(
         ]
     ].copy()
 
-    # Wikipedia only lists the team on the first row.
-    alternate_df["fullName"] = alternate_df["fullName"].ffill()
-
     # Clean both tables
     for column in captain_df.columns:
         captain_df[column] = remove_references(captain_df[column])
@@ -551,7 +548,19 @@ def scrape_captains(
     for column in alternate_df.columns:
         alternate_df[column] = remove_references(alternate_df[column])
 
-    # Collapse alternates to one row per NHL team
+    # Wikipedia only lists the team on the first row
+    alternate_df["fullName"] = alternate_df["fullName"].ffill()
+
+    # Remove any remaining blank/header rows
+    alternate_df = alternate_df[
+        alternate_df["fullName"].notna()
+    ].copy()
+
+    alternate_df = alternate_df[
+        alternate_df["alternate_captain"].notna()
+    ].copy()
+
+    # Collapse to one row per team
     alternate_df = (
         alternate_df
         .groupby("fullName")["alternate_captain"]
@@ -559,7 +568,12 @@ def scrape_captains(
         .reset_index()
     )
 
-    for i in range(3):
+    max_alternates = min(
+        6,
+        alternate_df["alternate_captain"].str.len().max()
+    )
+
+    for i in range(max_alternates):
         alternate_df[f"alternate_captain_{i+1}"] = (
             alternate_df["alternate_captain"]
             .apply(lambda x: x[i] if len(x) > i else None)
