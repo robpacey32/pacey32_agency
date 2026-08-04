@@ -250,7 +250,6 @@ def get_schedule(
     FROM `{SCHEDULE_TABLE}`
     WHERE season = {season}
       AND game_type = {REGULAR_SEASON_GAME_TYPE}
-      AND game_schedule_state = 'OK'
     ORDER BY
         game_date,
         start_time_utc,
