@@ -54,12 +54,12 @@ jobs:
 
         run: python distancetravelled/1_ScheduleExpanded.py
 
-      # - name: Build Travel_2_Legs
-      #   env:
-      #     GCP_PROJECT: pacey32-agency
-      #     SOURCE_TABLE: pacey32-agency.Team.Travel_1_ScheduleExpanded
-      #     DESTINATION_TABLE: pacey32-agency.Team.Travel_2_Legs
-      #   run: python distancetravelled/2_legs.py
+      - name: Build Travel_2_Legs
+        env:
+           GCP_PROJECT: pacey32-agency
+           SOURCE_TABLE: pacey32-agency.Team.Travel_1_ScheduleExpanded
+           DESTINATION_TABLE: pacey32-agency.Team.Travel_2_Legs
+        run: python distancetravelled/2_TravelLegs.py
 
       # - name: Build Travel_3_Summary
       #   env:
