@@ -3,6 +3,16 @@ name: Refresh City Reference Data
 on:
   workflow_dispatch:
     inputs:
+
+      team_table:
+        description: "Team source table"
+        type: choice
+        required: true
+        default: "pacey32-agency.Team.TeamList"
+        options:
+          - "pacey32-agency.Team.TeamList"
+          - "pacey32-agency.Team.TeamList_History"
+
       force_refresh:
         description: "Force re-geocoding of every city"
         type: boolean
@@ -49,12 +59,17 @@ jobs:
       - name: Run City Reference Pipeline
         env:
           GCP_PROJECT: pacey32-agency
-          TEAM_TABLE: pacey32-agency.Team.TeamList
+
+          TEAM_TABLE: ${{ github.event.inputs.team_table }}
+
           CITY_REFERENCE_TABLE: pacey32-agency.City.CityReference
           CITY_REFERENCE_STAGING_TABLE: pacey32-agency.City.CityReference_staging
+
           SOURCE_CITY_COLUMN: venueLocation
+
           FORCE_REFRESH: ${{ github.event.inputs.force_refresh }}
           FORCE_CITIES: ${{ github.event.inputs.force_cities }}
+
           REQUEST_TIMEOUT: "60"
           GEOCODE_SLEEP_SECONDS: "0.25"
           HTTP_USER_AGENT: "pacey32-agency-city-reference/1.0"
