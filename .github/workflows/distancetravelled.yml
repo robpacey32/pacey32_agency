@@ -113,27 +113,3 @@ jobs:
           DESTINATION_TABLE: pacey32-agency.Team.Travel_2_Legs_5yr
 
         run: python distancetravelled/2_TravelLegs.py
-
-      #########################################################
-      # SUMMARY TABLES
-      #########################################################
-
-      - name: Build Travel_3_Summary
-        if: ${{ inputs.run_stage_3 }}
-        env:
-          GCP_PROJECT: pacey32-agency
-
-          SOURCE_TABLE: pacey32-agency.Team.Travel_2_Legs
-          DESTINATION_TABLE: pacey32-agency.Team.Travel_3_Summary
-
-        run: python distancetravelled/3_summary.py
-
-      - name: Build Travel_3_SeasonSummary_5yr
-        if: ${{ inputs.run_stage_3 && inputs.run_5yr }}
-        env:
-          GCP_PROJECT: pacey32-agency
-
-          SOURCE_TABLE: pacey32-agency.Team.Travel_2_Legs_5yr
-          DESTINATION_TABLE: pacey32-agency.Team.Travel_3_SeasonSummary
-
-        run: python distancetravelled/3b_SeasonSummary_5yr.py
