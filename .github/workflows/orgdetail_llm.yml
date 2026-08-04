@@ -38,7 +38,6 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GCP_PROJECT_ID: pacey32-agency
-          GEMINI_MODEL: gemini-2.5-flash
           PROMPT_VERSION: "1.0"
           FORCE_REFRESH: "false"
         run: python organisation/orgdetail_llm.py
