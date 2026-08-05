@@ -130,7 +130,7 @@ PRACTICE_FACILITIES = {
     "Anaheim Ducks": {
         "facility_name": "Great Park Ice & FivePoint Arena",
         "facility_type": "Dedicated practice facility",
-        "address": "888 Ridge Valley, Irvine, CA 92618",
+        "address": "888 Ridge Valley",
         "city": "Irvine",
         "state_province": "California",
         "country": "United States",
@@ -139,7 +139,7 @@ PRACTICE_FACILITIES = {
     "Boston Bruins": {
         "facility_name": "Warrior Ice Arena",
         "facility_type": "Dedicated practice facility",
-        "address": "90 Guest Street, Boston, MA 02135",
+        "address": "90 Guest Street",
         "city": "Boston",
         "state_province": "Massachusetts",
         "country": "United States",
@@ -148,7 +148,7 @@ PRACTICE_FACILITIES = {
     "Buffalo Sabres": {
         "facility_name": "LECOM Harborcenter",
         "facility_type": "Arena-connected",
-        "address": "100 Washington Street, Buffalo, NY 14203",
+        "address": "100 Washington Street",
         "city": "Buffalo",
         "state_province": "New York",
         "country": "United States",
@@ -157,7 +157,7 @@ PRACTICE_FACILITIES = {
     "Calgary Flames": {
         "facility_name": "Scotiabank Saddledome",
         "facility_type": "Arena",
-        "address": "555 Saddledome Rise SE, Calgary, AB",
+        "address": "555 Saddledome Rise SE",
         "city": "Calgary",
         "state_province": "Alberta",
         "country": "Canada",
@@ -166,7 +166,7 @@ PRACTICE_FACILITIES = {
     "Carolina Hurricanes": {
         "facility_name": "Wake Competition Center",
         "facility_type": "Dedicated practice facility",
-        "address": "801 Corporate Center Drive, Raleigh, NC",
+        "address": "801 Corporate Center Drive",
         "city": "Morrisville",
         "state_province": "North Carolina",
         "country": "United States",
@@ -175,7 +175,7 @@ PRACTICE_FACILITIES = {
     "Chicago Blackhawks": {
         "facility_name": "Fifth Third Arena",
         "facility_type": "Dedicated practice facility",
-        "address": "1801 W Jackson Boulevard, Chicago, IL 60612",
+        "address": "1801 West Jackson Boulevard",
         "city": "Chicago",
         "state_province": "Illinois",
         "country": "United States",
@@ -184,16 +184,16 @@ PRACTICE_FACILITIES = {
     "Colorado Avalanche": {
         "facility_name": "Family Sports Center",
         "facility_type": "Dedicated practice facility",
-        "address": "6901 S Peoria Street, Centennial, CO",
+        "address": "6901 South Peoria Street",
         "city": "Centennial",
         "state_province": "Colorado",
         "country": "United States",
         "notes": None,
     },
     "Columbus Blue Jackets": {
-        "facility_name": "OhioHealth Ice Haus",
+        "facility_name": "OhioHealth Ice Haus at Nationwide Arena",
         "facility_type": "Arena-connected",
-        "address": "200 W Nationwide Boulevard, Columbus, OH",
+        "address": "200 West Nationwide Boulevard",
         "city": "Columbus",
         "state_province": "Ohio",
         "country": "United States",
@@ -202,25 +202,25 @@ PRACTICE_FACILITIES = {
     "Dallas Stars": {
         "facility_name": "Comerica Center",
         "facility_type": "Dedicated practice facility",
-        "address": "2601 Avenue of the Stars, Frisco, TX",
+        "address": "2601 Avenue of the Stars",
         "city": "Frisco",
         "state_province": "Texas",
         "country": "United States",
         "notes": None,
     },
     "Detroit Red Wings": {
-        "facility_name": "BELFOR Training Center",
+        "facility_name": "Little Caesars Arena",
         "facility_type": "Arena-connected",
-        "address": "2645 Woodward Avenue, Detroit, MI",
+        "address": "2645 Woodward Avenue",
         "city": "Detroit",
         "state_province": "Michigan",
         "country": "United States",
-        "notes": "Located inside Little Caesars Arena.",
+        "notes": "BELFOR Training Center is inside the arena.",
     },
     "Edmonton Oilers": {
         "facility_name": "Downtown Community Arena",
         "facility_type": "Arena-connected",
-        "address": "10220 104 Avenue NW, Edmonton, AB",
+        "address": "10220 104 Avenue NW",
         "city": "Edmonton",
         "state_province": "Alberta",
         "country": "Canada",
@@ -229,7 +229,7 @@ PRACTICE_FACILITIES = {
     "Florida Panthers": {
         "facility_name": "Baptist Health IcePlex",
         "facility_type": "Dedicated practice facility",
-        "address": "800 NE 8th Street, Fort Lauderdale, FL",
+        "address": "800 Northeast 8th Street",
         "city": "Fort Lauderdale",
         "state_province": "Florida",
         "country": "United States",
@@ -238,17 +238,17 @@ PRACTICE_FACILITIES = {
     "Los Angeles Kings": {
         "facility_name": "Toyota Sports Performance Center",
         "facility_type": "Dedicated practice facility",
-        "address": "555 N Nash Street, El Segundo, CA",
+        "address": "555 North Nash Street",
         "city": "El Segundo",
         "state_province": "California",
         "country": "United States",
         "notes": None,
     },
     "Minnesota Wild": {
-        "facility_name": "TRIA Rink",
+        "facility_name": "TRIA Rink at Treasure Island Center",
         "facility_type": "Dedicated practice facility",
-        "address": "400 Wabasha Street N, St. Paul, MN",
-        "city": "St. Paul",
+        "address": "400 Wabasha Street North",
+        "city": "Saint Paul",
         "state_province": "Minnesota",
         "country": "United States",
         "notes": None,
@@ -256,7 +256,7 @@ PRACTICE_FACILITIES = {
     "Montréal Canadiens": {
         "facility_name": "CN Sports Complex",
         "facility_type": "Dedicated practice facility",
-        "address": "8000 Boulevard Leduc, Brossard, QC",
+        "address": "8000 Boulevard Leduc",
         "city": "Brossard",
         "state_province": "Quebec",
         "country": "Canada",
@@ -265,25 +265,25 @@ PRACTICE_FACILITIES = {
     "Nashville Predators": {
         "facility_name": "Ford Ice Center Bellevue",
         "facility_type": "Dedicated practice facility",
-        "address": "7638 B Highway 70 S, Nashville, TN",
+        "address": "7638 Highway 70 South",
         "city": "Nashville",
         "state_province": "Tennessee",
         "country": "United States",
         "notes": "Primary practice facility.",
     },
     "New Jersey Devils": {
-        "facility_name": "RWJBarnabas Health Hockey House",
+        "facility_name": "Prudential Center",
         "facility_type": "Arena-connected",
-        "address": "25 Lafayette Street, Newark, NJ",
+        "address": "25 Lafayette Street",
         "city": "Newark",
         "state_province": "New Jersey",
         "country": "United States",
-        "notes": "Attached to Prudential Center.",
+        "notes": "RWJBarnabas Health Hockey House is attached to Prudential Center.",
     },
     "New York Islanders": {
         "facility_name": "Northwell Health Ice Center",
         "facility_type": "Dedicated practice facility",
-        "address": "200 Merrick Avenue, East Meadow, NY",
+        "address": "200 Merrick Avenue",
         "city": "East Meadow",
         "state_province": "New York",
         "country": "United States",
@@ -292,7 +292,7 @@ PRACTICE_FACILITIES = {
     "New York Rangers": {
         "facility_name": "MSG Training Center",
         "facility_type": "Dedicated practice facility",
-        "address": "600 Corporate Court, Greenburgh, NY",
+        "address": "600 Corporate Court",
         "city": "Greenburgh",
         "state_province": "New York",
         "country": "United States",
@@ -301,7 +301,7 @@ PRACTICE_FACILITIES = {
     "Ottawa Senators": {
         "facility_name": "Bell Sensplex",
         "facility_type": "Dedicated practice facility",
-        "address": "1565 Maple Grove Road, Ottawa, ON",
+        "address": "1565 Maple Grove Road",
         "city": "Ottawa",
         "state_province": "Ontario",
         "country": "Canada",
@@ -310,7 +310,7 @@ PRACTICE_FACILITIES = {
     "Philadelphia Flyers": {
         "facility_name": "Flyers Training Center",
         "facility_type": "Dedicated practice facility",
-        "address": "601 Laurel Oak Road, Voorhees, NJ",
+        "address": "601 Laurel Oak Road",
         "city": "Voorhees",
         "state_province": "New Jersey",
         "country": "United States",
@@ -319,10 +319,7 @@ PRACTICE_FACILITIES = {
     "Pittsburgh Penguins": {
         "facility_name": "UPMC Lemieux Sports Complex",
         "facility_type": "Dedicated practice facility",
-        "address": (
-            "8000 Cranberry Springs Drive, "
-            "Cranberry Township, PA"
-        ),
+        "address": "8000 Cranberry Springs Drive",
         "city": "Cranberry Township",
         "state_province": "Pennsylvania",
         "country": "United States",
@@ -331,7 +328,7 @@ PRACTICE_FACILITIES = {
     "San Jose Sharks": {
         "facility_name": "Sharks Ice at San Jose",
         "facility_type": "Dedicated practice facility",
-        "address": "1500 S 10th Street, San Jose, CA",
+        "address": "1500 South 10th Street",
         "city": "San Jose",
         "state_province": "California",
         "country": "United States",
@@ -340,7 +337,7 @@ PRACTICE_FACILITIES = {
     "Seattle Kraken": {
         "facility_name": "Kraken Community Iceplex",
         "facility_type": "Dedicated practice facility",
-        "address": "10601 5th Avenue NE, Seattle, WA",
+        "address": "10601 5th Avenue NE",
         "city": "Seattle",
         "state_province": "Washington",
         "country": "United States",
@@ -349,7 +346,7 @@ PRACTICE_FACILITIES = {
     "St. Louis Blues": {
         "facility_name": "Centene Community Ice Center",
         "facility_type": "Dedicated practice facility",
-        "address": "750 Casino Center Drive, Maryland Heights, MO",
+        "address": "750 Casino Center Drive",
         "city": "Maryland Heights",
         "state_province": "Missouri",
         "country": "United States",
@@ -358,7 +355,7 @@ PRACTICE_FACILITIES = {
     "Tampa Bay Lightning": {
         "facility_name": "TGH Ice Plex",
         "facility_type": "Dedicated practice facility",
-        "address": "10222 Elizabeth Place, Tampa, FL",
+        "address": "10222 Elizabeth Place",
         "city": "Brandon",
         "state_province": "Florida",
         "country": "United States",
@@ -367,45 +364,34 @@ PRACTICE_FACILITIES = {
     "Toronto Maple Leafs": {
         "facility_name": "Ford Performance Centre",
         "facility_type": "Dedicated practice facility",
-        "address": "400 Kipling Avenue, Toronto, ON",
+        "address": "400 Kipling Avenue",
         "city": "Toronto",
         "state_province": "Ontario",
         "country": "Canada",
         "notes": None,
     },
     "Utah Mammoth": {
-        "facility_name": "Utah Mammoth Ice Center",
-        "facility_type": "Dedicated practice facility",
-        "address": "Sandy, UT",
-        "city": "Sandy",
+        "facility_name": "Maverik Center",
+        "facility_type": "Temporary practice facility",
+        "address": "3200 South Decker Lake Drive",
+        "city": "West Valley City",
         "state_province": "Utah",
         "country": "United States",
-        "notes": (
-            "Current or planned primary training facility; "
-            "verify when the permanent facility is fully operational."
-        ),
+        "notes": "Temporary training location while the permanent practice facility is developed.",
     },
     "Vancouver Canucks": {
-        "facility_name": (
-            "UBC Doug Mitchell Thunderbird Sports Centre"
-        ),
+        "facility_name": "Doug Mitchell Thunderbird Sports Centre",
         "facility_type": "Shared practice facility",
-        "address": "6066 Thunderbird Boulevard, Vancouver, BC",
+        "address": "6066 Thunderbird Boulevard",
         "city": "Vancouver",
         "state_province": "British Columbia",
         "country": "Canada",
-        "notes": (
-            "Primary shared practice venue; Rogers Arena may also "
-            "be used depending on schedule."
-        ),
+        "notes": "Primary shared practice venue.",
     },
     "Vegas Golden Knights": {
         "facility_name": "City National Arena",
         "facility_type": "Dedicated practice facility",
-        "address": (
-            "1550 S Pavilion Center Drive, "
-            "Las Vegas, NV"
-        ),
+        "address": "1550 South Pavilion Center Drive",
         "city": "Las Vegas",
         "state_province": "Nevada",
         "country": "United States",
@@ -414,7 +400,7 @@ PRACTICE_FACILITIES = {
     "Washington Capitals": {
         "facility_name": "MedStar Capitals Iceplex",
         "facility_type": "Dedicated practice facility",
-        "address": "627 N Glebe Road, Arlington, VA",
+        "address": "627 North Glebe Road",
         "city": "Arlington",
         "state_province": "Virginia",
         "country": "United States",
@@ -423,12 +409,12 @@ PRACTICE_FACILITIES = {
     "Winnipeg Jets": {
         "facility_name": "Hockey for All Centre",
         "facility_type": "Dedicated practice facility",
-        "address": "3969 Portage Avenue, Winnipeg, MB",
+        "address": "3969 Portage Avenue",
         "city": "Winnipeg",
         "state_province": "Manitoba",
         "country": "Canada",
         "notes": None,
-    }
+    },
 }
 
 
@@ -590,6 +576,27 @@ def main() -> None:
         label="practice facility team",
     )
 
+    missing = practice_df[
+        practice_df["latitude"].isna()
+        | practice_df["longitude"].isna()
+    ]
+
+    if not missing.empty:
+        print("\nPractice facilities that failed geocoding:\n")
+        print(
+            missing[
+                [
+                    "fullName",
+                    "facility_name",
+                    "address",
+                    "city",
+                    "state_province",
+                    "country",
+                    "query",
+                ]
+            ].to_string(index=False)
+        )
+
     validate_coordinates(
         dataframe=practice_df,
         allow_missing=False,
@@ -614,7 +621,6 @@ def main() -> None:
         "Practice Facility pipeline completed successfully."
     )
     print("=" * 70)
-
 
 if __name__ == "__main__":
     main()

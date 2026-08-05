@@ -492,17 +492,56 @@ def geocode_location(
     state_province: object = None,
     country: object = None,
 ) -> dict[str, Any]:
-    """Geocode one location with Nominatim."""
+    """Geocode one location with progressively simpler queries."""
 
-    query = build_location_query(
-        name=name,
-        address=address,
-        city=city,
-        state_province=state_province,
-        country=country,
+    queries = []
+
+    # Full query
+    queries.append(
+        build_location_query(
+            name=name,
+            address=address,
+            city=city,
+            state_province=state_province,
+            country=country,
+        )
     )
 
-    if not query:
+    # Name + city
+    queries.append(
+        build_location_query(
+            name=name,
+            city=city,
+            state_province=state_province,
+            country=country,
+        )
+    )
+
+    # Name + state
+    queries.append(
+        build_location_query(
+            name=name,
+            state_province=state_province,
+            country=country,
+        )
+    )
+
+    # Name only
+    queries.append(
+        build_location_query(
+            name=name,
+        )
+    )
+
+    # Remove blanks / duplicates while preserving order
+    seen = set()
+    queries = [
+        q
+        for q in queries
+        if q and not (q in seen or seen.add(q))
+    ]
+
+    if not queries:
         return {
             "query": None,
             "latitude": None,
@@ -512,38 +551,41 @@ def geocode_location(
             "geocode_status": "EMPTY_QUERY",
         }
 
-    location = geocode(query)
+    for query in queries:
 
-    if location is None:
-        return {
-            "query": query,
-            "latitude": None,
-            "longitude": None,
-            "matched_address": None,
-            "geography_wkt": None,
-            "geocode_status": "NOT_FOUND",
-        }
+        location = geocode(query)
 
-    latitude = safe_float(
-        location.latitude
-    )
+        if location is not None:
 
-    longitude = safe_float(
-        location.longitude
-    )
+            latitude = safe_float(
+                location.latitude
+            )
+
+            longitude = safe_float(
+                location.longitude
+            )
+
+            return {
+                "query": query,
+                "latitude": latitude,
+                "longitude": longitude,
+                "matched_address": clean_text(
+                    location.address
+                ),
+                "geography_wkt": geography_wkt(
+                    latitude,
+                    longitude,
+                ),
+                "geocode_status": "FOUND",
+            }
 
     return {
-        "query": query,
-        "latitude": latitude,
-        "longitude": longitude,
-        "matched_address": clean_text(
-            location.address
-        ),
-        "geography_wkt": geography_wkt(
-            latitude,
-            longitude,
-        ),
-        "geocode_status": "FOUND",
+        "query": queries[-1],
+        "latitude": None,
+        "longitude": None,
+        "matched_address": None,
+        "geography_wkt": None,
+        "geocode_status": "NOT_FOUND",
     }
 
 
