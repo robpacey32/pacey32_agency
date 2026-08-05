@@ -399,13 +399,37 @@ def get_source_cities() -> pd.DataFrame:
     """Read distinct non-empty city names from the source table."""
     query = f"""
     SELECT DISTINCT
-        TRIM(CAST(`{SOURCE_CITY_COLUMN}` AS STRING))
-            AS city_name
+        TRIM(CAST(`{SOURCE_CITY_COLUMN}` AS STRING)) AS city_name,
+
+        CASE TRIM(CAST(`{SOURCE_CITY_COLUMN}` AS STRING))
+            WHEN 'Washington' THEN 'District of Columbia'
+            WHEN 'Paradise' THEN 'Nevada'
+            WHEN 'Elmont' THEN 'New York'
+            WHEN 'St. Louis' THEN 'Missouri'
+            WHEN 'St. Paul' THEN 'Minnesota'
+            WHEN 'Sunrise' THEN 'Florida'
+            ELSE NULL
+        END AS state_province,
+
+        CASE
+            WHEN TRIM(CAST(`{SOURCE_CITY_COLUMN}` AS STRING)) IN (
+                'Calgary',
+                'Edmonton',
+                'Montreal',
+                'Ottawa',
+                'Toronto',
+                'Vancouver',
+                'Winnipeg'
+            )
+            THEN 'Canada'
+            ELSE 'United States'
+        END AS country
+
     FROM `{TEAM_TABLE}`
+
     WHERE `{SOURCE_CITY_COLUMN}` IS NOT NULL
-      AND TRIM(
-            CAST(`{SOURCE_CITY_COLUMN}` AS STRING)
-          ) != ''
+    AND TRIM(CAST(`{SOURCE_CITY_COLUMN}` AS STRING)) != ''
+
     ORDER BY city_name
     """
 
@@ -660,14 +684,27 @@ def select_best_result(
 
 def geocode_city(
     city_name: str,
+    state_province: str | None = None,
+    country: str | None = None,
 ) -> dict[str, Any]:
     """Geocode one city using the Open-Meteo Geocoding API."""
     city_name = clean_text(city_name)
+    state_province = clean_text(state_province)
+    country = clean_text(country)
 
-    search_name = GEOCODE_SEARCH_OVERRIDES.get(
-        city_name,
-        city_name,
-    )
+    search_name = GEOCODE_SEARCH_OVERRIDES.get(city_name)
+
+    if search_name is None:
+
+        parts = [city_name]
+
+        if state_province:
+            parts.append(state_province)
+
+        if country:
+            parts.append(country)
+
+        search_name = ", ".join(parts)
 
     response = HTTP.get(
         GEOCODING_URL,
@@ -779,40 +816,50 @@ def geocode_cities(
 
     total = len(cities_df)
 
-    for position, city_name in enumerate(
-        cities_df["city_name"],
+    for position, source_row in enumerate(
+        cities_df.itertuples(index=False),
         start=1,
     ):
-        city_name = clean_text(city_name)
+
+        city_name = clean_text(source_row.city_name)
 
         print(
-            f"Geocoding {position}/{total}: "
-            f"{city_name}"
+            f"Geocoding {position}/{total}: {city_name}"
         )
 
         try:
+
             row = geocode_city(
-                city_name
+                city_name=city_name,
+                state_province=getattr(
+                    source_row,
+                    "state_province",
+                    None,
+                ),
+                country=getattr(
+                    source_row,
+                    "country",
+                    None,
+                ),
             )
 
         except Exception as exc:
-            search_name = (
-                GEOCODE_SEARCH_OVERRIDES.get(
-                    city_name,
-                    city_name,
-                )
+
+            search_name = GEOCODE_SEARCH_OVERRIDES.get(
+                city_name,
+                city_name,
             )
 
             row = not_found_result(
                 city_name=city_name,
                 search_name=search_name,
-                status=(
-                    f"ERROR: "
-                    f"{type(exc).__name__}: {exc}"
-                ),
+                status=f"ERROR: {type(exc).__name__}: {exc}",
             )
 
         rows.append(row)
+
+        if position < total:
+            time.sleep(GEOCODE_SLEEP_SECONDS)
 
         if position < total:
             time.sleep(
