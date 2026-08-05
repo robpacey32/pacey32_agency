@@ -56,6 +56,10 @@ GEOAPIFY_BASE_URL = (
     "https://api.geoapify.com/v2/places"
 )
 
+GEOAPIFY_GEOCODE_URL = (
+    "https://api.geoapify.com/v1/geocode/search"
+)
+
 REQUEST_TIMEOUT = int(
     os.getenv("REQUEST_TIMEOUT", "60")
 )
@@ -194,6 +198,36 @@ def create_bigquery_client() -> bigquery.Client:
         project=PROJECT_ID,
     )
 
+def geoapify_geocode(
+    session: requests.Session,
+    query: str,
+) -> dict[str, Any] | None:
+    """Geocode a location using the Geoapify API."""
+
+    response = session.get(
+        GEOAPIFY_GEOCODE_URL,
+        params={
+            "text": query,
+            "limit": 1,
+            "apiKey": GEOAPIFY_API_KEY,
+        },
+        timeout=REQUEST_TIMEOUT,
+    )
+
+    response.raise_for_status()
+
+    features = response.json().get("features", [])
+
+    if not features:
+        return None
+
+    props = features[0]["properties"]
+
+    return {
+        "latitude": safe_float(props.get("lat")),
+        "longitude": safe_float(props.get("lon")),
+        "matched_address": clean_text(props.get("formatted")),
+    }
 
 def create_nominatim_geocoder() -> RateLimiter:
     """Create the rate-limited Nominatim geocoder."""
@@ -496,6 +530,8 @@ def geocode_location(
 
     queries = []
 
+    session = create_http_session()
+
     # Full query
     queries.append(
         build_location_query(
@@ -552,6 +588,27 @@ def geocode_location(
         }
 
     for query in queries:
+
+        result = geoapify_geocode(
+            session=session,
+            query=query,
+        )
+
+        if result is not None:
+            latitude = result["latitude"]
+            longitude = result["longitude"]
+
+            return {
+                "query": query,
+                "latitude": latitude,
+                "longitude": longitude,
+                "matched_address": result["matched_address"],
+                "geography_wkt": geography_wkt(
+                    latitude,
+                    longitude,
+                ),
+                "geocode_status": "FOUND",
+            }
 
         location = geocode(query)
 

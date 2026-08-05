@@ -191,7 +191,7 @@ PRACTICE_FACILITIES = {
         "notes": None,
     },
     "Columbus Blue Jackets": {
-        "facility_name": "OhioHealth Ice Haus at Nationwide Arena",
+        "facility_name": "Ohio Health Ice Haus at Nationwide Arena",
         "facility_type": "Arena-connected",
         "address": "200 West Nationwide Boulevard",
         "city": "Columbus",
