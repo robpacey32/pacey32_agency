@@ -270,11 +270,18 @@ def generate_residential_areas(
         response.text
     )
 
+    decoder = json.JSONDecoder()
+
     try:
-        areas = json.loads(raw_text)
+
+        areas, _ = decoder.raw_decode(
+            raw_text
+        )
+
     except json.JSONDecodeError as error:
+
         raise RuntimeError(
-            f"Invalid Gemini JSON for {team['fullName']}:\n"
+            f"Invalid Gemini JSON for {team['fullName']}:\n\n"
             f"{response.text}"
         ) from error
 
@@ -287,11 +294,15 @@ def generate_residential_areas(
     validated: list[dict[str, Any]] = []
 
     for item in areas[:5]:
+
         if not isinstance(item, dict):
             continue
 
         area_name = str(
-            item.get("area_name", "")
+            item.get(
+                "area_name",
+                "",
+            )
         ).strip()
 
         if not area_name:
@@ -309,7 +320,9 @@ def generate_residential_areas(
 
         try:
             confidence = float(
-                item.get("confidence")
+                item.get(
+                    "confidence"
+                )
             )
         except (TypeError, ValueError):
             confidence = None
@@ -317,7 +330,10 @@ def generate_residential_areas(
         if confidence is not None:
             confidence = max(
                 0.0,
-                min(1.0, confidence),
+                min(
+                    1.0,
+                    confidence,
+                ),
             )
 
         validated.append(
@@ -461,38 +477,23 @@ def build_team_rows(
     return rows
 
 
-# ============================================================
-# Main
-# ============================================================
-
 def main() -> None:
     """Run the player residential-area pipeline."""
 
     print("=" * 70)
     print("PLAYER RESIDENTIAL AREA GEOSPATIAL PIPELINE")
     print("=" * 70)
-    print(f"Output table: {OUTPUT_TABLE}")
-    print(f"Gemini model: {MODEL}")
-    print(f"Prompt version: {PROMPT_VERSION}")
-    print(f"Force refresh: {FORCE_REFRESH}")
-    print()
 
     bq = create_bigquery_client()
     ai_client = create_gemini_client()
 
-    teams = load_team_locations(
-        client=bq,
-    )
+    teams = load_team_locations(client=bq)
 
-    existing_df = load_existing_rows(
-        client=bq,
-    )
+    existing_df = load_existing_rows(client=bq)
 
     if FORCE_REFRESH:
         teams_to_process = teams.copy()
-        retained_df = pd.DataFrame(
-            columns=OUTPUT_COLUMNS
-        )
+        retained_df = pd.DataFrame(columns=OUTPUT_COLUMNS)
     else:
         completed_ids = set(
             pd.to_numeric(
@@ -504,22 +505,15 @@ def main() -> None:
             )
             .dropna()
             .astype(int)
-            .tolist()
         )
 
         teams_to_process = teams[
-            ~teams["id"].astype(int).isin(
-                completed_ids
-            )
+            ~teams["id"].astype(int).isin(completed_ids)
         ].copy()
 
         retained_df = existing_df.copy()
 
-    print(
-        f"{len(teams_to_process)} teams require generation."
-    )
-
-    new_rows: list[dict[str, Any]] = []
+    print(f"{len(teams_to_process)} teams require generation.")
 
     total = len(teams_to_process)
 
@@ -527,135 +521,93 @@ def main() -> None:
         teams_to_process.iterrows(),
         start=1,
     ):
-        print(
-            f"[{number}/{total}] "
-            f"{team['fullName']}"
-        )
 
-        areas = generate_residential_areas(
-            ai_client=ai_client,
-            team=team,
-        )
+        print(f"[{number}/{total}] {team['fullName']}")
 
-        print(
-            "  Gemini areas: "
-            + ", ".join(
-                area["area_name"]
-                for area in areas
+        try:
+
+            areas = generate_residential_areas(
+                ai_client=ai_client,
+                team=team,
             )
-        )
 
-        team_rows = build_team_rows(
-            team=team,
-            areas=areas,
-        )
+            print(
+                "  Gemini areas: "
+                + ", ".join(
+                    area["area_name"]
+                    for area in areas
+                )
+            )
 
-        new_rows.extend(
-            team_rows
-        )
+            team_rows = build_team_rows(
+                team=team,
+                areas=areas,
+            )
 
-        found_count = sum(
-            row["geocode_status"] == "FOUND"
-            for row in team_rows
-        )
+            found_count = sum(
+                row["geocode_status"] == "FOUND"
+                for row in team_rows
+            )
 
-        print(
-            f"  Geocoded: {found_count}/"
-            f"{len(team_rows)}"
-        )
+            print(
+                f"  Geocoded: {found_count}/{len(team_rows)}"
+            )
 
-    new_df = pd.DataFrame(
-        new_rows,
-        columns=OUTPUT_COLUMNS,
-    )
+            retained_df = pd.concat(
+                [
+                    retained_df,
+                    pd.DataFrame(
+                        team_rows,
+                        columns=OUTPUT_COLUMNS,
+                    ),
+                ],
+                ignore_index=True,
+            )
 
-    output_df = pd.concat(
-        [
-            retained_df[OUTPUT_COLUMNS],
-            new_df,
-        ],
-        ignore_index=True,
-    )
+            retained_df = (
+                retained_df
+                .sort_values(
+                    [
+                        "fullName",
+                        "rank",
+                    ]
+                )
+                .reset_index(drop=True)
+            )
 
-    if output_df.empty:
-        raise RuntimeError(
-            "No residential-area rows were produced."
-        )
+            upload_dataframe(
+                client=bq,
+                dataframe=retained_df,
+                table_name=OUTPUT_TABLE,
+                schema=SCHEMA,
+            )
 
-    output_df = (
-        output_df
-        .sort_values(
-            [
-                "fullName",
-                "rank",
-            ]
-        )
-        .reset_index(drop=True)
-    )
+            print("  Uploaded")
+
+        except Exception as error:
+
+            print(
+                f"  ERROR: {team['fullName']}"
+            )
+            print(error)
+
+            continue
 
     validate_unique(
-        dataframe=output_df,
-        columns=[
-            "id",
-            "rank",
-        ],
+        dataframe=retained_df,
+        columns=["id", "rank"],
         label="team residential-area rank",
     )
 
-    missing = output_df[
-        output_df["latitude"].isna()
-        | output_df["longitude"].isna()
-    ]
-
-    if not missing.empty:
-        print(
-            "\nResidential areas that failed geocoding:\n"
-        )
-
-        print(
-            missing[
-                [
-                    "fullName",
-                    "rank",
-                    "area_name",
-                    "city",
-                    "state_province",
-                    "country",
-                    "query",
-                ]
-            ].to_string(
-                index=False
-            )
-        )
-
-    # Allow individual neighbourhood misses without failing
-    # the entire pipeline.
     validate_coordinates(
-        dataframe=output_df,
+        dataframe=retained_df,
         allow_missing=True,
     )
 
     print_geo_summary(
-        dataframe=output_df,
+        dataframe=retained_df,
     )
 
-    print()
-
-    upload_dataframe(
-        client=bq,
-        dataframe=output_df,
-        table_name=OUTPUT_TABLE,
-        schema=SCHEMA,
-    )
-
-    print()
     print("=" * 70)
-    print(
-        "Player Residential Area pipeline "
-        "completed successfully."
-    )
+    print("Pipeline completed.")
     print("=" * 70)
-
-
-if __name__ == "__main__":
-    main()
