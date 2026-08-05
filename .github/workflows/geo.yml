@@ -70,7 +70,7 @@ jobs:
           GCP_PROJECT: pacey32-agency
           GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
         run: |
-          python -m geospatial/geo_arena
+          python -m geospatial.geo_arena
 
       - name: Refresh Practice Facility
         if: ${{ inputs.run_practice }}
@@ -78,7 +78,7 @@ jobs:
           GCP_PROJECT: pacey32-agency
           GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
         run: |
-          python -m geospatial/geo_practice_facility
+          python -m geospatial.geo_practice_facility
 
       - name: Refresh POI Tables
         if: ${{ inputs.run_poi }}
@@ -86,4 +86,4 @@ jobs:
           GCP_PROJECT: pacey32-agency
           GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
         run: |
-          python -m geospatial/geo_poi
+          python -m geospatial.geo_poi
