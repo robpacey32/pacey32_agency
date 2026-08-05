@@ -611,3 +611,6 @@ def main() -> None:
     print("=" * 70)
     print("Pipeline completed.")
     print("=" * 70)
+
+if __name__ == "__main__":
+    main()
