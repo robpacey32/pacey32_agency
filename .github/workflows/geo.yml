@@ -1,23 +1,17 @@
-name: Refresh Geo Data
+name: Refresh Cap Data
 
 on:
   workflow_dispatch:
     inputs:
 
-      run_arena:
-        description: "Refresh Arena table"
+      run_team:
+        description: "Refresh Team cap table"
         type: boolean
         required: true
         default: true
 
-      run_practice:
-        description: "Refresh Practice Facility table"
-        type: boolean
-        required: true
-        default: true
-
-      run_poi:
-        description: "Refresh POI tables"
+      run_player:
+        description: "Refresh Player cap table"
         type: boolean
         required: true
         default: true
@@ -26,7 +20,7 @@ env:
   PYTHONUNBUFFERED: "1"
 
 jobs:
-  refresh-geo:
+  refresh-cap:
 
     runs-on: ubuntu-latest
 
@@ -50,11 +44,13 @@ jobs:
           pip install \
             pandas \
             pyarrow \
-            requests \
-            geopy \
+            beautifulsoup4 \
+            playwright \
             google-cloud-bigquery \
             google-cloud-bigquery-storage \
             db-dtypes
+
+          python -m playwright install --with-deps chromium
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -64,26 +60,16 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Refresh Arena
-        if: ${{ inputs.run_arena }}
+      - name: Refresh Team Cap
+        if: ${{ inputs.run_team }}
         env:
           GCP_PROJECT: pacey32-agency
-          GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
         run: |
-          python -m geospatial.geo_arena
+          python -m cap.teamcap
 
-      - name: Refresh Practice Facility
-        if: ${{ inputs.run_practice }}
+      - name: Refresh Player Cap
+        if: ${{ inputs.run_player }}
         env:
           GCP_PROJECT: pacey32-agency
-          GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
         run: |
-          python -m geospatial.geo_practice_facility
-
-      - name: Refresh POI Tables
-        if: ${{ inputs.run_poi }}
-        env:
-          GCP_PROJECT: pacey32-agency
-          GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
-        run: |
-          python -m geospatial.geo_poi
+          python -m cap.playercap
