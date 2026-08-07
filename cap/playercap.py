@@ -28,6 +28,7 @@ EXPECTED_TEAM_COUNT = 32
 PLAYER_SCHEMA = [
     bigquery.SchemaField("team_slug", "STRING", mode="REQUIRED"),
     bigquery.SchemaField("team_name", "STRING", mode="REQUIRED"),
+    bigquery.SchemaField("contract_section", "STRING"),
 
     bigquery.SchemaField("player", "STRING", mode="REQUIRED"),
     bigquery.SchemaField("player_url", "STRING"),
@@ -257,6 +258,26 @@ def parse_contract_page(
     # -----------------------------------------------------------------
 
     for table in contract_tables:
+
+        section = "Unknown"
+
+        wrapper = table.find_previous(
+            "div",
+            id=lambda x: x and x.startswith("capby_")
+        )
+
+        if wrapper:
+
+            header = wrapper.find("div", class_="flex items-center")
+
+            if header:
+
+                divs = header.find_all("div", recursive=False)
+
+                # div[0] = count
+                # div[1] = section name
+                if len(divs) >= 2:
+                    section = divs[1].get_text(strip=True)
 
         # -------------------------------------------------------------
         # Read season headings for THIS table
@@ -537,6 +558,9 @@ def parse_contract_page(
 
                     "scrape_datetime":
                         scrape_datetime,
+
+                    "contract_section":
+                        section,
                 })
 
     if not records:
@@ -555,6 +579,7 @@ def parse_contract_page(
         [
             "team_slug",
             "team_name",
+            "contract_section",
             "player",
             "player_url",
             "position",
@@ -628,6 +653,7 @@ def parse_contract_page(
         "team_slug",
         "player_url",
         "season",
+        "contract_section",
     ]
 
     duplicated = df.duplicated(

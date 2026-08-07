@@ -10,3 +10,6 @@ beautifulsoup4
 timezonefinder
 google-genai
 lxml
+playwright
+google-genai
+html5lib
