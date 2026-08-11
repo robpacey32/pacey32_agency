@@ -16,6 +16,12 @@ on:
         required: true
         default: true
 
+      run_player_detail:
+        description: "Refresh Player detail table"
+        type: boolean
+        required: true
+        default: true
+
 env:
   PYTHONUNBUFFERED: "1"
 
@@ -64,3 +70,10 @@ jobs:
           GCP_PROJECT: pacey32-agency
         run: |
           python -m cap.playercap
+
+      - name: Refresh Player Detail
+        if: ${{ inputs.run_player_detail }}
+        env:
+          GCP_PROJECT: pacey32-agency
+        run: |
+          python -m cap.playercapdetail
