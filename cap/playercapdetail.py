@@ -421,15 +421,14 @@ def get_player_urls(client):
     """
     return [row.player_url for row in client.query(sql).result()]
 
-def upload_batch(client, rows, write_disposition):
+def upload_batch(client, rows):
     if not rows:
         return
 
     df = pd.DataFrame(rows)
 
     job_config = bigquery.LoadJobConfig(
-        write_disposition=write_disposition,
-        schema_update_options=[bigquery.SchemaUpdateOption.ALLOW_FIELD_ADDITION]
+        write_disposition=bigquery.WriteDisposition.WRITE_APPEND
     )
 
     client.load_table_from_dataframe(
@@ -472,8 +471,6 @@ def main():
 
         page = context.new_page()
 
-        first_write = True
-
         for i, url in enumerate(player_urls, 1):
             player_start = time.time()
 
@@ -510,15 +507,7 @@ def main():
                 )
 
                 if len(batch) >= BATCH_SIZE:
-                    upload_batch(
-                        client,
-                        batch,
-                        bigquery.WriteDisposition.WRITE_TRUNCATE
-                        if first_write
-                        else bigquery.WriteDisposition.WRITE_APPEND
-                    )
-
-                    first_write = False
+                    upload_batch(client, batch)
                     batch = []
 
             except Exception as e:
@@ -533,13 +522,7 @@ def main():
 
     # Final partial batch
     if batch:
-        upload_batch(
-            client,
-            batch,
-            bigquery.WriteDisposition.WRITE_TRUNCATE
-            if first_write
-            else bigquery.WriteDisposition.WRITE_APPEND
-        )
+        upload_batch(client,batch)
 
     print()
     print("=" * 70)
