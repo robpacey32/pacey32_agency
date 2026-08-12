@@ -414,10 +414,22 @@ def parse_player_detail(html, url):
 
 def get_player_urls(client):
     sql = f"""
-    SELECT DISTINCT player_url
-    FROM `{SOURCE_TABLE}`
-    WHERE player_url IS NOT NULL
-    ORDER BY player_url
+    SELECT DISTINCT p.player_url
+    FROM `{SOURCE_TABLE}` p
+    LEFT JOIN (
+        SELECT
+            player_url,
+            MAX(scrape_datetime) AS last_scraped
+        FROM `{OUTPUT_TABLE}`
+        GROUP BY player_url
+    ) d
+        ON p.player_url = d.player_url
+    WHERE p.player_url IS NOT NULL
+      AND (
+          d.last_scraped IS NULL
+          OR d.last_scraped < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 MONTH)
+      )
+    ORDER BY p.player_url
     """
     return [row.player_url for row in client.query(sql).result()]
 
