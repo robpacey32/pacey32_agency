@@ -327,9 +327,17 @@ def parse_player_detail(html, url):
         if match:
             row["signing_status"], row["signing_age"] = match.group(1).upper(), int(match.group(2))
 
-        match = re.search(r"Expiry Status\s+([A-Za-z0-9.()]+)\s+(20\d{2})\s+age\s+(\d+)", panel_text, re.I)
+        # GROUP 6 FIX:
+        # Previous regex did not allow "-" in values such as UFA-GROUP6.
+        match = re.search(
+            r"Expiry Status\s+(\S+)\s+(20\d{2})\s+age\s+(\d+)",
+            panel_text,
+            re.I
+        )
         if match:
-            row["expiry_status"], row["expiry_year"], row["expiry_age"] = match.group(1).upper(), int(match.group(2)), int(match.group(3))
+            row["expiry_status"] = match.group(1).upper()
+            row["expiry_year"] = int(match.group(2))
+            row["expiry_age"] = int(match.group(3))
 
         match = re.search(r"Signed\s+((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4})", panel_text, re.I)
         if match:
