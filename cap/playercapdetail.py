@@ -323,21 +323,46 @@ def parse_player_detail(html, url):
         match = re.search(r"Total Value\s+\$([\d,]+)", panel_text, re.I)
         if match: row["total_value"] = int(match.group(1).replace(",",""))
 
-        match = re.search(r"Signing Status\s+([A-Za-z0-9.()]+)\s+age\s+(\d+)", panel_text, re.I)
-        if match:
-            row["signing_status"], row["signing_age"] = match.group(1).upper(), int(match.group(2))
+        # Signing / expiry status
+        for status_label, status_field, age_field in [
+            ("Signing", "signing_status", "signing_age"),
+            ("Expiry", "expiry_status", "expiry_age"),
+        ]:
+            status_block = None
 
-        # GROUP 6 FIX:
-        # Previous regex did not allow "-" in values such as UFA-GROUP6.
-        match = re.search(
-            r"Expiry Status\s+(\S+)\s+(20\d{2})\s+age\s+(\d+)",
-            panel_text,
-            re.I
-        )
-        if match:
-            row["expiry_status"] = match.group(1).upper()
-            row["expiry_year"] = int(match.group(2))
-            row["expiry_age"] = int(match.group(3))
+            for div in panel.find_all("div"):
+                text = clean_text(div.get_text(" ", strip=True))
+
+                if text and re.match(rf"^{status_label}(?:\s+Status)?\b", text, re.I):
+                    if div.select_one(".pp-ufa, .pp-rfa, .pp-na"):
+                        status_block = div
+                        break
+
+            if not status_block:
+                continue
+
+            status_element = status_block.select_one(".pp-ufa, .pp-rfa, .pp-na")
+
+            if status_element:
+                status = status_element.get_text("", strip=True)
+                status = re.sub(r"\s+", "", status).upper()
+
+                if status:
+                    row[status_field] = status
+
+            meta_text = clean_text(status_block.get_text(" ", strip=True))
+
+            if meta_text:
+                age_match = re.search(r"\bage\s+(\d+)\b", meta_text, re.I)
+
+                if age_match:
+                    row[age_field] = int(age_match.group(1))
+
+                if status_label == "Expiry":
+                    year_match = re.search(r"\b(20\d{2})\b", meta_text)
+
+                    if year_match:
+                        row["expiry_year"] = int(year_match.group(1))
 
         match = re.search(r"Signed\s+((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4})", panel_text, re.I)
         if match:

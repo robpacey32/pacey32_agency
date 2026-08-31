@@ -1,165 +1,211 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ExpandableCard from "@/components/ExpandableCard";
+import SalaryCapPanel, {
+    SalaryCapData,
+} from "@/components/SalaryCapPanel";
 import { useAppContext } from "@/context/AppContext";
 
-const teams = {
-    COL: {
-        name: "Colorado Avalanche",
-        code: "COL",
-        city: "Denver",
-        capSpace: "$8.4m",
-        avgAge: "28.3",
-        contracts: "23",
-        travelMiles: "41,820",
-        backToBacks: "11",
-        facilities: "2",
-    },
-    VGK: {
-        name: "Vegas Golden Knights",
-        code: "VGK",
-        city: "Las Vegas",
-        capSpace: "$10.8m",
-        avgAge: "28.1",
-        contracts: "22",
-        travelMiles: "42,310",
-        backToBacks: "13",
-        facilities: "2",
-    },
-    EDM: {
-        name: "Edmonton Oilers",
-        code: "EDM",
-        city: "Edmonton",
-        capSpace: "$4.2m",
-        avgAge: "29.0",
-        contracts: "24",
-        travelMiles: "45,100",
-        backToBacks: "12",
-        facilities: "2",
-    },
-    NYR: {
-        name: "New York Rangers",
-        code: "NYR",
-        city: "New York",
-        capSpace: "$6.1m",
-        avgAge: "28.5",
-        contracts: "23",
-        travelMiles: "33,900",
-        backToBacks: "10",
-        facilities: "2",
-    },
+type Team = {
+    triCode: string;
+    fullName: string;
+    conferenceName?: string;
+    divisionName?: string;
 };
 
 export default function TeamPage() {
     const { team: selectedTeam } = useAppContext();
-    const team = teams[selectedTeam as keyof typeof teams];
 
-    const [openCard, setOpenCard] = useState<string | null>(null);
+    const [team, setTeam] = useState<Team | null>(null);
+    const [salaryCap, setSalaryCap] =
+        useState<SalaryCapData | null>(null);
+
+    const [capLoading, setCapLoading] = useState(true);
+    const [openCard, setOpenCard] =
+        useState<string | null>(null);
+
+    useEffect(() => {
+        async function loadTeam() {
+            try {
+                const response = await fetch("/api/teams");
+
+                if (!response.ok) {
+                    setTeam(null);
+                    return;
+                }
+
+                const teams: Team[] =
+                    await response.json();
+
+                const match = teams.find(
+                    (t) => t.triCode === selectedTeam
+                );
+
+                setTeam(match ?? null);
+            } catch {
+                setTeam(null);
+            }
+        }
+
+        loadTeam();
+    }, [selectedTeam]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadSalaryCap() {
+            try {
+                setCapLoading(true);
+                setSalaryCap(null);
+
+                const response = await fetch(
+                    `/api/salary-cap?team=${selectedTeam}`,
+                    {
+                        cache: "no-store",
+                    }
+                );
+
+                if (!response.ok) {
+                    if (!cancelled) {
+                        setSalaryCap(null);
+                    }
+                    return;
+                }
+
+                const data: SalaryCapData =
+                    await response.json();
+
+                if (!cancelled) {
+                    setSalaryCap(data);
+                }
+            } catch {
+                if (!cancelled) {
+                    setSalaryCap(null);
+                }
+            } finally {
+                if (!cancelled) {
+                    setCapLoading(false);
+                }
+            }
+        }
+
+        loadSalaryCap();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedTeam]);
 
     const toggleCard = (card: string) => {
-        setOpenCard(openCard === card ? null : card);
+        setOpenCard(
+            openCard === card
+                ? null
+                : card
+        );
     };
+
+    const capSpace =
+        salaryCap?.summary
+            ? money(
+                  salaryCap.summary.projected_cap_space
+              )
+            : capLoading
+              ? "..."
+              : "—";
+
+    const capDetail =
+        salaryCap?.summary
+            ? `#${salaryCap.summary.cap_space_rank} NHL cap space`
+            : capLoading
+              ? "Loading cap data"
+              : "Projected cap space";
 
     const cards = [
         {
             id: "cap",
             title: "Salary Cap",
-            value: team.capSpace,
-            detail: "Projected cap space",
-            content: (
-                <div className="grid gap-6 md:grid-cols-3">
-                    <Metric label="Projected Cap Space" value={team.capSpace} />
-                    <Metric label="Current Cap Space" value="$6.9m" />
-                    <Metric label="Deadline Cap Space" value="$11.2m" />
-                    <Metric label="Contracts" value={team.contracts} />
-                    <Metric label="Dead Cap" value="$0.8m" />
-                    <Metric label="Average Age" value={team.avgAge} />
-                </div>
+            value: capSpace,
+            detail: capDetail,
+            content: salaryCap ? (
+                <SalaryCapPanel data={salaryCap} />
+            ) : capLoading ? (
+                <p className="text-slate-400">
+                    Loading salary cap data...
+                </p>
+            ) : (
+                <p className="text-slate-400">
+                    Salary cap data unavailable.
+                </p>
             ),
         },
         {
             id: "roster",
             title: "Roster",
-            value: team.avgAge,
-            detail: "Average age",
-            content: (
-                <div className="grid gap-6 md:grid-cols-3">
-                    <Metric label="Forwards" value="13" />
-                    <Metric label="Defence" value="8" />
-                    <Metric label="Goalies" value="2" />
-                    <Metric label="Average Age" value={team.avgAge} />
-                    <Metric label="Contracts" value={team.contracts} />
-                    <Metric label="Active Roster" value="23" />
-                </div>
-            ),
+            value: "—",
+            detail: "Roster & depth chart",
+            content: <NotBuiltYet />,
+        },
+        {
+            id: "performance",
+            title: "Team Performance",
+            value: "—",
+            detail: "Team results & performance",
+            content: <NotBuiltYet />,
         },
         {
             id: "organisation",
             title: "Organisation",
-            value: "Established",
+            value: "—",
             detail: "Leadership & structure",
-            content: (
-                <div className="grid gap-6 md:grid-cols-3">
-                    <Metric label="General Manager" value="Chris MacFarland" />
-                    <Metric label="Head Coach" value="Jared Bednar" />
-                    <Metric label="AHL Affiliate" value="Colorado Eagles" />
-                </div>
-            ),
+            content: <NotBuiltYet />,
+        },
+        {
+            id: "ahl",
+            title: "AHL Affiliate",
+            value: "—",
+            detail: "Development pathway",
+            content: <NotBuiltYet />,
         },
         {
             id: "travel",
             title: "Travel",
-            value: `${team.travelMiles} mi`,
-            detail: "Season travel",
-            content: (
-                <div className="grid gap-6 md:grid-cols-4">
-                    <Metric label="Total Miles" value={team.travelMiles} />
-                    <Metric label="NHL Rank" value="#22" />
-                    <Metric label="Longest Trip" value="2,540 mi" />
-                    <Metric label="Longest Road Stretch" value="6 games" />
-                </div>
-            ),
-        },
-        {
-            id: "schedule",
-            title: "Schedule",
-            value: team.backToBacks,
-            detail: "Back-to-backs",
-            content: (
-                <div className="grid gap-6 md:grid-cols-3">
-                    <Metric label="Back-to-backs" value={team.backToBacks} />
-                    <Metric label="Longest Home Stand" value="5 games" />
-                    <Metric label="Longest Road Trip" value="6 games" />
-                </div>
-            ),
-        },
-        {
-            id: "facilities",
-            title: "Facilities",
-            value: team.facilities,
-            detail: "Key facilities",
-            content: (
-                <div className="grid gap-6 md:grid-cols-2">
-                    <Metric label="Arena" value="Ball Arena" />
-                    <Metric label="Practice Facility" value="Family Sports Center" />
-                </div>
-            ),
+            value: "—",
+            detail: "Travel & schedule",
+            content: <NotBuiltYet />,
         },
     ];
 
-    const selectedCard = cards.find((card) => card.id === openCard);
+    const selectedCard =
+        cards.find(
+            (card) => card.id === openCard
+        );
 
     return (
         <main className="min-h-screen bg-slate-950 px-8 py-10">
             <div className="mx-auto max-w-7xl">
 
                 <div className="mb-8">
-                    <p className="text-sm font-medium text-slate-500">TEAM</p>
-                    <h1 className="text-4xl font-bold">{team.name}</h1>
-                    <p className="mt-1 text-slate-400">
-                        {team.city} · {team.code}
+                    <p className="text-sm font-medium text-slate-500">
+                        TEAM
                     </p>
+
+                    <h1 className="text-4xl font-bold">
+                        {team?.fullName ??
+                            selectedTeam}
+                    </h1>
+
+                    {team && (
+                        <p className="mt-1 text-slate-400">
+                            {[
+                                team.triCode,
+                                team.divisionName,
+                                team.conferenceName,
+                            ]
+                                .filter(Boolean)
+                                .join(" · ")}
+                        </p>
+                    )}
                 </div>
 
                 {!openCard && (
@@ -171,7 +217,9 @@ export default function TeamPage() {
                                 value={card.value}
                                 detail={card.detail}
                                 open={false}
-                                onClick={() => toggleCard(card.id)}
+                                onClick={() =>
+                                    toggleCard(card.id)
+                                }
                             />
                         ))}
                     </div>
@@ -181,7 +229,10 @@ export default function TeamPage() {
                     <>
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
                             {cards
-                                .filter((card) => card.id !== openCard)
+                                .filter(
+                                    (card) =>
+                                        card.id !== openCard
+                                )
                                 .map((card) => (
                                     <ExpandableCard
                                         key={card.id}
@@ -190,7 +241,11 @@ export default function TeamPage() {
                                         detail={card.detail}
                                         compact
                                         open={false}
-                                        onClick={() => toggleCard(card.id)}
+                                        onClick={() =>
+                                            toggleCard(
+                                                card.id
+                                            )
+                                        }
                                     />
                                 ))}
                         </div>
@@ -198,13 +253,25 @@ export default function TeamPage() {
                         {selectedCard && (
                             <div className="mt-4">
                                 <ExpandableCard
-                                    title={selectedCard.title}
-                                    value={selectedCard.value}
-                                    detail={selectedCard.detail}
+                                    title={
+                                        selectedCard.title
+                                    }
+                                    value={
+                                        selectedCard.value
+                                    }
+                                    detail={
+                                        selectedCard.detail
+                                    }
                                     open
-                                    onClick={() => toggleCard(selectedCard.id)}
+                                    onClick={() =>
+                                        toggleCard(
+                                            selectedCard.id
+                                        )
+                                    }
                                 >
-                                    {selectedCard.content}
+                                    {
+                                        selectedCard.content
+                                    }
                                 </ExpandableCard>
                             </div>
                         )}
@@ -216,11 +283,31 @@ export default function TeamPage() {
     );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function NotBuiltYet() {
     return (
-        <div>
-            <p className="text-sm text-slate-500">{label}</p>
-            <p className="mt-1 text-2xl font-semibold">{value}</p>
-        </div>
+        <p className="text-slate-500">
+            Data panel not yet built.
+        </p>
     );
+}
+
+function money(value: number) {
+    const abs = Math.abs(value);
+
+    let formatted: string;
+
+    if (abs >= 1_000_000) {
+        formatted =
+            `$${(abs / 1_000_000).toFixed(1)}m`;
+    } else if (abs >= 1_000) {
+        formatted =
+            `$${(abs / 1_000).toFixed(0)}k`;
+    } else {
+        formatted =
+            `$${abs.toFixed(0)}`;
+    }
+
+    return value < 0
+        ? `-${formatted}`
+        : formatted;
 }

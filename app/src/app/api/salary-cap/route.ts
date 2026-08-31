@@ -14,10 +14,6 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // --------------------------------------------------
-        // CURRENT CAP SUMMARY
-        // --------------------------------------------------
-
         const summarySql = `
             SELECT
                 s.*
@@ -28,15 +24,6 @@ export async function GET(request: NextRequest) {
             LIMIT 1
         `;
 
-        const [summaryRows] = await bigquery.query({
-            query: summarySql,
-            params: { team },
-        });
-
-        // --------------------------------------------------
-        // FUTURE CAP COMMITMENTS
-        // --------------------------------------------------
-
         const futureSql = `
             SELECT
                 f.*
@@ -46,15 +33,6 @@ export async function GET(request: NextRequest) {
             WHERE t.triCode = @team
             ORDER BY f.year
         `;
-
-        const [futureRows] = await bigquery.query({
-            query: futureSql,
-            params: { team },
-        });
-
-        // --------------------------------------------------
-        // CURRENT CONTRACTS
-        // --------------------------------------------------
 
         const contractsSql = `
             SELECT
@@ -67,15 +45,6 @@ export async function GET(request: NextRequest) {
                 c.cap_hit DESC,
                 c.player
         `;
-
-        const [contractRows] = await bigquery.query({
-            query: contractsSql,
-            params: { team },
-        });
-
-        // --------------------------------------------------
-        // UPCOMING CONTRACT DECISIONS
-        // --------------------------------------------------
 
         const expirySql = `
             SELECT
@@ -139,14 +108,29 @@ export async function GET(request: NextRequest) {
                 c.expiry_year
         `;
 
-        const [expiryRows] = await bigquery.query({
-            query: expirySql,
-            params: { team },
-        });
-
-        // --------------------------------------------------
-        // LARGEST CONTRACTS
-        // --------------------------------------------------
+        const [
+            [summaryRows],
+            [futureRows],
+            [contractRows],
+            [expiryRows],
+        ] = await Promise.all([
+            bigquery.query({
+                query: summarySql,
+                params: { team },
+            }),
+            bigquery.query({
+                query: futureSql,
+                params: { team },
+            }),
+            bigquery.query({
+                query: contractsSql,
+                params: { team },
+            }),
+            bigquery.query({
+                query: expirySql,
+                params: { team },
+            }),
+        ]);
 
         const largestContracts = contractRows
             .filter((row: any) => row.cap_hit != null)
@@ -154,18 +138,13 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
             team,
-
             summary:
                 summaryRows.length > 0
                     ? summaryRows[0]
                     : null,
-
             future: futureRows,
-
             contracts: contractRows,
-
             expiries: expiryRows,
-
             largestContracts,
         });
     } catch (error) {
