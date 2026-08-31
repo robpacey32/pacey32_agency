@@ -435,7 +435,7 @@ def get_player_urls(client):
     WHERE p.player_url IS NOT NULL
       AND (
           d.last_scraped IS NULL
-          OR DATE(d.last_scraped) < DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH)
+          OR DATE(d.last_scraped) < DATE_SUB(CURRENT_DATE(), INTERVAL 2 WEEK)
       )
     ORDER BY p.player_url
     """
