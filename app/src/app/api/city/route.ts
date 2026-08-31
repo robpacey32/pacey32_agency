@@ -43,6 +43,8 @@ export async function GET(request: NextRequest) {
             costResult,
             costDetailResult,
             taxResult,
+            incomeTaxDistributionResult,
+            salesTaxDistributionResult,
             summaryResult,
             cityResult,
             residentialResult,
@@ -128,6 +130,36 @@ export async function GET(request: NextRequest) {
                     LIMIT 1
                 `,
                 params: { venueLocation },
+            }),
+
+            bigquery.query({
+                query: `
+                    SELECT
+                        venueLocation,
+                        geocoded_city,
+                        state_province,
+                        country,
+                        combined_top_marginal_income_tax_rate,
+                        income_tax_rank
+                    FROM \`pacey32-agency.City.tax_summary\`
+                    WHERE combined_top_marginal_income_tax_rate IS NOT NULL
+                    ORDER BY income_tax_rank
+                `,
+            }),
+
+            bigquery.query({
+                query: `
+                    SELECT
+                        venueLocation,
+                        geocoded_city,
+                        state_province,
+                        country,
+                        combined_sales_tax_rate,
+                        sales_tax_rank
+                    FROM \`pacey32-agency.City.tax_summary\`
+                    WHERE combined_sales_tax_rate IS NOT NULL
+                    ORDER BY sales_tax_rank
+                `,
             }),
 
             bigquery.query({
@@ -234,22 +266,34 @@ export async function GET(request: NextRequest) {
                 detail: costDetailResult[0],
             },
 
-            tax: taxResult[0][0] ?? null,
+            tax: {
+                summary: taxResult[0][0] ?? null,
+                incomeTaxDistribution:
+                    incomeTaxDistributionResult[0],
+                salesTaxDistribution:
+                    salesTaxDistributionResult[0],
+            },
 
             overview: {
-                summary: summaryResult[0][0]?.summary ?? null,
+                summary:
+                    summaryResult[0][0]?.summary ??
+                    null,
 
                 geo: {
-                    residentialAreas: residentialResult[0],
+                    residentialAreas:
+                        residentialResult[0],
                     arena: arenaResult[0],
-                    practiceFacility: practiceResult[0],
+                    practiceFacility:
+                        practiceResult[0],
                     airports: airportResult[0],
                     hospitals: hospitalResult[0],
                     schools: schoolResult[0],
-                    restaurants: restaurantResult[0],
+                    restaurants:
+                        restaurantResult[0],
                     shopping: shoppingResult[0],
                     golfClubs: golfResult[0],
-                    countryClubs: countryClubResult[0],
+                    countryClubs:
+                        countryClubResult[0],
                     ski: skiResult[0],
                     beaches: beachResult[0],
                     marinas: marinaResult[0],

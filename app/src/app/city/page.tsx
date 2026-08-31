@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import ExpandableCard from "@/components/ExpandableCard";
 import ClimatePanel from "@/components/ClimatePanel";
 import CostOfLivingPanel from "@/components/CostOfLivingPanel";
+import IncomeTaxPanel from "@/components/IncomeTaxPanel";
+import SalesTaxPanel from "@/components/SalesTaxPanel";
 import { useAppContext } from "@/context/AppContext";
 import CityLocationMap from "@/components/CityLocationMapDynamic";
 import CityOverviewMap from "@/components/CityOverviewMapDynamic";
@@ -43,6 +45,46 @@ type CostOfLivingDetail = {
     avg_usd: number;
     nhl_avg_usd: number;
     metric_index: number;
+};
+
+type TaxSummary = {
+    combined_top_marginal_income_tax_rate: number;
+    federal_income_tax_top_rate: number;
+    state_income_tax_rate: number;
+    combined_sales_tax_rate: number;
+    sales_tax_state_rate: number | null;
+    sales_tax_average_local_rate: number | null;
+    gst_hst_rate: number | null;
+    pst_rate: number | null;
+    income_tax_rate_basis: string;
+    state_income_tax_basis: string;
+    sales_tax_basis: string;
+    tax_year: number;
+    nhl_avg_income_tax_rate: number;
+    nhl_avg_sales_tax_rate: number;
+    income_tax_vs_nhl_avg: number;
+    income_tax_rank: number;
+    sales_tax_vs_nhl_avg: number;
+    sales_tax_rank: number;
+    nhl_city_count: number;
+};
+
+type IncomeTaxDistribution = {
+    venueLocation: string;
+    geocoded_city: string;
+    state_province: string;
+    country: string;
+    combined_top_marginal_income_tax_rate: number;
+    income_tax_rank: number;
+};
+
+type SalesTaxDistribution = {
+    venueLocation: string;
+    geocoded_city: string;
+    state_province: string;
+    country: string;
+    combined_sales_tax_rate: number;
+    sales_tax_rank: number;
 };
 
 type CityData = {
@@ -115,26 +157,10 @@ type CityData = {
         detail: CostOfLivingDetail[];
     };
     tax: {
-        combined_top_marginal_income_tax_rate: number;
-        federal_income_tax_top_rate: number;
-        state_income_tax_rate: number;
-        combined_sales_tax_rate: number;
-        sales_tax_state_rate: number | null;
-        sales_tax_average_local_rate: number | null;
-        gst_hst_rate: number | null;
-        pst_rate: number | null;
-        income_tax_rate_basis: string;
-        state_income_tax_basis: string;
-        sales_tax_basis: string;
-        tax_year: number;
-        nhl_avg_income_tax_rate: number;
-        nhl_avg_sales_tax_rate: number;
-        income_tax_vs_nhl_avg: number;
-        income_tax_rank: number;
-        sales_tax_vs_nhl_avg: number;
-        sales_tax_rank: number;
-        nhl_city_count: number;
-    } | null;
+        summary: TaxSummary | null;
+        incomeTaxDistribution: IncomeTaxDistribution[];
+        salesTaxDistribution: SalesTaxDistribution[];
+    };
     overview: {
         summary: string | null;
         geo: {
@@ -234,7 +260,9 @@ export default function CityPage() {
     const climate = data.climate.summary;
     const cost = data.costOfLiving.summary;
     const costDetail = data.costOfLiving.detail;
-    const tax = data.tax;
+    const tax = data.tax.summary;
+    const incomeTaxDistribution = data.tax.incomeTaxDistribution;
+    const salesTaxDistribution = data.tax.salesTaxDistribution;
     const city = data.city;
 
     const cards: Card[] = [
@@ -285,44 +313,16 @@ export default function CityPage() {
                       tax.income_tax_vs_nhl_avg
                   )} vs average`
                 : "Tax data unavailable",
-            content: tax ? (
-                <div className="grid gap-6 md:grid-cols-3">
-                    <Metric
-                        label="Combined Top Rate"
-                        value={`${tax.combined_top_marginal_income_tax_rate.toFixed(
-                            1
-                        )}%`}
+            content:
+                tax && city ? (
+                    <IncomeTaxPanel
+                        city={city.geocoded_city}
+                        stateProvince={city.state_province}
+                        country={city.country}
+                        tax={tax}
+                        distribution={incomeTaxDistribution}
                     />
-                    <Metric
-                        label="NHL Rank"
-                        value={`#${tax.income_tax_rank} of ${tax.nhl_city_count}`}
-                    />
-                    <Metric
-                        label="vs NHL Average"
-                        value={formatPoints(tax.income_tax_vs_nhl_avg)}
-                    />
-                    <Metric
-                        label="Federal Rate"
-                        value={`${tax.federal_income_tax_top_rate.toFixed(1)}%`}
-                    />
-                    <Metric
-                        label="State / Provincial Rate"
-                        value={`${tax.state_income_tax_rate.toFixed(1)}%`}
-                    />
-                    <Metric
-                        label="Tax Year"
-                        value={`${tax.tax_year}`}
-                    />
-                    <TextMetric
-                        label="Basis"
-                        value={tax.income_tax_rate_basis}
-                    />
-                    <TextMetric
-                        label="Regional Basis"
-                        value={tax.state_income_tax_basis}
-                    />
-                </div>
-            ) : null,
+                ) : null,
         },
         {
             id: "sales-tax",
@@ -335,50 +335,16 @@ export default function CityPage() {
                       tax.sales_tax_vs_nhl_avg
                   )} vs average`
                 : "Tax data unavailable",
-            content: tax ? (
-                <div className="grid gap-6 md:grid-cols-3">
-                    <Metric
-                        label="Combined Sales Tax"
-                        value={`${tax.combined_sales_tax_rate.toFixed(2)}%`}
+            content:
+                tax && city ? (
+                    <SalesTaxPanel
+                        city={city.geocoded_city}
+                        stateProvince={city.state_province}
+                        country={city.country}
+                        tax={tax}
+                        distribution={salesTaxDistribution}
                     />
-                    <Metric
-                        label="NHL Rank"
-                        value={`#${tax.sales_tax_rank} of ${tax.nhl_city_count}`}
-                    />
-                    <Metric
-                        label="vs NHL Average"
-                        value={formatPoints(tax.sales_tax_vs_nhl_avg)}
-                    />
-                    <Metric
-                        label="State Rate"
-                        value={formatNullablePercent(
-                            tax.sales_tax_state_rate
-                        )}
-                    />
-                    <Metric
-                        label="Average Local Rate"
-                        value={formatNullablePercent(
-                            tax.sales_tax_average_local_rate
-                        )}
-                    />
-                    <Metric
-                        label="GST / HST"
-                        value={formatNullablePercent(
-                            tax.gst_hst_rate
-                        )}
-                    />
-                    <Metric
-                        label="PST"
-                        value={formatNullablePercent(
-                            tax.pst_rate
-                        )}
-                    />
-                    <TextMetric
-                        label="Basis"
-                        value={tax.sales_tax_basis}
-                    />
-                </div>
-            ) : null,
+                ) : null,
         },
         {
             id: "overview",
@@ -394,21 +360,15 @@ export default function CityPage() {
                         cityLatitude={city?.latitude ?? 0}
                         cityLongitude={city?.longitude ?? 0}
                         arena={data.overview.geo.arena}
-                        practiceFacility={
-                            data.overview.geo.practiceFacility
-                        }
-                        residentialAreas={
-                            data.overview.geo.residentialAreas
-                        }
+                        practiceFacility={data.overview.geo.practiceFacility}
+                        residentialAreas={data.overview.geo.residentialAreas}
                         airports={data.overview.geo.airports}
                         hospitals={data.overview.geo.hospitals}
                         schools={data.overview.geo.schools}
                         restaurants={data.overview.geo.restaurants}
                         shopping={data.overview.geo.shopping}
                         golfClubs={data.overview.geo.golfClubs}
-                        countryClubs={
-                            data.overview.geo.countryClubs
-                        }
+                        countryClubs={data.overview.geo.countryClubs}
                         ski={data.overview.geo.ski}
                         beaches={data.overview.geo.beaches}
                         marinas={data.overview.geo.marinas}
@@ -427,15 +387,13 @@ export default function CityPage() {
                         </div>
 
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {data.overview.geo.residentialAreas.map(
-                                (area) => (
-                                    <Neighbourhood
-                                        key={`${area.rank}-${area.name}`}
-                                        name={`${area.rank}. ${area.name}`}
-                                        detail={area.reason}
-                                    />
-                                )
-                            )}
+                            {data.overview.geo.residentialAreas.map((area) => (
+                                <Neighbourhood
+                                    key={`${area.rank}-${area.name}`}
+                                    name={`${area.rank}. ${area.name}`}
+                                    detail={area.reason}
+                                />
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -444,9 +402,7 @@ export default function CityPage() {
         {
             id: "location",
             title: "Location",
-            value:
-                city?.geocoded_city ??
-                data.team.venueLocation,
+            value: city?.geocoded_city ?? data.team.venueLocation,
             detail: city
                 ? `${city.state_province}, ${city.country}`
                 : "Location data unavailable",
@@ -577,14 +533,10 @@ export default function CityPage() {
                                     title={selectedCard.title}
                                     value={selectedCard.value}
                                     detail={selectedCard.detail}
-                                    openDetail={
-                                        selectedCard.openDetail
-                                    }
+                                    openDetail={selectedCard.openDetail}
                                     open
                                     onClick={() =>
-                                        toggleCard(
-                                            selectedCard.id
-                                        )
+                                        toggleCard(selectedCard.id)
                                     }
                                 >
                                     {selectedCard.content}
@@ -610,26 +562,8 @@ function Metric({
             <p className="text-sm text-slate-500">
                 {label}
             </p>
-            <p className="mt-1 text-2xl font-semibold">
-                {value}
-            </p>
-        </div>
-    );
-}
 
-function TextMetric({
-    label,
-    value,
-}: {
-    label: string;
-    value: string;
-}) {
-    return (
-        <div>
-            <p className="text-sm text-slate-500">
-                {label}
-            </p>
-            <p className="mt-1 text-base font-medium text-slate-200">
+            <p className="mt-1 text-2xl font-semibold">
                 {value}
             </p>
         </div>
@@ -645,7 +579,10 @@ function Neighbourhood({
 }) {
     return (
         <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
-            <p className="font-semibold">{name}</p>
+            <p className="font-semibold">
+                {name}
+            </p>
+
             <p className="mt-2 text-sm leading-5 text-slate-500">
                 {detail}
             </p>
@@ -664,14 +601,6 @@ function formatPoints(value: number) {
     if (value > 0) return `${abs} pts above`;
 
     return "NHL average";
-}
-
-function formatNullablePercent(
-    value: number | null
-) {
-    return value == null
-        ? "—"
-        : `${value.toFixed(2)}%`;
 }
 
 function truncate(
