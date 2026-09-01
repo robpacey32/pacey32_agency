@@ -4,15 +4,16 @@ import { bigquery } from "@/lib/bigquery";
 export async function GET() {
     const query = `
         SELECT
-            playerId,
-            CONCAT(firstName, ' ', lastName) AS name,
-            currentTeamAbbrev AS team
-        FROM \`nhl-pacey32-github.NHL_FromGithub.PlayerLanding\`
-        WHERE playerId IS NOT NULL
-          AND firstName IS NOT NULL
-          AND lastName IS NOT NULL
-          AND isActive = TRUE
-        ORDER BY lastName, firstName
+            playerID AS playerId,
+            player_name AS name,
+            triCode AS team,
+            position,
+            headshot_url
+        FROM \`pacey32-agency.Player.PlayerDetail_NHLAPI\`
+        WHERE playerID IS NOT NULL
+          AND player_name IS NOT NULL
+          AND rn = 1
+        ORDER BY player_name
     `;
 
     const [rows] = await bigquery.query({ query });
