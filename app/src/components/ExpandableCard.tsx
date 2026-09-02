@@ -5,6 +5,7 @@ type ExpandableCardProps = {
     openDetail?: string;
     open: boolean;
     compact?: boolean;
+    uniformValueDetail?: boolean;
     onClick: () => void;
     children?: React.ReactNode;
 };
@@ -16,9 +17,15 @@ export default function ExpandableCard({
     openDetail,
     open,
     compact = false,
+    uniformValueDetail = false,
     onClick,
     children
 }: ExpandableCardProps) {
+    const displayedDetail =
+        open
+            ? openDetail ?? detail
+            : detail;
+
     return (
         <div
             onClick={onClick}
@@ -32,13 +39,25 @@ export default function ExpandableCard({
                         {title}
                     </p>
 
-                    <p className={`${compact ? "text-xl" : "text-3xl"} font-semibold`}>
+                    <p
+                        className={
+                            uniformValueDetail
+                                ? `${compact ? "text-base" : "text-lg"} font-semibold text-white`
+                                : `${compact ? "text-xl" : "text-3xl"} font-semibold`
+                        }
+                    >
                         {value}
                     </p>
 
-                    {!compact && (open ? openDetail ?? detail : detail) && (
-                        <p className="mt-2 text-sm text-slate-500">
-                            {open ? openDetail ?? detail : detail}
+                    {!compact && displayedDetail && (
+                        <p
+                            className={
+                                uniformValueDetail
+                                    ? "mt-1 text-lg font-semibold text-white"
+                                    : "mt-2 text-sm text-slate-500"
+                            }
+                        >
+                            {displayedDetail}
                         </p>
                     )}
                 </div>
