@@ -262,38 +262,69 @@ function HeadlineMetric({
 }
 
 
-function contractYearRange(
-    contract: PlayerContract
+function seasonStartYear(
+    season: string | null
 ) {
-    if (
-        !contract.season_from ||
-        !contract.season_to
-    ) {
-        return [];
+    if (!season) {
+        return null;
     }
 
-    const startYear =
+    const year =
         Number(
-            contract.season_from.slice(
+            season.slice(
                 0,
                 4
             )
         );
 
-    const endYear =
-        Number(
-            contract.season_to.slice(
-                0,
-                4
-            )
-        ) + 1;
+    return Number.isNaN(year)
+        ? null
+        : year;
+}
+
+
+function seasonStartDate(
+    season: string | null
+) {
+    const year =
+        seasonStartYear(
+            season
+        );
+
+    if (year == null) {
+        return null;
+    }
+
+    return new Date(
+        year,
+        6,
+        1
+    ).getTime();
+}
+
+
+function contractDateRange(
+    contract: PlayerContract
+) {
+    const startYear =
+        seasonStartYear(
+            contract.season_from
+        );
+
+    const expiryStartYear =
+        seasonStartYear(
+            contract.season_to
+        );
 
     if (
-        Number.isNaN(startYear) ||
-        Number.isNaN(endYear)
+        startYear == null ||
+        expiryStartYear == null
     ) {
         return [];
     }
+
+    const endYear =
+        expiryStartYear + 1;
 
     return Array.from(
         {
@@ -302,8 +333,16 @@ function contractYearRange(
                 startYear +
                 1,
         },
-        (_, index) =>
-            startYear + index
+        (_, index) => ({
+            date: new Date(
+                startYear + index,
+                6,
+                1
+            ).getTime(),
+
+            yearIndex:
+                index,
+        })
     );
 }
 
@@ -379,22 +418,17 @@ function renderContractDot(
             return null;
         }
 
-        const signingYear =
-            contract.signed_date?.value
-                ? Number(
-                      contract.signed_date.value.slice(
-                          0,
-                          4
-                      )
-                  )
-                : null;
+        const startDate =
+            seasonStartDate(
+                contract.season_from
+            );
 
-        const isFirstYear =
-            payload?.year ===
-            signingYear;
+        const isStart =
+            payload?.date ===
+            startDate;
 
         if (
-            isFirstYear &&
+            isStart &&
             contract.signing_team_logo
         ) {
             return (
@@ -461,8 +495,8 @@ export default function PlayerContractPanel({
         );
     }
 
-    const currentYear =
-        new Date().getFullYear();
+    const currentDate =
+        new Date().getTime();
 
     const history = [
         ...data.contracts,
@@ -492,32 +526,32 @@ export default function PlayerContractPanel({
 
     history.forEach(
         contract => {
-            const years =
-                contractYearRange(
+            const dates =
+                contractDateRange(
                     contract
                 );
 
-            years.forEach(
-                (
-                    year,
-                    yearIndex
-                ) => {
+            dates.forEach(
+                ({
+                    date,
+                    yearIndex,
+                }) => {
                     if (
                         !chartDataMap.has(
-                            String(year)
+                            String(date)
                         )
                     ) {
                         chartDataMap.set(
-                            String(year),
+                            String(date),
                             {
-                                year,
+                                date,
                             }
                         );
                     }
 
                     const row =
                         chartDataMap.get(
-                            String(year)
+                            String(date)
                         )!;
 
                     const key =
@@ -559,8 +593,86 @@ export default function PlayerContractPanel({
             chartDataMap.values()
         ).sort(
             (a, b) =>
-                Number(a.year) -
-                Number(b.year)
+                Number(a.date) -
+                Number(b.date)
+        );
+
+    const startYears =
+        history
+            .map(
+                contract =>
+                    seasonStartYear(
+                        contract.season_from
+                    )
+            )
+            .filter(
+                (
+                    year
+                ): year is number =>
+                    year != null
+            );
+
+    const endYears =
+        history
+            .map(
+                contract =>
+                    seasonStartYear(
+                        contract.season_to
+                    )
+            )
+            .filter(
+                (
+                    year
+                ): year is number =>
+                    year != null
+            )
+            .map(
+                year =>
+                    year + 1
+            );
+
+    const minYear =
+        startYears.length
+            ? Math.min(
+                  ...startYears
+              )
+            : new Date().getFullYear();
+
+    const maxYear =
+        endYears.length
+            ? Math.max(
+                  ...endYears
+              )
+            : minYear + 1;
+
+    const domainStart =
+        new Date(
+            minYear,
+            0,
+            1
+        ).getTime();
+
+    const domainEnd =
+        new Date(
+            maxYear,
+            11,
+            31
+        ).getTime();
+
+    const yearTicks =
+        Array.from(
+            {
+                length:
+                    maxYear -
+                    minYear +
+                    1,
+            },
+            (_, index) =>
+                new Date(
+                    minYear + index,
+                    0,
+                    1
+                ).getTime()
         );
 
     const colours =
@@ -872,7 +984,7 @@ export default function PlayerContractPanel({
                         </h3>
 
                         <p className="mt-1 text-xs text-slate-500">
-                            Career contract progression by year
+                            Career contract progression by season
                         </p>
                     </div>
 
@@ -940,7 +1052,7 @@ export default function PlayerContractPanel({
 
                             <ReferenceLine
                                 x={
-                                    currentYear
+                                    currentDate
                                 }
                                 stroke="#64748b"
                                 strokeDasharray="4 4"
@@ -951,7 +1063,27 @@ export default function PlayerContractPanel({
 
 
                             <XAxis
-                                dataKey="year"
+                                dataKey="date"
+                                type="number"
+                                scale="time"
+                                domain={[
+                                    domainStart,
+                                    domainEnd,
+                                ]}
+                                ticks={
+                                    yearTicks
+                                }
+                                tickFormatter={(
+                                    value
+                                ) =>
+                                    String(
+                                        new Date(
+                                            Number(
+                                                value
+                                            )
+                                        ).getFullYear()
+                                    )
+                                }
                                 stroke="#64748b"
                                 tick={{
                                     fill:
@@ -1012,6 +1144,22 @@ export default function PlayerContractPanel({
                                     color:
                                         "#94a3b8",
                                 }}
+                                labelFormatter={(
+                                    value
+                                ) =>
+                                    new Date(
+                                        Number(
+                                            value
+                                        )
+                                    ).toLocaleDateString(
+                                        "en-GB",
+                                        {
+                                            day: "numeric",
+                                            month: "short",
+                                            year: "numeric",
+                                        }
+                                    )
+                                }
                                 formatter={(
                                     value,
                                     name

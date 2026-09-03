@@ -41,7 +41,9 @@ export async function GET(request: NextRequest) {
                 SELECT
                     playerId,
                     signingDate,
-                    signingTeam
+                    signingTeam,
+                    startSeason,
+                    expirySeason
                 FROM \`pacey32-agency.Comparison.07_PlayerContracts\`
                 WHERE playerId = @playerId
             )
@@ -51,8 +53,8 @@ export async function GET(request: NextRequest) {
                 p.contract_number,
                 p.current_contract,
 
-                p.season_from,
-                p.season_to,
+                COALESCE(p.season_from, c.startSeason) AS season_from,
+                COALESCE(p.season_to, c.expirySeason) AS season_to,
                 p.cap_hit,
                 p.term,
                 p.total_value,
