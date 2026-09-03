@@ -1,0 +1,43 @@
+name: Refresh Comparison Model
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_refresh:
+        description: "Force refresh all players, ignoring 3-month rule"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  refresh-comparison-model:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Run Comparison Model
+        env:
+          FORCE_REFRESH: ${{ inputs.force_refresh }}
+        run: python -u comparisonmodel/07_modelrunner.py

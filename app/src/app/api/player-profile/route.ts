@@ -46,6 +46,9 @@ export async function GET(
             birth_city,
             birth_country,
             nationality,
+            birth_latitude,
+            birth_longitude,
+            birth_matched_address,
 
             draft_year,
             draft_team,

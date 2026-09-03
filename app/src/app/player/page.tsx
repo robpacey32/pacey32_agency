@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import ExpandableCard from "@/components/ExpandableCard";
+import PlayerPerformancePanel, {
+    PlayerPerformanceData,
+} from "@/components/PlayerPerformancePanel";
 import PlayerProfilePanel, {
     PlayerProfileData,
 } from "@/components/PlayerProfilePanel";
@@ -19,13 +23,34 @@ export default function PlayerPage() {
         );
 
     const [
+        performance,
+        setPerformance,
+    ] =
+        useState<PlayerPerformanceData | null>(
+            null
+        );
+
+    const [
         profileLoading,
         setProfileLoading,
     ] = useState(false);
 
     const [
+        performanceLoading,
+        setPerformanceLoading,
+    ] = useState(false);
+
+    const [
         profileError,
         setProfileError,
+    ] =
+        useState<string | null>(
+            null
+        );
+
+    const [
+        performanceError,
+        setPerformanceError,
     ] =
         useState<string | null>(
             null
@@ -42,17 +67,21 @@ export default function PlayerPage() {
     useEffect(() => {
         if (!selectedPlayerId) {
             setProfile(null);
+            setPerformance(null);
             setProfileError(null);
+            setPerformanceError(null);
             setProfileLoading(false);
+            setPerformanceLoading(false);
             setOpenCard(null);
             return;
         }
+
+        setOpenCard(null);
 
         async function loadProfile() {
             try {
                 setProfileLoading(true);
                 setProfileError(null);
-                setOpenCard(null);
 
                 const response =
                     await fetch(
@@ -80,7 +109,41 @@ export default function PlayerPage() {
             }
         }
 
+        async function loadPerformance() {
+            try {
+                setPerformanceLoading(true);
+                setPerformanceError(null);
+                setPerformance(null);
+
+                const response =
+                    await fetch(
+                        `/api/player-performance?playerId=${selectedPlayerId}`
+                    );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to load player performance"
+                    );
+                }
+
+                const result =
+                    await response.json();
+
+                setPerformance(result);
+            } catch (error) {
+                console.error(error);
+
+                setPerformanceError(
+                    "Failed to load player performance"
+                );
+            } finally {
+                setPerformanceLoading(false);
+            }
+        }
+
         loadProfile();
+        loadPerformance();
+
     }, [selectedPlayerId]);
 
     const toggleCard = (
@@ -130,6 +193,20 @@ export default function PlayerPage() {
         );
     }
 
+    const latestPerformance =
+        performance?.seasons?.length
+            ? [...performance.seasons]
+                  .sort(
+                      (a, b) =>
+                          Number(
+                              b.season
+                          ) -
+                          Number(
+                              a.season
+                          )
+                  )[0]
+            : null;
+
     const cards = [
         {
             id: "profile",
@@ -149,7 +226,12 @@ export default function PlayerPage() {
                     ? `${profile.weight_lbs} lbs`
                     : null,
                 profile.shoots_catches
-                    ? `Shoots ${profile.shoots_catches}`
+                    ? `${
+                          profile.position ===
+                          "G"
+                              ? "Catches"
+                              : "Shoots"
+                      } ${profile.shoots_catches}`
                     : null,
             ]
                 .filter(Boolean)
@@ -160,31 +242,60 @@ export default function PlayerPage() {
                 />
             ),
         },
+
         {
             id: "performance",
-            title: "Performance",
-            value: "—",
-            detail:
-                "Season performance",
-            content: (
-                <PlaceholderPanel
-                    title="Performance"
-                />
-            ),
-        },
-        {
-            id: "trajectory",
             title:
-                "Career Trajectory",
-            value: "—",
+                "Performance & Trajectory",
+            value:
+                latestPerformance
+                    ? `${latestPerformance.points ?? 0} P`
+                    : performanceLoading
+                      ? "Loading..."
+                      : "—",
             detail:
-                "Recent performance trend",
-            content: (
-                <PlaceholderPanel
-                    title="Career Trajectory"
-                />
-            ),
+                latestPerformance
+                    ? [
+                          formatSeason(
+                              latestPerformance.season
+                          ),
+                          latestPerformance.points_per_game !=
+                          null
+                              ? `${Number(
+                                    latestPerformance.points_per_game
+                                ).toFixed(
+                                    2
+                                )} P/GP`
+                              : null,
+                          latestPerformance.team_code,
+                      ]
+                          .filter(Boolean)
+                          .join(" · ")
+                    : performanceLoading
+                      ? "Loading season performance"
+                      : "Season performance and career trend",
+            content:
+                performanceLoading ? (
+                    <LoadingPanel
+                        title="Performance & Trajectory"
+                    />
+                ) : performanceError ? (
+                    <UnavailablePanel
+                        title="Performance & Trajectory"
+                    />
+                ) : performance ? (
+                    <PlayerPerformancePanel
+                        data={
+                            performance
+                        }
+                    />
+                ) : (
+                    <UnavailablePanel
+                        title="Performance & Trajectory"
+                    />
+                ),
         },
+
         {
             id: "comparables",
             title:
@@ -198,6 +309,7 @@ export default function PlayerPage() {
                 />
             ),
         },
+
         {
             id: "contract",
             title: "Contract",
@@ -210,6 +322,7 @@ export default function PlayerPage() {
                 />
             ),
         },
+
         {
             id: "market",
             title:
@@ -248,6 +361,7 @@ export default function PlayerPage() {
                     )}
 
                     <div>
+
                         <p className="text-sm font-medium text-slate-500">
                             PLAYER
                         </p>
@@ -266,13 +380,19 @@ export default function PlayerPage() {
                                     ? `Age ${profile.age}`
                                     : null,
                                 profile.shoots_catches
-                                    ? `Shoots ${profile.shoots_catches}`
+                                    ? `${
+                                          profile.position ===
+                                          "G"
+                                              ? "Catches"
+                                              : "Shoots"
+                                      } ${profile.shoots_catches}`
                                     : null,
                                 profile.team_code,
                             ]
                                 .filter(Boolean)
                                 .join(" · ")}
                         </p>
+
                     </div>
 
                 </div>
@@ -315,7 +435,7 @@ export default function PlayerPage() {
                 {openCard && (
                     <>
 
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+                        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
 
                             {cards
                                 .filter(
@@ -408,6 +528,32 @@ function PlaceholderPanel({
 }
 
 
+function LoadingPanel({
+    title,
+}: {
+    title: string;
+}) {
+    return (
+        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-6 text-slate-400">
+            Loading {title.toLowerCase()}...
+        </div>
+    );
+}
+
+
+function UnavailablePanel({
+    title,
+}: {
+    title: string;
+}) {
+    return (
+        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-6 text-slate-500">
+            No {title.toLowerCase()} data available.
+        </div>
+    );
+}
+
+
 function formatHeight(
     inches: number
 ) {
@@ -420,4 +566,25 @@ function formatHeight(
         inches % 12;
 
     return `${feet}'${remaining}"`;
+}
+
+
+function formatSeason(
+    value:
+        | number
+        | string
+) {
+    const season =
+        String(value);
+
+    if (
+        season.length !== 8
+    ) {
+        return season;
+    }
+
+    return `${season.slice(
+        0,
+        4
+    )}/${season.slice(6)}`;
 }

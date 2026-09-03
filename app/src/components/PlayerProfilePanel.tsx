@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import {
     CalendarDays,
@@ -10,6 +11,13 @@ import {
     Shirt,
     Target,
 } from "lucide-react";
+
+const PlayerBirthplaceMap = dynamic(
+    () => import("./PlayerBirthplaceMap"),
+    {
+        ssr: false,
+    }
+);
 
 export type PlayerProfileData = {
     playerId: number;
@@ -39,6 +47,9 @@ export type PlayerProfileData = {
     birth_city: string | null;
     birth_country: string | null;
     nationality: string | null;
+    birth_latitude: number | null;
+    birth_longitude: number | null;
+    birth_matched_address: string | null;
 
     draft_year: number | null;
     draft_team: string | null;
@@ -131,19 +142,37 @@ export default function PlayerProfilePanel({
             ? `https://assets.nhle.com/logos/nhl/svg/${data.draft_team}_light.svg`
             : null;
 
+    const birthplaceLabel =
+        data.birth_matched_address ??
+        [
+            data.birth_city,
+            data.birth_country
+                ? countryName(
+                      data.birth_country
+                  )
+                : null,
+        ]
+            .filter(Boolean)
+            .join(", ");
+
+    const nationalityFlag =
+        nationalityCode(
+            data.nationality
+        );
+
     return (
         <div className="space-y-5">
 
             {/* HERO */}
 
             <div className="flex justify-start">
-                <section className="relative aspect-video w-full max-w-[1180px] overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+                <section className="relative h-[500px] w-full max-w-[1050px] overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
 
                     {data.hero_image && (
                         <img
                             src={data.hero_image}
                             alt=""
-                            className="absolute inset-0 h-full w-full object-cover"
+                            className="absolute inset-0 h-full w-full object-cover object-center"
                         />
                     )}
 
@@ -152,6 +181,7 @@ export default function PlayerProfilePanel({
                     <div className="relative flex h-full items-end gap-8 px-8 pt-8">
 
                         <div className="shrink-0">
+
                             {data.headshot ? (
                                 <img
                                     src={data.headshot}
@@ -161,6 +191,7 @@ export default function PlayerProfilePanel({
                             ) : (
                                 <div className="h-64 w-52" />
                             )}
+
                         </div>
 
                         <div className="flex-1 pb-8">
@@ -226,263 +257,354 @@ export default function PlayerProfilePanel({
 
             {/* MAIN GRID */}
 
-                <section className="grid min-w-[1180px] grid-cols-[1.1fr_1fr] gap-5 overflow-x-auto">
+            <section className="grid min-w-[1180px] grid-cols-[1.1fr_1fr] gap-5 overflow-x-auto">
 
-                    {/* PERSONAL */}
+                {/* PERSONAL */}
 
-                    <ProfileSection
-                        title="Personal"
-                        action={
-                            <UnitToggle
-                                value={unitMode}
-                                onChange={setUnitMode}
-                            />
-                        }
-                    >
+                <ProfileSection
+                    title="Personal"
+                    action={
+                        <UnitToggle
+                            value={unitMode}
+                            onChange={setUnitMode}
+                        />
+                    }
+                >
 
-                        <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
 
-                            <ProfileMetric
-                                icon={<CalendarDays size={18} />}
-                                label="Date of Birth"
-                                value={formatBirthDate(
-                                    data.birth_date
-                                )}
-                            />
-
-                            <ProfileMetric
-                                icon={<CalendarDays size={18} />}
-                                label="Age"
-                                value={
-                                    data.age != null
-                                        ? data.age
-                                        : "—"
-                                }
-                            />
-
-                            <ProfileMetric
-                                icon={<Hash size={18} />}
-                                label="Jersey Number"
-                                value={
-                                    data.sweater_number != null
-                                        ? data.sweater_number
-                                        : "—"
-                                }
-                            />
-
-                            <ProfileMetric
-                                icon={<Shirt size={18} />}
-                                label="Position"
-                                value={
-                                    data.position ?? "—"
-                                }
-                            />
-
-                            <ProfileMetric
-                                icon={<Flag size={18} />}
-                                label="Nationality"
-                                value={
-                                    data.nationality ?? "—"
-                                }
-                            />
-
-                            <ProfileMetric
-                                icon={<Flag size={18} />}
-                                label="Birthplace"
-                                value={
-                                    [
-                                        data.birth_city,
-                                        data.birth_country
-                                            ? countryName(
-                                                data.birth_country
-                                            )
-                                            : null,
-                                    ]
-                                        .filter(Boolean)
-                                        .join(", ") || "—"
-                                }
-                            />
-
-                            <ProfileMetric
-                                icon={<Ruler size={18} />}
-                                label="Height"
-                                value={
-                                    unitMode === "imperial"
-                                        ? data.height_inches != null
-                                            ? formatHeight(
-                                                data.height_inches
-                                            )
-                                            : "—"
-                                        : data.height_cm != null
-                                        ? `${data.height_cm} cm`
-                                        : "—"
-                                }
-                            />
-
-                            <ProfileMetric
-                                icon={<Scale size={18} />}
-                                label="Weight"
-                                value={
-                                    unitMode === "imperial"
-                                        ? data.weight_lbs != null
-                                            ? `${data.weight_lbs} lbs`
-                                            : "—"
-                                        : data.weight_kg != null
-                                        ? `${data.weight_kg} kg`
-                                        : "—"
-                                }
-                            />
-
-                            <ProfileMetric
-                                icon={<Target size={18} />}
-                                label={
-                                    isGoalie
-                                        ? "Catches"
-                                        : "Shoots"
-                                }
-                                value={
-                                    data.shoots_catches ??
-                                    "—"
-                                }
-                            />
-
-                        </div>
-
-                        <div className="mt-3 flex h-36 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/40">
-
-                            <div className="text-center">
-
-                                <div className="text-sm font-semibold text-white">
-                                    {[
-                                        data.birth_city,
-                                        data.birth_country
-                                            ? countryName(
-                                                data.birth_country
-                                            )
-                                            : null,
-                                    ]
-                                        .filter(Boolean)
-                                        .join(", ")}
-                                </div>
-
-                                <div className="mt-1 text-xs text-slate-500">
-                                    Birthplace map
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </ProfileSection>
-
-                    {/* RIGHT COLUMN */}
-
-                    <div className="space-y-5">
-
-                        {/* DRAFT */}
-
-                        <ProfileSection title="Draft">
-
-                            {data.draft_year ? (
-                                <div className="grid grid-cols-[76px_repeat(4,1fr)] gap-3">
-
-                                    <div className="flex min-h-24 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-
-                                        {draftLogo ? (
-                                            <img
-                                                src={draftLogo}
-                                                alt={
-                                                    data.draft_team ??
-                                                    ""
-                                                }
-                                                className="h-14 w-14 object-contain"
-                                            />
-                                        ) : (
-                                            <span className="text-lg font-bold text-white">
-                                                —
-                                            </span>
-                                        )}
-
-                                    </div>
-
-                                    <DraftMetric
-                                        label="Year"
-                                        value={
-                                            data.draft_year
-                                        }
-                                    />
-
-                                    <DraftMetric
-                                        label="Round"
-                                        value={
-                                            data.draft_round ??
-                                            "—"
-                                        }
-                                    />
-
-                                    <DraftMetric
-                                        label="Pick"
-                                        value={
-                                            data.draft_pick_in_round ??
-                                            "—"
-                                        }
-                                    />
-
-                                    <DraftMetric
-                                        label="Overall"
-                                        value={
-                                            data.draft_overall != null
-                                                ? `#${data.draft_overall}`
-                                                : "—"
-                                        }
-                                    />
-
-                                </div>
-                            ) : (
-                                <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
-                                    <div className="text-lg font-semibold text-white">
-                                        Undrafted
-                                    </div>
-                                </div>
+                        <ProfileMetric
+                            icon={
+                                <CalendarDays
+                                    size={18}
+                                />
+                            }
+                            label="Date of Birth"
+                            value={formatBirthDate(
+                                data.birth_date
                             )}
+                        />
 
-                        </ProfileSection>
+                        <ProfileMetric
+                            icon={
+                                <CalendarDays
+                                    size={18}
+                                />
+                            }
+                            label="Age"
+                            value={
+                                data.age != null
+                                    ? data.age
+                                    : "—"
+                            }
+                        />
 
-                        {/* CAREER STATS */}
+                        <ProfileMetric
+                            icon={
+                                <Hash
+                                    size={18}
+                                />
+                            }
+                            label="Jersey Number"
+                            value={
+                                data.sweater_number !=
+                                null
+                                    ? data.sweater_number
+                                    : "—"
+                            }
+                        />
 
-                        <ProfileSection title="Career Statistics">
+                        <ProfileMetric
+                            icon={
+                                <Shirt
+                                    size={18}
+                                />
+                            }
+                            label="Position"
+                            value={
+                                data.position ??
+                                "—"
+                            }
+                        />
 
-                            <CareerSection
-                                title="Regular Season"
-                                metrics={
-                                    isGoalie
-                                        ? buildRegularGoalieMetrics(
-                                            data
-                                        )
-                                        : buildRegularSkaterMetrics(
-                                            data
-                                        )
-                                }
-                            />
+                        <ProfileMetric
+                            icon={
+                                <Flag
+                                    size={18}
+                                />
+                            }
+                            label="Nationality"
+                            value={
+                                <div className="flex items-center gap-2">
 
-                            <CareerSection
-                                title="Playoffs"
-                                metrics={
-                                    isGoalie
-                                        ? buildPlayoffGoalieMetrics(
-                                            data
-                                        )
-                                        : buildPlayoffSkaterMetrics(
-                                            data
-                                        )
-                                }
-                            />
+                                    {nationalityFlag && (
+                                        <img
+                                            src={`https://flagcdn.com/24x18/${nationalityFlag}.png`}
+                                            alt=""
+                                            className="h-[18px] w-6 rounded-sm object-cover"
+                                        />
+                                    )}
 
-                        </ProfileSection>
+                                    <span>
+                                        {data.nationality ??
+                                            "—"}
+                                    </span>
+
+                                </div>
+                            }
+                        />
+
+                        <ProfileMetric
+                            icon={
+                                <Flag
+                                    size={18}
+                                />
+                            }
+                            label="Birthplace"
+                            value={
+                                [
+                                    data.birth_city,
+                                    data.birth_country
+                                        ? countryName(
+                                              data.birth_country
+                                          )
+                                        : null,
+                                ]
+                                    .filter(Boolean)
+                                    .join(", ") ||
+                                "—"
+                            }
+                        />
+
+                        <ProfileMetric
+                            icon={
+                                <Ruler
+                                    size={18}
+                                />
+                            }
+                            label="Height"
+                            value={
+                                unitMode ===
+                                "imperial"
+                                    ? data.height_inches !=
+                                      null
+                                        ? formatHeight(
+                                              data.height_inches
+                                          )
+                                        : "—"
+                                    : data.height_cm !=
+                                        null
+                                      ? `${data.height_cm} cm`
+                                      : "—"
+                            }
+                        />
+
+                        <ProfileMetric
+                            icon={
+                                <Scale
+                                    size={18}
+                                />
+                            }
+                            label="Weight"
+                            value={
+                                unitMode ===
+                                "imperial"
+                                    ? data.weight_lbs !=
+                                      null
+                                        ? `${data.weight_lbs} lbs`
+                                        : "—"
+                                    : data.weight_kg !=
+                                        null
+                                      ? `${data.weight_kg} kg`
+                                      : "—"
+                            }
+                        />
+
+                        <ProfileMetric
+                            icon={
+                                <Target
+                                    size={18}
+                                />
+                            }
+                            label={
+                                isGoalie
+                                    ? "Catches"
+                                    : "Shoots"
+                            }
+                            value={
+                                data.shoots_catches ??
+                                "—"
+                            }
+                        />
 
                     </div>
 
-                </section>
+                    {/* BIRTHPLACE MAP */}
+
+                    <div className="mt-3">
+
+                        {data.birth_latitude !=
+                            null &&
+                        data.birth_longitude !=
+                            null ? (
+                            <PlayerBirthplaceMap
+                                latitude={
+                                    data.birth_latitude
+                                }
+                                longitude={
+                                    data.birth_longitude
+                                }
+                                label={
+                                    birthplaceLabel
+                                }
+                            />
+                        ) : (
+                            <div className="flex h-44 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/40">
+
+                                <div className="text-center">
+
+                                    <div className="text-sm font-semibold text-white">
+                                        {[
+                                            data.birth_city,
+                                            data.birth_country
+                                                ? countryName(
+                                                      data.birth_country
+                                                  )
+                                                : null,
+                                        ]
+                                            .filter(
+                                                Boolean
+                                            )
+                                            .join(
+                                                ", "
+                                            ) ||
+                                            "Birthplace unavailable"}
+                                    </div>
+
+                                    <div className="mt-1 text-xs text-slate-500">
+                                        Birthplace map unavailable
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        )}
+
+                    </div>
+
+                </ProfileSection>
+
+                {/* RIGHT COLUMN */}
+
+                <div className="space-y-5">
+
+                    {/* DRAFT */}
+
+                    <ProfileSection title="Draft">
+
+                        {data.draft_year ? (
+                            <div className="grid grid-cols-[76px_repeat(4,1fr)] gap-3">
+
+                                <div className="flex min-h-24 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+
+                                    {draftLogo ? (
+                                        <img
+                                            src={
+                                                draftLogo
+                                            }
+                                            alt={
+                                                data.draft_team ??
+                                                ""
+                                            }
+                                            className="h-14 w-14 object-contain"
+                                        />
+                                    ) : (
+                                        <span className="text-lg font-bold text-white">
+                                            —
+                                        </span>
+                                    )}
+
+                                </div>
+
+                                <DraftMetric
+                                    label="Year"
+                                    value={
+                                        data.draft_year
+                                    }
+                                />
+
+                                <DraftMetric
+                                    label="Round"
+                                    value={
+                                        data.draft_round ??
+                                        "—"
+                                    }
+                                />
+
+                                <DraftMetric
+                                    label="Pick"
+                                    value={
+                                        data.draft_pick_in_round ??
+                                        "—"
+                                    }
+                                />
+
+                                <DraftMetric
+                                    label="Overall"
+                                    value={
+                                        data.draft_overall !=
+                                        null
+                                            ? `#${data.draft_overall}`
+                                            : "—"
+                                    }
+                                />
+
+                            </div>
+                        ) : (
+                            <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+                                <div className="text-lg font-semibold text-white">
+                                    Undrafted
+                                </div>
+                            </div>
+                        )}
+
+                    </ProfileSection>
+
+                    {/* CAREER STATS */}
+
+                    <ProfileSection title="Career Statistics">
+
+                        <CareerSection
+                            title="Regular Season"
+                            metrics={
+                                isGoalie
+                                    ? buildRegularGoalieMetrics(
+                                          data
+                                      )
+                                    : buildRegularSkaterMetrics(
+                                          data
+                                      )
+                            }
+                        />
+
+                        <CareerSection
+                            title="Playoffs"
+                            metrics={
+                                isGoalie
+                                    ? buildPlayoffGoalieMetrics(
+                                          data
+                                      )
+                                    : buildPlayoffSkaterMetrics(
+                                          data
+                                      )
+                            }
+                        />
+
+                    </ProfileSection>
+
+                </div>
+
+            </section>
 
         </div>
     );
@@ -501,7 +623,9 @@ function buildRegularSkaterMetrics(
         metric("Shots", data.rs_shots),
         metric(
             "S%",
-            percent(data.rs_shooting_pct)
+            percent(
+                data.rs_shooting_pct
+            )
         ),
         metric("PPG", data.rs_pp_goals),
         metric("PPP", data.rs_pp_points),
@@ -511,7 +635,9 @@ function buildRegularSkaterMetrics(
         metric("OTG", data.rs_ot_goals),
         metric(
             "FO%",
-            percent(data.rs_faceoff_pct)
+            percent(
+                data.rs_faceoff_pct
+            )
         ),
         metric("ATOI", data.rs_avg_toi),
     ]);
@@ -520,30 +646,51 @@ function buildRegularSkaterMetrics(
 function buildPlayoffSkaterMetrics(
     data: PlayerProfileData
 ) {
-    return cleanMetrics([
-        metric("GP", data.po_games),
-        metric("G", data.po_goals),
-        metric("A", data.po_assists),
-        metric("P", data.po_points),
-        metric("+/-", data.po_plus_minus),
-        metric("PIM", data.po_pim),
-        metric("Shots", data.po_shots),
+    const noPlayoffs =
+        !data.po_games;
+
+    return [
+        metric("GP", data.po_games ?? 0),
+        metric("G", noPlayoffs ? 0 : data.po_goals ?? 0),
+        metric("A", noPlayoffs ? 0 : data.po_assists ?? 0),
+        metric("P", noPlayoffs ? 0 : data.po_points ?? 0),
+        metric("+/-", noPlayoffs ? 0 : data.po_plus_minus ?? 0),
+        metric("PIM", noPlayoffs ? 0 : data.po_pim ?? 0),
+        metric("Shots", noPlayoffs ? 0 : data.po_shots ?? 0),
         metric(
             "S%",
-            percent(data.po_shooting_pct)
+            noPlayoffs
+                ? "0.0%"
+                : percent(
+                      data.po_shooting_pct ?? 0
+                  )
         ),
-        metric("PPG", data.po_pp_goals),
-        metric("PPP", data.po_pp_points),
-        metric("SHG", data.po_sh_goals),
-        metric("SHP", data.po_sh_points),
-        metric("GWG", data.po_gw_goals),
-        metric("OTG", data.po_ot_goals),
+        metric("PPG", noPlayoffs ? 0 : data.po_pp_goals ?? 0),
+        metric("PPP", noPlayoffs ? 0 : data.po_pp_points ?? 0),
+        metric("SHG", noPlayoffs ? 0 : data.po_sh_goals ?? 0),
+        metric("SHP", noPlayoffs ? 0 : data.po_sh_points ?? 0),
+        metric("GWG", noPlayoffs ? 0 : data.po_gw_goals ?? 0),
+        metric("OTG", noPlayoffs ? 0 : data.po_ot_goals ?? 0),
         metric(
             "FO%",
-            percent(data.po_faceoff_pct)
+            noPlayoffs
+                ? "0.0%"
+                : percent(
+                      data.po_faceoff_pct ?? 0
+                  )
         ),
-        metric("ATOI", data.po_avg_toi),
-    ]);
+        metric(
+            "ATOI",
+            noPlayoffs
+                ? "0:00"
+                : data.po_avg_toi ?? "0:00"
+        ),
+    ].filter(
+        (
+            item
+        ): item is CareerMetric =>
+            item !== null
+    );
 }
 
 function buildRegularGoalieMetrics(
@@ -706,22 +853,43 @@ function CareerSection({
                     (
                         item,
                         index
-                    ) => (
-                        <div
-                            key={`${title}-${item.label}-${index}`}
-                            className="rounded-lg border border-slate-800 bg-slate-950/40 p-3"
-                        >
+                    ) => {
+                        const primary =
+                            index < 4;
 
-                            <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                                {item.label}
+                        return (
+                            <div
+                                key={`${title}-${item.label}-${index}`}
+                                className={
+                                    primary
+                                        ? "rounded-lg border border-slate-600 bg-slate-800/70 p-3"
+                                        : "rounded-lg border border-slate-800 bg-slate-950/40 p-3"
+                                }
+                            >
+
+                                <div
+                                    className={
+                                        primary
+                                            ? "text-[10px] font-semibold uppercase tracking-wide text-slate-400"
+                                            : "text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+                                    }
+                                >
+                                    {item.label}
+                                </div>
+
+                                <div
+                                    className={
+                                        primary
+                                            ? "mt-1 text-xl font-bold text-white"
+                                            : "mt-1 text-lg font-semibold text-white"
+                                    }
+                                >
+                                    {item.value}
+                                </div>
+
                             </div>
-
-                            <div className="mt-1 text-lg font-semibold text-white">
-                                {item.value}
-                            </div>
-
-                        </div>
-                    )
+                        );
+                    }
                 )}
 
             </div>
@@ -823,17 +991,19 @@ function ProfileMetric({
 }: {
     icon: React.ReactNode;
     label: string;
-    value: string | number;
+    value: React.ReactNode;
 }) {
     return (
         <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
 
             <div className="flex items-center gap-2 text-slate-500">
+
                 {icon}
 
                 <div className="text-xs font-semibold uppercase tracking-wide">
                     {label}
                 </div>
+
             </div>
 
             <div className="mt-3 text-lg font-semibold text-white">
@@ -964,6 +1134,54 @@ function decimal(
     return value.toFixed(
         places
     );
+}
+
+function nationalityCode(
+    nationality: string | null
+) {
+    if (!nationality) {
+        return null;
+    }
+
+    const codes: Record<
+        string,
+        string
+    > = {
+        USA: "us",
+        "United States": "us",
+        Canada: "ca",
+        Sweden: "se",
+        Finland: "fi",
+        Czechia: "cz",
+        "Czech Republic": "cz",
+        Slovakia: "sk",
+        Russia: "ru",
+        Switzerland: "ch",
+        Germany: "de",
+        Denmark: "dk",
+        Norway: "no",
+        Austria: "at",
+        France: "fr",
+        "United Kingdom": "gb",
+        England: "gb",
+        Latvia: "lv",
+        Belarus: "by",
+        Slovenia: "si",
+        Netherlands: "nl",
+        Poland: "pl",
+        Belgium: "be",
+        Italy: "it",
+        Croatia: "hr",
+        Estonia: "ee",
+        Lithuania: "lt",
+        Ukraine: "ua",
+        Kazakhstan: "kz",
+        Australia: "au",
+    };
+
+    return codes[
+        nationality
+    ] ?? null;
 }
 
 function countryName(

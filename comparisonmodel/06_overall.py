@@ -412,7 +412,9 @@ def find_model_comparables(
 
 def load_current_contracts():
 
-    client = bigquery.Client(project=PROJECT_ID)
+    client = bigquery.Client(
+        project=PROJECT_ID
+    )
 
     query = """
     SELECT
@@ -427,9 +429,15 @@ def load_current_contracts():
         expiry_year AS current_contract_expiry_year
     FROM `pacey32-agency.Cap.PlayerDetail`
     WHERE current_contract = TRUE
+    QUALIFY ROW_NUMBER() OVER (
+        PARTITION BY player
+        ORDER BY scrape_datetime DESC
+    ) = 1
     """
 
-    return client.query(query).to_dataframe()
+    return client.query(
+        query
+    ).to_dataframe()
 
 
 # ---------------------------------------------------------
