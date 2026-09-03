@@ -8,9 +8,19 @@ export async function GET(request: NextRequest) {
         const player =
             request.nextUrl.searchParams.get("player");
 
+        const playerId =
+            request.nextUrl.searchParams.get("playerId");
+
         if (!player) {
             return NextResponse.json(
                 { error: "player is required" },
+                { status: 400 }
+            );
+        }
+
+        if (!playerId) {
+            return NextResponse.json(
+                { error: "playerId is required" },
                 { status: 400 }
             );
         }
@@ -25,58 +35,82 @@ export async function GET(request: NextRequest) {
                     ) AS rn
                 FROM \`pacey32-agency.Cap.PlayerDetail\`
                 WHERE player = @player
+            ),
+
+            player_contracts AS (
+                SELECT
+                    playerId,
+                    signingDate,
+                    signingTeam
+                FROM \`pacey32-agency.Comparison.07_PlayerContracts\`
+                WHERE playerId = @playerId
             )
 
             SELECT
-                player,
-                contract_number,
-                current_contract,
+                p.player,
+                p.contract_number,
+                p.current_contract,
 
-                season_from,
-                season_to,
-                cap_hit,
-                term,
-                total_value,
+                p.season_from,
+                p.season_to,
+                p.cap_hit,
+                p.term,
+                p.total_value,
 
-                signing_status,
-                signing_age,
-                expiry_status,
-                expiry_year,
-                expiry_age,
-                signed_date,
-                pct_cap_contract_start,
-                signing_GM,
-                signing_agent,
-                offer_sheet,
+                p.signing_status,
+                p.signing_age,
 
-                cap_hit_yr1,
-                cap_hit_yr2,
-                cap_hit_yr3,
-                cap_hit_yr4,
-                cap_hit_yr5,
-                cap_hit_yr6,
-                cap_hit_yr7,
-                cap_hit_yr8,
+                p.expiry_status,
+                p.expiry_year,
+                p.expiry_age,
 
-                agent,
-                ufa_year,
-                estimated_career_earnings,
+                p.signed_date,
+                p.pct_cap_contract_start,
 
-                scrape_datetime
+                p.signing_GM,
+                p.signing_agent,
+                p.offer_sheet,
 
-            FROM latest
-            WHERE rn = 1
+                p.cap_hit_yr1,
+                p.cap_hit_yr2,
+                p.cap_hit_yr3,
+                p.cap_hit_yr4,
+                p.cap_hit_yr5,
+                p.cap_hit_yr6,
+                p.cap_hit_yr7,
+                p.cap_hit_yr8,
+
+                p.agent,
+                p.ufa_year,
+                p.estimated_career_earnings,
+
+                c.signingTeam AS signing_team,
+                t.triCode AS signing_team_code,
+                t.home_logo AS signing_team_logo,
+
+                p.scrape_datetime
+
+            FROM latest p
+
+            LEFT JOIN player_contracts c
+                ON p.signed_date = c.signingDate
+
+            LEFT JOIN \`pacey32-agency.Team.TeamList\` t
+                ON c.signingTeam = t.fullName
+
+            WHERE p.rn = 1
 
             ORDER BY
-                current_contract DESC,
-                season_from DESC,
-                contract_number DESC
+                p.current_contract DESC,
+                p.season_from DESC,
+                p.contract_number DESC
         `;
 
         const [rows] = await bigquery.query({
             query,
             params: {
                 player,
+                playerId: Number(playerId),
             },
         });
 

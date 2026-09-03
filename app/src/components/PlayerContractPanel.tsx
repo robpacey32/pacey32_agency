@@ -16,6 +16,7 @@ import {
     Legend,
     Line,
     LineChart,
+    ReferenceLine,
     ResponsiveContainer,
     Tooltip,
     XAxis,
@@ -53,6 +54,10 @@ export type PlayerContract = {
 
     signing_GM: string | null;
     signing_agent: string | null;
+    signing_team: string | null;
+    signing_team_code: string | null;
+    signing_team_logo: string | null;
+
     offer_sheet: string | null;
 
     cap_hit_yr1: number | null;
@@ -117,19 +122,25 @@ const metricColours: Record<
         "#2563eb",
         "#60a5fa",
         "#bfdbfe",
+        "#dbeafe",
+        "#eff6ff",
     ],
 
     totalValue: [
         "#14532d",
+        "#15803d",
         "#16a34a",
         "#4ade80",
+        "#86efac",
         "#bbf7d0",
     ],
 
     capPercent: [
         "#581c87",
+        "#7e22ce",
         "#9333ea",
         "#c084fc",
+        "#d8b4fe",
         "#e9d5ff",
     ],
 };
@@ -172,7 +183,11 @@ function formatDate(
         day,
     ] = value.value.split("-");
 
-    if (!year || !month || !day) {
+    if (
+        !year ||
+        !month ||
+        !day
+    ) {
         return value.value;
     }
 
@@ -247,27 +262,35 @@ function HeadlineMetric({
 }
 
 
-function seasonRange(
-    from: string | null,
-    to: string | null
+function contractYearRange(
+    contract: PlayerContract
 ) {
-    if (!from || !to) {
+    if (
+        !contract.season_from ||
+        !contract.season_to
+    ) {
         return [];
     }
 
-    const start =
+    const startYear =
         Number(
-            from.slice(0, 4)
+            contract.season_from.slice(
+                0,
+                4
+            )
         );
 
-    const end =
+    const endYear =
         Number(
-            to.slice(0, 4)
-        );
+            contract.season_to.slice(
+                0,
+                4
+            )
+        ) + 1;
 
     if (
-        Number.isNaN(start) ||
-        Number.isNaN(end)
+        Number.isNaN(startYear) ||
+        Number.isNaN(endYear)
     ) {
         return [];
     }
@@ -275,16 +298,12 @@ function seasonRange(
     return Array.from(
         {
             length:
-                end - start + 1,
+                endYear -
+                startYear +
+                1,
         },
-        (_, index) => {
-            const year =
-                start + index;
-
-            return `${year}-${String(
-                year + 1
-            ).slice(-2)}`;
-        }
+        (_, index) =>
+            startYear + index
     );
 }
 
@@ -304,8 +323,17 @@ function getContractYearValue(
         contract.cap_hit_yr8,
     ];
 
+    const contractYearIndex =
+        Math.min(
+            yearIndex,
+            Math.max(
+                (contract.term ?? 1) - 1,
+                0
+            )
+        );
+
     return (
-        values[yearIndex]
+        values[contractYearIndex]
         ?? contract.cap_hit
         ?? null
     );
@@ -325,7 +353,85 @@ function formatChartValue(
         )}%`;
     }
 
-    return money(value);
+    return money(
+        value
+    );
+}
+
+
+function renderContractDot(
+    contract: PlayerContract,
+    colour: string
+) {
+    return function ContractDot(
+        props: any
+    ) {
+        const {
+            cx,
+            cy,
+            payload,
+        } = props;
+
+        if (
+            cx == null ||
+            cy == null
+        ) {
+            return null;
+        }
+
+        const signingYear =
+            contract.signed_date?.value
+                ? Number(
+                      contract.signed_date.value.slice(
+                          0,
+                          4
+                      )
+                  )
+                : null;
+
+        const isFirstYear =
+            payload?.year ===
+            signingYear;
+
+        if (
+            isFirstYear &&
+            contract.signing_team_logo
+        ) {
+            return (
+                <g>
+                    <circle
+                        cx={cx}
+                        cy={cy}
+                        r={17}
+                        fill="#0f172a"
+                        stroke={colour}
+                        strokeWidth={2}
+                    />
+
+                    <image
+                        href={
+                            contract.signing_team_logo
+                        }
+                        x={cx - 13}
+                        y={cy - 13}
+                        width={26}
+                        height={26}
+                        preserveAspectRatio="xMidYMid meet"
+                    />
+                </g>
+            );
+        }
+
+        return (
+            <circle
+                cx={cx}
+                cy={cy}
+                r={4}
+                fill={colour}
+                stroke="none"
+            />
+        );
+    };
 }
 
 
@@ -355,12 +461,22 @@ export default function PlayerContractPanel({
         );
     }
 
+    const currentYear =
+        new Date().getFullYear();
+
     const history = [
         ...data.contracts,
     ].sort(
         (a, b) =>
-            (a.contract_number ?? 0)
-            - (b.contract_number ?? 0)
+            (
+                a.contract_number
+                ?? 0
+            )
+            -
+            (
+                b.contract_number
+                ?? 0
+            )
     );
 
     const chartDataMap =
@@ -368,39 +484,40 @@ export default function PlayerContractPanel({
             string,
             Record<
                 string,
-                string | number | null
+                string |
+                number |
+                null
             >
         >();
 
     history.forEach(
         contract => {
-            const seasons =
-                seasonRange(
-                    contract.season_from,
-                    contract.season_to
+            const years =
+                contractYearRange(
+                    contract
                 );
 
-            seasons.forEach(
+            years.forEach(
                 (
-                    season,
+                    year,
                     yearIndex
                 ) => {
                     if (
                         !chartDataMap.has(
-                            season
+                            String(year)
                         )
                     ) {
                         chartDataMap.set(
-                            season,
+                            String(year),
                             {
-                                season,
+                                year,
                             }
                         );
                     }
 
                     const row =
                         chartDataMap.get(
-                            season
+                            String(year)
                         )!;
 
                     const key =
@@ -442,23 +559,8 @@ export default function PlayerContractPanel({
             chartDataMap.values()
         ).sort(
             (a, b) =>
-                Number(
-                    String(
-                        a.season
-                    ).slice(
-                        0,
-                        4
-                    )
-                )
-                -
-                Number(
-                    String(
-                        b.season
-                    ).slice(
-                        0,
-                        4
-                    )
-                )
+                Number(a.year) -
+                Number(b.year)
         );
 
     const colours =
@@ -472,33 +574,49 @@ export default function PlayerContractPanel({
             {/* CURRENT CONTRACT */}
 
             <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+
                 <div className="mb-5 flex items-start justify-between gap-5">
+
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                             Current Contract
                         </p>
 
                         <h2 className="mt-1 text-xl font-semibold text-white">
-                            {current.season_from ?? "—"}
+                            {
+                                current.season_from
+                                ?? "—"
+                            }
                             {" → "}
-                            {current.season_to ?? "—"}
+                            {
+                                current.season_to
+                                ?? "—"
+                            }
                         </h2>
                     </div>
 
                     {current.expiry_status && (
                         <div className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-200">
-                            {current.expiry_status}
+                            {
+                                current.expiry_status
+                            }
+
                             {current.expiry_year
                                 ? ` ${current.expiry_year}`
                                 : ""}
                         </div>
                     )}
+
                 </div>
 
-                <div className="grid min-w-[850px] grid-cols-4 gap-3 overflow-x-auto">
+
+                <div className="grid min-w-[1200px] grid-cols-6 gap-3 overflow-x-auto">
+
                     <HeadlineMetric
                         icon={
-                            <CircleDollarSign size={20} />
+                            <CircleDollarSign
+                                size={20}
+                            />
                         }
                         label="Cap Hit / AAV"
                         value={money(
@@ -508,11 +626,14 @@ export default function PlayerContractPanel({
 
                     <HeadlineMetric
                         icon={
-                            <CalendarDays size={20} />
+                            <CalendarDays
+                                size={20}
+                            />
                         }
                         label="Term"
                         value={
-                            current.term != null
+                            current.term !=
+                            null
                                 ? `${current.term} years`
                                 : "—"
                         }
@@ -520,7 +641,9 @@ export default function PlayerContractPanel({
 
                     <HeadlineMetric
                         icon={
-                            <BriefcaseBusiness size={20} />
+                            <BriefcaseBusiness
+                                size={20}
+                            />
                         }
                         label="Total Value"
                         value={money(
@@ -530,26 +653,60 @@ export default function PlayerContractPanel({
 
                     <HeadlineMetric
                         icon={
-                            <Percent size={20} />
+                            <Percent
+                                size={20}
+                            />
                         }
                         label="Cap % When Signed"
                         value={
-                            current.pct_cap_contract_start
-                                != null
-                                ? `${current.pct_cap_contract_start.toFixed(2)}%`
+                            current
+                                .pct_cap_contract_start
+                            != null
+                                ? `${current.pct_cap_contract_start.toFixed(
+                                      2
+                                  )}%`
                                 : "—"
                         }
                     />
+
+                    <HeadlineMetric
+                        icon={
+                            <CircleDollarSign
+                                size={20}
+                            />
+                        }
+                        label="Career Earnings"
+                        value={money(
+                            current
+                                .estimated_career_earnings
+                        )}
+                    />
+
+                    <HeadlineMetric
+                        icon={
+                            <FileSignature
+                                size={20}
+                            />
+                        }
+                        label="Career Contracts"
+                        value={
+                            data.contracts.length
+                        }
+                    />
+
                 </div>
+
             </section>
 
 
-            {/* SIGNING + PLAYER CONTRACT INFO */}
+            {/* SIGNING + CONTRACT STATUS */}
 
-            <section className="grid min-w-[950px] grid-cols-[1.4fr_1fr] gap-5 overflow-x-auto">
+            <section className="grid min-w-[1050px] grid-cols-[1.5fr_1fr] gap-5 overflow-x-auto">
 
                 <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+
                     <div className="mb-5 flex items-center gap-2">
+
                         <FileSignature
                             size={18}
                             className="text-slate-400"
@@ -558,14 +715,46 @@ export default function PlayerContractPanel({
                         <h3 className="font-semibold text-white">
                             Signing Details
                         </h3>
+
                     </div>
 
-                    <div className="grid grid-cols-3 gap-x-6 gap-y-5">
+
+                    <div className="grid grid-cols-4 gap-x-6 gap-y-5">
+
                         <Detail
                             label="Signed"
                             value={formatDate(
                                 current.signed_date
                             )}
+                        />
+
+                        <Detail
+                            label="Signing Team"
+                            value={
+                                <div className="flex items-center gap-2">
+
+                                    {current
+                                        .signing_team_logo && (
+                                        <img
+                                            src={
+                                                current
+                                                    .signing_team_logo
+                                            }
+                                            alt=""
+                                            className="h-6 w-6 object-contain"
+                                        />
+                                    )}
+
+                                    <span>
+                                        {
+                                            current
+                                                .signing_team
+                                            ?? "—"
+                                        }
+                                    </span>
+
+                                </div>
+                            }
                         />
 
                         <Detail
@@ -608,12 +797,16 @@ export default function PlayerContractPanel({
                                 ?? "No"
                             }
                         />
+
                     </div>
+
                 </div>
 
 
                 <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+
                     <div className="mb-5 flex items-center gap-2">
+
                         <UserRound
                             size={18}
                             className="text-slate-400"
@@ -622,9 +815,12 @@ export default function PlayerContractPanel({
                         <h3 className="font-semibold text-white">
                             Contract Status
                         </h3>
+
                     </div>
 
+
                     <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+
                         <Detail
                             label="Expiry"
                             value={
@@ -650,14 +846,17 @@ export default function PlayerContractPanel({
                         />
 
                         <Detail
-                            label="Career Earnings"
-                            value={money(
-                                current
-                                    .estimated_career_earnings
-                            )}
+                            label="UFA Year"
+                            value={
+                                current.ufa_year
+                                ?? "—"
+                            }
                         />
+
                     </div>
+
                 </div>
+
             </section>
 
 
@@ -673,7 +872,7 @@ export default function PlayerContractPanel({
                         </h3>
 
                         <p className="mt-1 text-xs text-slate-500">
-                            Career contract progression by season
+                            Career contract progression by year
                         </p>
                     </div>
 
@@ -711,19 +910,20 @@ export default function PlayerContractPanel({
                 </div>
 
 
-                <div className="h-[340px] min-w-[900px]">
+                <div className="h-[380px] min-w-[900px]">
 
                     <ResponsiveContainer
                         width="100%"
                         height="100%"
                     >
+
                         <LineChart
                             data={
                                 chartData
                             }
                             margin={{
-                                top: 10,
-                                right: 25,
+                                top: 30,
+                                right: 30,
                                 left: 15,
                                 bottom: 10,
                             }}
@@ -732,11 +932,26 @@ export default function PlayerContractPanel({
                             <CartesianGrid
                                 strokeDasharray="3 3"
                                 stroke="#1e293b"
-                                vertical={false}
+                                vertical={
+                                    false
+                                }
                             />
 
+
+                            <ReferenceLine
+                                x={
+                                    currentYear
+                                }
+                                stroke="#64748b"
+                                strokeDasharray="4 4"
+                                strokeWidth={
+                                    1.5
+                                }
+                            />
+
+
                             <XAxis
-                                dataKey="season"
+                                dataKey="year"
                                 stroke="#64748b"
                                 tick={{
                                     fill:
@@ -838,32 +1053,48 @@ export default function PlayerContractPanel({
                                     return (
                                         <Line
                                             key={
-                                                contract.contract_number
+                                                contract
+                                                    .contract_number
                                             }
                                             type="monotone"
                                             dataKey={`contract_${contract.contract_number}`}
                                             name={`${
-                                                contract.season_from
+                                                contract
+                                                    .season_from
+                                                ?? "—"
                                             } → ${
-                                                contract.season_to
+                                                contract
+                                                    .season_to
+                                                ?? "—"
+                                            }${
+                                                contract
+                                                    .signing_team
+                                                    ? ` · ${contract.signing_team}`
+                                                    : ""
                                             }`}
                                             stroke={
                                                 colour
                                             }
                                             strokeWidth={
-                                                contract.current_contract
+                                                contract
+                                                    .current_contract
                                                     ? 3
                                                     : 2
                                             }
-                                            dot={{
-                                                r: 4,
-                                                fill:
-                                                    colour,
-                                                strokeWidth:
-                                                    0,
-                                            }}
+                                            dot={
+                                                renderContractDot(
+                                                    contract,
+                                                    colour
+                                                )
+                                            }
                                             activeDot={{
                                                 r: 6,
+                                                fill:
+                                                    colour,
+                                                stroke:
+                                                    "#f8fafc",
+                                                strokeWidth:
+                                                    2,
                                             }}
                                             connectNulls={
                                                 false
@@ -874,6 +1105,7 @@ export default function PlayerContractPanel({
                             )}
 
                         </LineChart>
+
                     </ResponsiveContainer>
 
                 </div>

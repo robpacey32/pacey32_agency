@@ -18,6 +18,10 @@ OUTPUT_TABLE = "pacey32-agency.Cap.PlayerDetail"
 BATCH_SIZE = 50
 PAGE_TIMEOUT = 60000
 
+# True for complete re-scrape.
+# Change back to False after this refresh.
+FORCE_REFRESH = True
+
 # ============================================================
 # HELPERS
 # ============================================================
@@ -277,6 +281,7 @@ def parse_player_detail(html, url):
             "contract_id":contract_id,
             "current_contract":contract_value == selected_contract,
             "team":None,
+            "signing_team_slug":None,
             "contract_type":None,
             "season_from":None,
             "season_to":None,
@@ -295,11 +300,11 @@ def parse_player_detail(html, url):
             "offer_sheet":None,
         })
 
-        # Team
+        # Current team - retained for compatibility
         for script in soup.find_all("script", type="application/ld+json"):
             try:
                 data = json.loads(script.string or "")
-            except:
+            except (json.JSONDecodeError, TypeError):
                 continue
 
             if data.get("@type") == "SportsTeam":
@@ -322,6 +327,32 @@ def parse_player_detail(html, url):
 
         match = re.search(r"Total Value\s+\$([\d,]+)", panel_text, re.I)
         if match: row["total_value"] = int(match.group(1).replace(",",""))
+
+        # Signing team - contract-specific /team/... link in Signed row
+        for div in panel.find_all("div"):
+            direct_text = clean_text(" ".join(
+                str(text)
+                for text in div.find_all(string=True, recursive=False)
+            ))
+
+            if not direct_text or not re.match(r"^Signed\b", direct_text, re.I):
+                continue
+
+            team_link = div.find(
+                "a",
+                href=lambda href: href and href.startswith("/team/")
+            )
+
+            if team_link:
+                team_href = team_link.get("href")
+
+                if team_href:
+                    row["signing_team_slug"] = (
+                        team_href
+                        .replace("/team/", "", 1)
+                        .strip("/")
+                    )
+                    break
 
         # Signing / expiry status
         for status_label, status_field, age_field in [
@@ -364,20 +395,33 @@ def parse_player_detail(html, url):
                     if year_match:
                         row["expiry_year"] = int(year_match.group(1))
 
-        match = re.search(r"Signed\s+((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4})", panel_text, re.I)
+        # Signed date
+        match = re.search(
+            r"Signed\s+((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4})",
+            panel_text,
+            re.I
+        )
+
         if match:
-            try: row["signed_date"] = datetime.strptime(match.group(1), "%b %d, %Y").date()
-            except ValueError: pass
+            try:
+                row["signed_date"] = datetime.strptime(match.group(1), "%b %d, %Y").date()
+            except ValueError:
+                pass
 
         match = re.search(r"% Cap Contract Start\s+([\d.]+)%", panel_text, re.I)
-        if match: row["pct_cap_contract_start"] = float(match.group(1))
+        if match:
+            row["pct_cap_contract_start"] = float(match.group(1))
 
         # GM / agent
-        for source_label, field in [("Signing GM","signing_gm"),("Signing Agent","signing_agent")]:
+        for source_label, field in [
+            ("Signing GM","signing_gm"),
+            ("Signing Agent","signing_agent")
+        ]:
             label = panel.find(string=lambda x: x and clean_text(x) == source_label)
 
             if label and label.parent and label.parent.parent:
                 spans = label.parent.parent.find_all("span", recursive=False)
+
                 if len(spans) >= 2:
                     row[field] = clean_text(spans[-1].get_text(" ", strip=True))
 
@@ -388,7 +432,16 @@ def parse_player_detail(html, url):
 
         # Annual fields
         for yr in range(1,9):
-            for field in ["cap_hit","aav","base_salary","performance_bonus","signing_bonus","total_salary","minors_salary","clauses"]:
+            for field in [
+                "cap_hit",
+                "aav",
+                "base_salary",
+                "performance_bonus",
+                "signing_bonus",
+                "total_salary",
+                "minors_salary",
+                "clauses"
+            ]:
                 row[f"{field}_yr{yr}"] = None
 
         table = panel.find("table")
@@ -409,16 +462,25 @@ def parse_player_detail(html, url):
             table_rows = table.find_all("tr")
 
             if table_rows:
-                headers = [clean_text(c.get_text(" ", strip=True)) for c in table_rows[0].find_all(["th","td"])]
-                year_indexes = [i for i,h in enumerate(headers) if re.fullmatch(r"20\d{2}-\d{2}", h or "")]
+                headers = [
+                    clean_text(c.get_text(" ", strip=True))
+                    for c in table_rows[0].find_all(["th","td"])
+                ]
+
+                year_indexes = [
+                    i
+                    for i,h in enumerate(headers)
+                    if re.fullmatch(r"20\d{2}-\d{2}", h or "")
+                ]
 
                 for tr in table_rows[1:]:
                     cells = tr.find_all("td")
                     if not cells: continue
 
-                    label = clean_text(cells[0].get_text(" ", strip=True)).lower()
-                    field = field_map.get(label)
+                    label = clean_text(cells[0].get_text(" ", strip=True))
+                    if not label: continue
 
+                    field = field_map.get(label.lower())
                     if not field: continue
 
                     for yr, cell_index in enumerate(year_indexes, 1):
@@ -429,10 +491,20 @@ def parse_player_detail(html, url):
 
                         if field == "clauses":
                             row[f"{field}_yr{yr}"] = value_text or None
+
                         else:
                             value_element = cell.select_one(".val-lg")
-                            money_text = clean_text(value_element.get_text(" ", strip=True)) if value_element else value_text
-                            row[f"{field}_yr{yr}"] = parse_money(money_text) if money_text else None
+                            money_text = (
+                                clean_text(value_element.get_text(" ", strip=True))
+                                if value_element
+                                else value_text
+                            )
+
+                            row[f"{field}_yr{yr}"] = (
+                                parse_money(money_text)
+                                if money_text
+                                else None
+                            )
 
         row["source_url"] = url
         row["scrape_datetime"] = datetime.now(timezone.utc)
@@ -446,24 +518,37 @@ def parse_player_detail(html, url):
 # ============================================================
 
 def get_player_urls(client):
-    sql = f"""
-    SELECT DISTINCT p.player_url
-    FROM `{SOURCE_TABLE}` p
-    LEFT JOIN (
-        SELECT
-            player_url,
-            MAX(scrape_datetime) AS last_scraped
-        FROM `{OUTPUT_TABLE}`
-        GROUP BY player_url
-    ) d
-        ON p.player_url = d.player_url
-    WHERE p.player_url IS NOT NULL
-      AND (
-          d.last_scraped IS NULL
-          OR DATE(d.last_scraped) < DATE_SUB(CURRENT_DATE(), INTERVAL 2 WEEK)
-      )
-    ORDER BY p.player_url
-    """
+    if FORCE_REFRESH:
+        sql = f"""
+        SELECT DISTINCT player_url
+        FROM `{SOURCE_TABLE}`
+        WHERE player_url IS NOT NULL
+        ORDER BY player_url
+        """
+
+    else:
+        sql = f"""
+        SELECT DISTINCT p.player_url
+        FROM `{SOURCE_TABLE}` p
+
+        LEFT JOIN (
+            SELECT
+                player_url,
+                MAX(scrape_datetime) AS last_scraped
+            FROM `{OUTPUT_TABLE}`
+            GROUP BY player_url
+        ) d
+            ON p.player_url = d.player_url
+
+        WHERE p.player_url IS NOT NULL
+          AND (
+              d.last_scraped IS NULL
+              OR DATE(d.last_scraped) < DATE_SUB(CURRENT_DATE(), INTERVAL 2 WEEK)
+          )
+
+        ORDER BY p.player_url
+        """
+
     return [row.player_url for row in client.query(sql).result()]
 
 def upload_batch(client, rows):
@@ -473,7 +558,10 @@ def upload_batch(client, rows):
     df = pd.DataFrame(rows)
 
     job_config = bigquery.LoadJobConfig(
-        write_disposition=bigquery.WriteDisposition.WRITE_APPEND
+        write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+        schema_update_options=[
+            bigquery.SchemaUpdateOption.ALLOW_FIELD_ADDITION
+        ]
     )
 
     client.load_table_from_dataframe(
@@ -498,6 +586,7 @@ def main():
     print("=" * 70)
     print(f"Players: {len(player_urls):,}")
     print(f"Output: {OUTPUT_TABLE}")
+    print(f"Force refresh: {FORCE_REFRESH}")
     print()
 
     batch = []
@@ -544,10 +633,16 @@ def main():
                 batch.extend(rows)
                 total_rows += len(rows)
 
+                signing_team_count = sum(
+                    1 for row in rows
+                    if row.get("signing_team_slug")
+                )
+
                 print(
                     f"{i}/{len(player_urls)} | "
                     f"{rows[0]['player']} | "
                     f"{len(rows)} contracts | "
+                    f"{signing_team_count} signing teams | "
                     f"{time.time()-player_start:.2f}s"
                 )
 

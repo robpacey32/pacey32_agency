@@ -181,7 +181,8 @@ export default function PlayerPage() {
         }
 
         async function loadContract(
-            playerName: string
+            playerName: string,
+            playerId: string
         ) {
             try {
                 setContractLoading(true);
@@ -192,25 +193,37 @@ export default function PlayerPage() {
                     await fetch(
                         `/api/player-contract?player=${encodeURIComponent(
                             playerName
+                        )}&playerId=${encodeURIComponent(
+                            playerId
                         )}`
                     );
 
                 if (!response.ok) {
+                    const errorData =
+                        await response.json();
+
                     throw new Error(
-                        "Failed to load player contract"
+                        errorData.error
+                        ?? "Failed to load player contract"
                     );
                 }
 
-                const result =
+                const result:
+                    PlayerContractData =
                     await response.json();
 
                 setContract(result);
 
             } catch (error) {
-                console.error(error);
+                console.error(
+                    "Failed to load player contract:",
+                    error
+                );
 
                 setContractError(
-                    "Failed to load player contract"
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to load player contract"
                 );
 
             } finally {
@@ -226,7 +239,10 @@ export default function PlayerPage() {
                 profileResult?.player_name
             ) {
                 loadContract(
-                    profileResult.player_name
+                    profileResult.player_name,
+                    String(
+                        selectedPlayerId
+                    )
                 );
             }
         }
