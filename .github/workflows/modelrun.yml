@@ -37,6 +37,12 @@ jobs:
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Show authenticated account
+        run: gcloud auth list --filter=status:ACTIVE --format="value(account)"
+
       - name: Run Comparison Model
         env:
           FORCE_REFRESH: ${{ inputs.force_refresh }}
