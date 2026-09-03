@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 
 import ExpandableCard from "@/components/ExpandableCard";
+import PlayerContractPanel, {
+    PlayerContractData,
+} from "@/components/PlayerContractPanel";
 import PlayerPerformancePanel, {
     PlayerPerformanceData,
 } from "@/components/PlayerPerformancePanel";
@@ -31,6 +34,14 @@ export default function PlayerPage() {
         );
 
     const [
+        contract,
+        setContract,
+    ] =
+        useState<PlayerContractData | null>(
+            null
+        );
+
+    const [
         profileLoading,
         setProfileLoading,
     ] = useState(false);
@@ -38,6 +49,11 @@ export default function PlayerPage() {
     const [
         performanceLoading,
         setPerformanceLoading,
+    ] = useState(false);
+
+    const [
+        contractLoading,
+        setContractLoading,
     ] = useState(false);
 
     const [
@@ -57,6 +73,14 @@ export default function PlayerPage() {
         );
 
     const [
+        contractError,
+        setContractError,
+    ] =
+        useState<string | null>(
+            null
+        );
+
+    const [
         openCard,
         setOpenCard,
     ] =
@@ -68,11 +92,18 @@ export default function PlayerPage() {
         if (!selectedPlayerId) {
             setProfile(null);
             setPerformance(null);
+            setContract(null);
+
             setProfileError(null);
             setPerformanceError(null);
+            setContractError(null);
+
             setProfileLoading(false);
             setPerformanceLoading(false);
+            setContractLoading(false);
+
             setOpenCard(null);
+
             return;
         }
 
@@ -98,12 +129,18 @@ export default function PlayerPage() {
                     await response.json();
 
                 setProfile(result);
+
+                return result as PlayerProfileData;
+
             } catch (error) {
                 console.error(error);
 
                 setProfileError(
                     "Failed to load player profile"
                 );
+
+                return null;
+
             } finally {
                 setProfileLoading(false);
             }
@@ -130,18 +167,71 @@ export default function PlayerPage() {
                     await response.json();
 
                 setPerformance(result);
+
             } catch (error) {
                 console.error(error);
 
                 setPerformanceError(
                     "Failed to load player performance"
                 );
+
             } finally {
                 setPerformanceLoading(false);
             }
         }
 
-        loadProfile();
+        async function loadContract(
+            playerName: string
+        ) {
+            try {
+                setContractLoading(true);
+                setContractError(null);
+                setContract(null);
+
+                const response =
+                    await fetch(
+                        `/api/player-contract?player=${encodeURIComponent(
+                            playerName
+                        )}`
+                    );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to load player contract"
+                    );
+                }
+
+                const result =
+                    await response.json();
+
+                setContract(result);
+
+            } catch (error) {
+                console.error(error);
+
+                setContractError(
+                    "Failed to load player contract"
+                );
+
+            } finally {
+                setContractLoading(false);
+            }
+        }
+
+        async function initialisePlayer() {
+            const profileResult =
+                await loadProfile();
+
+            if (
+                profileResult?.player_name
+            ) {
+                loadContract(
+                    profileResult.player_name
+                );
+            }
+        }
+
+        initialisePlayer();
         loadPerformance();
 
     }, [selectedPlayerId]);
@@ -206,6 +296,14 @@ export default function PlayerPage() {
                           )
                   )[0]
             : null;
+
+    const currentContract =
+        contract?.contracts?.find(
+            item =>
+                item.current_contract
+        ) ??
+        contract?.contracts?.[0] ??
+        null;
 
     const cards = [
         {
@@ -313,14 +411,52 @@ export default function PlayerPage() {
         {
             id: "contract",
             title: "Contract",
-            value: "—",
+            value:
+                currentContract?.cap_hit !=
+                null
+                    ? money(
+                          currentContract.cap_hit
+                      )
+                    : contractLoading
+                      ? "Loading..."
+                      : "—",
             detail:
-                "Current contract status",
-            content: (
-                <PlaceholderPanel
-                    title="Contract"
-                />
-            ),
+                currentContract
+                    ? [
+                          currentContract.term !=
+                          null
+                              ? `${currentContract.term} years`
+                              : null,
+                          currentContract.season_to
+                              ? `through ${currentContract.season_to}`
+                              : null,
+                          currentContract.expiry_status,
+                      ]
+                          .filter(Boolean)
+                          .join(" · ")
+                    : contractLoading
+                      ? "Loading current contract"
+                      : "Current contract status",
+            content:
+                contractLoading ? (
+                    <LoadingPanel
+                        title="Contract"
+                    />
+                ) : contractError ? (
+                    <UnavailablePanel
+                        title="Contract"
+                    />
+                ) : contract ? (
+                    <PlayerContractPanel
+                        data={
+                            contract
+                        }
+                    />
+                ) : (
+                    <UnavailablePanel
+                        title="Contract"
+                    />
+                ),
         },
 
         {
@@ -336,11 +472,25 @@ export default function PlayerPage() {
                 />
             ),
         },
+
+        {
+            id: "events",
+            title:
+                "Event Mapping",
+            value: "—",
+            detail:
+                "On-ice event locations",
+            content: (
+                <PlaceholderPanel
+                    title="Event Mapping"
+                />
+            ),
+        },
     ];
 
     const selectedCard =
         cards.find(
-            (card) =>
+            card =>
                 card.id === openCard
         );
 
@@ -402,7 +552,7 @@ export default function PlayerPage() {
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 
                         {cards.map(
-                            (card) => (
+                            card => (
                                 <ExpandableCard
                                     key={
                                         card.id
@@ -435,20 +585,16 @@ export default function PlayerPage() {
                 {openCard && (
                     <>
 
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
 
                             {cards
                                 .filter(
-                                    (
-                                        card
-                                    ) =>
+                                    card =>
                                         card.id !==
                                         openCard
                                 )
                                 .map(
-                                    (
-                                        card
-                                    ) => (
+                                    card => (
                                         <ExpandableCard
                                             key={
                                                 card.id
@@ -587,4 +733,23 @@ function formatSeason(
         0,
         4
     )}/${season.slice(6)}`;
+}
+
+
+function money(
+    value: number
+) {
+    if (value >= 1_000_000) {
+        return `$${(
+            value / 1_000_000
+        ).toFixed(2)}m`;
+    }
+
+    if (value >= 1_000) {
+        return `$${(
+            value / 1_000
+        ).toFixed(0)}k`;
+    }
+
+    return `$${value.toLocaleString()}`;
 }
