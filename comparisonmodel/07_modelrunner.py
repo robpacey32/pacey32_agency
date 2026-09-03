@@ -92,14 +92,18 @@ def load_overall_model():
 def load_players(client):
     query = """
     SELECT DISTINCT
-        playerId,
-        player_name,
-        position
-    FROM `pacey32-agency.Comparison.01_PlayerProfile`
-    WHERE activeFlag = 1
-      AND playerId IS NOT NULL
-      AND position IS NOT NULL
-    ORDER BY player_name
+        p.playerId,
+        p.player_name,
+        p.position
+    FROM `pacey32-agency.Comparison.01_PlayerProfile` p
+    INNER JOIN `pacey32-agency.Comparison.03_PlayerSeasonStats` s
+        ON CAST(p.playerId AS STRING) = s.playerId
+    WHERE p.activeFlag = 1
+      AND p.playerId IS NOT NULL
+      AND p.position IS NOT NULL
+      AND s.seasonPart = 'RegularSeason'
+      AND s.games_played > 0
+    ORDER BY p.player_name
     """
 
     df = client.query(
@@ -113,9 +117,7 @@ def load_players(client):
 
     df = (
         df
-        .dropna(
-            subset=["playerId"]
-        )
+        .dropna(subset=["playerId"])
         .copy()
     )
 
