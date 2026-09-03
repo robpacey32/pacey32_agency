@@ -13,3 +13,4 @@ lxml
 playwright
 google-genai
 html5lib
+scikit-learn
