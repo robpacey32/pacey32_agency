@@ -15,16 +15,20 @@ type SelectedPlayer = {
 };
 
 type AppContextType = {
-    player: string;
-    setPlayer: (player: string) => void;
+    player: string | null;
+    setPlayer: (
+        player: string | null
+    ) => void;
 
     selectedPlayer: SelectedPlayer | null;
     setSelectedPlayer: (
         player: SelectedPlayer | null
     ) => void;
 
-    team: string;
-    setTeam: (team: string) => void;
+    team: string | null;
+    setTeam: (
+        team: string | null
+    ) => void;
 };
 
 const AppContext =
@@ -37,8 +41,13 @@ export function AppProvider({
 }: {
     children: React.ReactNode;
 }) {
-    const [player, setPlayer] =
-        useState("8477492");
+    const [
+        player,
+        setPlayer,
+    ] =
+        useState<string | null>(
+            null
+        );
 
     const [
         selectedPlayer,
@@ -48,8 +57,13 @@ export function AppProvider({
             null
         );
 
-    const [team, setTeam] =
-        useState("COL");
+    const [
+        team,
+        setTeam,
+    ] =
+        useState<string | null>(
+            null
+        );
 
     return (
         <AppContext.Provider

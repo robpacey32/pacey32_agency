@@ -203,39 +203,100 @@ export default function CityPage() {
     const { team: selectedTeam } = useAppContext();
 
     const [data, setData] = useState<CityData | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [openCard, setOpenCard] = useState<string | null>(null);
 
     useEffect(() => {
+        let cancelled = false;
+
         async function loadCity() {
+            if (!selectedTeam) {
+                setData(null);
+                setError(null);
+                setLoading(false);
+                setOpenCard(null);
+                return;
+            }
+
             try {
                 setLoading(true);
                 setError(null);
                 setOpenCard(null);
+                setData(null);
 
-                const response = await fetch(`/api/city?team=${selectedTeam}`);
+                const response = await fetch(
+                    `/api/city?team=${selectedTeam}`,
+                    {
+                        cache: "no-store",
+                    }
+                );
 
                 if (!response.ok) {
-                    throw new Error("Failed to load city data");
+                    throw new Error(
+                        "Failed to load city data"
+                    );
                 }
 
-                const result = await response.json();
-                setData(result);
+                const result: CityData =
+                    await response.json();
+
+                if (!cancelled) {
+                    setData(result);
+                }
+
             } catch (err) {
                 console.error(err);
-                setError("Failed to load city data");
+
+                if (!cancelled) {
+                    setData(null);
+                    setError(
+                        "Failed to load city data"
+                    );
+                }
+
             } finally {
-                setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
             }
         }
 
         loadCity();
+
+        return () => {
+            cancelled = true;
+        };
+
     }, [selectedTeam]);
 
     const toggleCard = (card: string) => {
-        setOpenCard(openCard === card ? null : card);
+        setOpenCard(
+            openCard === card
+                ? null
+                : card
+        );
     };
+
+    if (!selectedTeam) {
+        return (
+            <main className="min-h-screen bg-slate-950 px-8 py-10">
+                <div className="mx-auto max-w-7xl">
+                    <div className="flex min-h-[420px] items-center justify-center">
+                        <div className="text-center">
+                            <h1 className="text-2xl font-semibold text-white">
+                                Please select a team
+                            </h1>
+
+                            <p className="mt-2 text-sm text-slate-500">
+                                Choose a team above to view city information.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        );
+    }
 
     if (loading) {
         return (
@@ -261,41 +322,57 @@ export default function CityPage() {
     const cost = data.costOfLiving.summary;
     const costDetail = data.costOfLiving.detail;
     const tax = data.tax.summary;
-    const incomeTaxDistribution = data.tax.incomeTaxDistribution;
-    const salesTaxDistribution = data.tax.salesTaxDistribution;
+    const incomeTaxDistribution =
+        data.tax.incomeTaxDistribution;
+    const salesTaxDistribution =
+        data.tax.salesTaxDistribution;
     const city = data.city;
 
     const cards: Card[] = [
         {
             id: "climate",
             title: "Climate",
-            value: climate ? `#${climate.sunshine_rank}` : "—",
+            value: climate
+                ? `#${climate.sunshine_rank}`
+                : "—",
             detail: climate
-                ? `${formatSigned(climate.solar_vs_nhl_avg_pct)} vs NHL sunshine average`
+                ? `${formatSigned(
+                      climate.solar_vs_nhl_avg_pct
+                  )} vs NHL sunshine average`
                 : "Climate data unavailable",
             content:
                 climate && city ? (
                     <ClimatePanel
                         city={city.geocoded_city}
-                        stateProvince={city.state_province}
+                        stateProvince={
+                            city.state_province
+                        }
                         country={city.country}
                         climate={climate}
-                        monthly={data.climate.monthly}
+                        monthly={
+                            data.climate.monthly
+                        }
                     />
                 ) : null,
         },
         {
             id: "cost",
             title: "Cost of Living",
-            value: cost ? `#${cost.affordability_rank}` : "—",
+            value: cost
+                ? `#${cost.affordability_rank}`
+                : "—",
             detail: cost
-                ? `${formatSigned(cost.vs_nhl_average_pct)} vs NHL average`
+                ? `${formatSigned(
+                      cost.vs_nhl_average_pct
+                  )} vs NHL average`
                 : "Cost data unavailable",
             content:
                 cost && city ? (
                     <CostOfLivingPanel
                         city={city.geocoded_city}
-                        stateProvince={city.state_province}
+                        stateProvince={
+                            city.state_province
+                        }
                         country={city.country}
                         cost={cost}
                         detail={costDetail}
@@ -306,7 +383,9 @@ export default function CityPage() {
             id: "income-tax",
             title: "Income Tax",
             value: tax
-                ? `${tax.combined_top_marginal_income_tax_rate.toFixed(1)}%`
+                ? `${tax.combined_top_marginal_income_tax_rate.toFixed(
+                      1
+                  )}%`
                 : "—",
             detail: tax
                 ? `#${tax.income_tax_rank} NHL · ${formatPoints(
@@ -317,10 +396,14 @@ export default function CityPage() {
                 tax && city ? (
                     <IncomeTaxPanel
                         city={city.geocoded_city}
-                        stateProvince={city.state_province}
+                        stateProvince={
+                            city.state_province
+                        }
                         country={city.country}
                         tax={tax}
-                        distribution={incomeTaxDistribution}
+                        distribution={
+                            incomeTaxDistribution
+                        }
                     />
                 ) : null,
         },
@@ -328,7 +411,9 @@ export default function CityPage() {
             id: "sales-tax",
             title: "Sales Tax",
             value: tax
-                ? `${tax.combined_sales_tax_rate.toFixed(2)}%`
+                ? `${tax.combined_sales_tax_rate.toFixed(
+                      2
+                  )}%`
                 : "—",
             detail: tax
                 ? `#${tax.sales_tax_rank} NHL · ${formatPoints(
@@ -339,39 +424,92 @@ export default function CityPage() {
                 tax && city ? (
                     <SalesTaxPanel
                         city={city.geocoded_city}
-                        stateProvince={city.state_province}
+                        stateProvince={
+                            city.state_province
+                        }
                         country={city.country}
                         tax={tax}
-                        distribution={salesTaxDistribution}
+                        distribution={
+                            salesTaxDistribution
+                        }
                     />
                 ) : null,
         },
         {
             id: "overview",
             title: "City Overview",
-            value: data.team.venueLocation,
-            detail: truncate(data.overview.summary, 80),
+            value:
+                data.team.venueLocation,
+            detail: truncate(
+                data.overview.summary,
+                80
+            ),
             openDetail:
                 data.overview.summary ??
                 "City profile and local amenities",
             content: (
                 <div className="space-y-10">
                     <CityOverviewMap
-                        cityLatitude={city?.latitude ?? 0}
-                        cityLongitude={city?.longitude ?? 0}
-                        arena={data.overview.geo.arena}
-                        practiceFacility={data.overview.geo.practiceFacility}
-                        residentialAreas={data.overview.geo.residentialAreas}
-                        airports={data.overview.geo.airports}
-                        hospitals={data.overview.geo.hospitals}
-                        schools={data.overview.geo.schools}
-                        restaurants={data.overview.geo.restaurants}
-                        shopping={data.overview.geo.shopping}
-                        golfClubs={data.overview.geo.golfClubs}
-                        countryClubs={data.overview.geo.countryClubs}
-                        ski={data.overview.geo.ski}
-                        beaches={data.overview.geo.beaches}
-                        marinas={data.overview.geo.marinas}
+                        cityLatitude={
+                            city?.latitude ??
+                            0
+                        }
+                        cityLongitude={
+                            city?.longitude ??
+                            0
+                        }
+                        arena={
+                            data.overview.geo
+                                .arena
+                        }
+                        practiceFacility={
+                            data.overview.geo
+                                .practiceFacility
+                        }
+                        residentialAreas={
+                            data.overview.geo
+                                .residentialAreas
+                        }
+                        airports={
+                            data.overview.geo
+                                .airports
+                        }
+                        hospitals={
+                            data.overview.geo
+                                .hospitals
+                        }
+                        schools={
+                            data.overview.geo
+                                .schools
+                        }
+                        restaurants={
+                            data.overview.geo
+                                .restaurants
+                        }
+                        shopping={
+                            data.overview.geo
+                                .shopping
+                        }
+                        golfClubs={
+                            data.overview.geo
+                                .golfClubs
+                        }
+                        countryClubs={
+                            data.overview.geo
+                                .countryClubs
+                        }
+                        ski={
+                            data.overview.geo
+                                .ski
+                        }
+                        beaches={
+                            data.overview.geo
+                                .beaches
+                        }
+                        marinas={
+                            data.overview.geo
+                                .marinas
+                        }
                     />
 
                     <div>
@@ -381,19 +519,22 @@ export default function CityPage() {
                             </p>
 
                             <p className="mt-1 text-sm text-slate-400">
-                                Residential areas commonly suited to NHL
-                                players and their families.
+                                Residential areas commonly suited to NHL players and their families.
                             </p>
                         </div>
 
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {data.overview.geo.residentialAreas.map((area) => (
-                                <Neighbourhood
-                                    key={`${area.rank}-${area.name}`}
-                                    name={`${area.rank}. ${area.name}`}
-                                    detail={area.reason}
-                                />
-                            ))}
+                            {data.overview.geo.residentialAreas.map(
+                                (area) => (
+                                    <Neighbourhood
+                                        key={`${area.rank}-${area.name}`}
+                                        name={`${area.rank}. ${area.name}`}
+                                        detail={
+                                            area.reason
+                                        }
+                                    />
+                                )
+                            )}
                         </div>
                     </div>
                 </div>
@@ -402,52 +543,83 @@ export default function CityPage() {
         {
             id: "location",
             title: "Location",
-            value: city?.geocoded_city ?? data.team.venueLocation,
+            value:
+                city?.geocoded_city ??
+                data.team.venueLocation,
             detail: city
                 ? `${city.state_province}, ${city.country}`
                 : "Location data unavailable",
             content: city ? (
                 <div className="grid gap-8 lg:grid-cols-2">
                     <CityLocationMap
-                        latitude={city.latitude}
-                        longitude={city.longitude}
-                        city={city.geocoded_city}
-                        teamName={data.team.name}
-                        logo={data.team.logo}
+                        latitude={
+                            city.latitude
+                        }
+                        longitude={
+                            city.longitude
+                        }
+                        city={
+                            city.geocoded_city
+                        }
+                        teamName={
+                            data.team.name
+                        }
+                        logo={
+                            data.team.logo
+                        }
                     />
 
                     <div className="grid grid-cols-2 content-center gap-x-6 gap-y-8">
                         <Metric
                             label="City"
-                            value={city.geocoded_city}
+                            value={
+                                city.geocoded_city
+                            }
                         />
+
                         <Metric
                             label="State / Province"
-                            value={city.state_province}
+                            value={
+                                city.state_province
+                            }
                         />
+
                         <Metric
                             label="Country"
-                            value={city.country}
+                            value={
+                                city.country
+                            }
                         />
+
                         <Metric
                             label="Timezone"
-                            value={city.timezone}
+                            value={
+                                city.timezone
+                            }
                         />
+
                         <Metric
                             label="Population"
                             value={city.population.toLocaleString()}
                         />
+
                         <Metric
                             label="Elevation"
                             value={`${city.elevation.toLocaleString()} m`}
                         />
+
                         <Metric
                             label="Latitude"
-                            value={city.latitude.toFixed(4)}
+                            value={city.latitude.toFixed(
+                                4
+                            )}
                         />
+
                         <Metric
                             label="Longitude"
-                            value={city.longitude.toFixed(4)}
+                            value={city.longitude.toFixed(
+                                4
+                            )}
                         />
                     </div>
                 </div>
@@ -455,17 +627,24 @@ export default function CityPage() {
         },
     ];
 
-    const selectedCard = cards.find(
-        (card) => card.id === openCard
-    );
+    const selectedCard =
+        cards.find(
+            (card) =>
+                card.id === openCard
+        );
 
     return (
         <main className="min-h-screen bg-slate-950 px-8 py-10">
             <div className="mx-auto max-w-7xl">
+
                 <div className="mb-8 flex items-center gap-5">
                     <img
-                        src={data.team.logo}
-                        alt={data.team.name}
+                        src={
+                            data.team.logo
+                        }
+                        alt={
+                            data.team.name
+                        }
                         className="h-16 w-16 object-contain"
                     />
 
@@ -476,7 +655,8 @@ export default function CityPage() {
 
                         <h1 className="text-4xl font-bold">
                             {city?.geocoded_city ??
-                                data.team.venueLocation}
+                                data.team
+                                    .venueLocation}
                         </h1>
 
                         <p className="mt-1 text-slate-400">
@@ -489,18 +669,32 @@ export default function CityPage() {
 
                 {!openCard && (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {cards.map((card) => (
-                            <ExpandableCard
-                                key={card.id}
-                                title={card.title}
-                                value={card.value}
-                                detail={card.detail}
-                                open={false}
-                                onClick={() =>
-                                    toggleCard(card.id)
-                                }
-                            />
-                        ))}
+                        {cards.map(
+                            (card) => (
+                                <ExpandableCard
+                                    key={
+                                        card.id
+                                    }
+                                    title={
+                                        card.title
+                                    }
+                                    value={
+                                        card.value
+                                    }
+                                    detail={
+                                        card.detail
+                                    }
+                                    open={
+                                        false
+                                    }
+                                    onClick={() =>
+                                        toggleCard(
+                                            card.id
+                                        )
+                                    }
+                                />
+                            )
+                        )}
                     </div>
                 )}
 
@@ -510,36 +704,63 @@ export default function CityPage() {
                             {cards
                                 .filter(
                                     (card) =>
-                                        card.id !== openCard
+                                        card.id !==
+                                        openCard
                                 )
-                                .map((card) => (
-                                    <ExpandableCard
-                                        key={card.id}
-                                        title={card.title}
-                                        value={card.value}
-                                        detail={card.detail}
-                                        compact
-                                        open={false}
-                                        onClick={() =>
-                                            toggleCard(card.id)
-                                        }
-                                    />
-                                ))}
+                                .map(
+                                    (card) => (
+                                        <ExpandableCard
+                                            key={
+                                                card.id
+                                            }
+                                            title={
+                                                card.title
+                                            }
+                                            value={
+                                                card.value
+                                            }
+                                            detail={
+                                                card.detail
+                                            }
+                                            compact
+                                            open={
+                                                false
+                                            }
+                                            onClick={() =>
+                                                toggleCard(
+                                                    card.id
+                                                )
+                                            }
+                                        />
+                                    )
+                                )}
                         </div>
 
                         {selectedCard && (
                             <div className="mt-4">
                                 <ExpandableCard
-                                    title={selectedCard.title}
-                                    value={selectedCard.value}
-                                    detail={selectedCard.detail}
-                                    openDetail={selectedCard.openDetail}
+                                    title={
+                                        selectedCard.title
+                                    }
+                                    value={
+                                        selectedCard.value
+                                    }
+                                    detail={
+                                        selectedCard.detail
+                                    }
+                                    openDetail={
+                                        selectedCard.openDetail
+                                    }
                                     open
                                     onClick={() =>
-                                        toggleCard(selectedCard.id)
+                                        toggleCard(
+                                            selectedCard.id
+                                        )
                                     }
                                 >
-                                    {selectedCard.content}
+                                    {
+                                        selectedCard.content
+                                    }
                                 </ExpandableCard>
                             </div>
                         )}
@@ -590,15 +811,29 @@ function Neighbourhood({
     );
 }
 
-function formatSigned(value: number) {
-    return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
+function formatSigned(
+    value: number
+) {
+    return `${value > 0 ? "+" : ""}${value.toFixed(
+        1
+    )}%`;
 }
 
-function formatPoints(value: number) {
-    const abs = Math.abs(value).toFixed(1);
+function formatPoints(
+    value: number
+) {
+    const abs =
+        Math.abs(value).toFixed(
+            1
+        );
 
-    if (value < 0) return `${abs} pts below`;
-    if (value > 0) return `${abs} pts above`;
+    if (value < 0) {
+        return `${abs} pts below`;
+    }
+
+    if (value > 0) {
+        return `${abs} pts above`;
+    }
 
     return "NHL average";
 }
@@ -612,6 +847,9 @@ function truncate(
     }
 
     return value.length > length
-        ? `${value.slice(0, length)}...`
+        ? `${value.slice(
+              0,
+              length
+          )}...`
         : value;
 }

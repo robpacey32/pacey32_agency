@@ -189,6 +189,11 @@ type MapMode =
     | "frequency";
 
 
+type DistanceUnit =
+    | "miles"
+    | "km";
+
+
 type SortKey =
     | "date"
     | "games"
@@ -205,6 +210,7 @@ export type RoadTrip = {
     legs: TravelLeg[];
     cities: string[];
     miles: number;
+    km: number;
     games: number;
 
     startDate:
@@ -225,6 +231,15 @@ export default function TravelPanel({
         history,
         legs,
     } = data;
+
+
+    const [
+        distanceUnit,
+        setDistanceUnit,
+    ] =
+        useState<DistanceUnit>(
+            "miles"
+        );
 
 
     const [
@@ -263,6 +278,13 @@ export default function TravelPanel({
 
     const pageSize =
         10;
+
+
+    const distanceSuffix =
+        distanceUnit ===
+        "miles"
+            ? "mi"
+            : "km";
 
 
     const roadTrips =
@@ -379,6 +401,39 @@ export default function TravelPanel({
         );
 
 
+    function displayKm(
+        km: number
+    ) {
+        return distanceUnit ===
+            "miles"
+            ? kmToMiles(
+                  km
+              )
+            : km;
+    }
+
+
+    function displaySummaryDistance(
+        miles: number,
+        km: number
+    ) {
+        return distanceUnit ===
+            "miles"
+            ? miles
+            : km;
+    }
+
+
+    function displayTripDistance(
+        trip: RoadTrip
+    ) {
+        return distanceUnit ===
+            "miles"
+            ? trip.miles
+            : trip.km;
+    }
+
+
     function changeSort(
         key: SortKey
     ) {
@@ -414,6 +469,46 @@ export default function TravelPanel({
     return (
         <div className="space-y-5">
 
+            {/* UNIT TOGGLE */}
+
+            <div className="flex justify-end">
+
+                <div className="flex rounded-lg border border-slate-800 bg-slate-950 p-1">
+
+                    <UnitToggle
+                        active={
+                            distanceUnit ===
+                            "miles"
+                        }
+                        onClick={() =>
+                            setDistanceUnit(
+                                "miles"
+                            )
+                        }
+                    >
+                        Miles
+                    </UnitToggle>
+
+
+                    <UnitToggle
+                        active={
+                            distanceUnit ===
+                            "km"
+                        }
+                        onClick={() =>
+                            setDistanceUnit(
+                                "km"
+                            )
+                        }
+                    >
+                        Km
+                    </UnitToggle>
+
+                </div>
+
+            </div>
+
+
             {/* HEADLINE METRICS */}
 
             <section className="grid min-w-[1000px] grid-cols-4 gap-4 overflow-x-auto">
@@ -426,8 +521,11 @@ export default function TravelPanel({
                     }
                     label="Total Travel"
                     value={`${formatNumber(
-                        summary.total_distance_miles
-                    )} mi`}
+                        displaySummaryDistance(
+                            summary.total_distance_miles,
+                            summary.total_distance_km
+                        )
+                    )} ${distanceSuffix}`}
                     detail={
                         seasonLabel
                     }
@@ -465,10 +563,10 @@ export default function TravelPanel({
                     }
                     label="Longest Leg"
                     value={`${formatNumber(
-                        kmToMiles(
+                        displayKm(
                             summary.longest_leg_km
                         )
-                    )} mi`}
+                    )} ${distanceSuffix}`}
                     detail={`#${summary.longest_leg_rank} NHL`}
                 />
 
@@ -520,9 +618,14 @@ export default function TravelPanel({
 
                                         <div className="font-semibold text-white">
                                             {formatNumber(
-                                                row.total_distance_miles
+                                                displaySummaryDistance(
+                                                    row.total_distance_miles,
+                                                    row.total_distance_km
+                                                )
                                             )}{" "}
-                                            mi
+                                            {
+                                                distanceSuffix
+                                            }
                                         </div>
 
                                         <div className="text-right">
@@ -587,38 +690,38 @@ export default function TravelPanel({
                             <ProfileComparisonRow
                                 label="Average leg"
                                 value={
-                                    kmToMiles(
+                                    displayKm(
                                         summary.average_leg_km
                                     )
                                 }
                                 average={
                                     summary.nhl_avg_average_leg_km !=
                                     null
-                                        ? kmToMiles(
+                                        ? displayKm(
                                               summary.nhl_avg_average_leg_km
                                           )
                                         : null
                                 }
-                                suffix=" mi"
+                                suffix={` ${distanceSuffix}`}
                             />
 
 
                             <ProfileComparisonRow
                                 label="Median leg"
                                 value={
-                                    kmToMiles(
+                                    displayKm(
                                         summary.median_leg_km
                                     )
                                 }
                                 average={
                                     summary.nhl_avg_median_leg_km !=
                                     null
-                                        ? kmToMiles(
+                                        ? displayKm(
                                               summary.nhl_avg_median_leg_km
                                           )
                                         : null
                                 }
-                                suffix=" mi"
+                                suffix={` ${distanceSuffix}`}
                             />
 
 
@@ -638,7 +741,12 @@ export default function TravelPanel({
 
 
                             <ProfileComparisonRow
-                                label="> 500 km"
+                                label={
+                                    distanceUnit ===
+                                    "miles"
+                                        ? "> 311 mi"
+                                        : "> 500 km"
+                                }
                                 value={
                                     summary.legs_over_500km
                                 }
@@ -650,7 +758,12 @@ export default function TravelPanel({
 
 
                             <ProfileComparisonRow
-                                label="> 1,000 km"
+                                label={
+                                    distanceUnit ===
+                                    "miles"
+                                        ? "> 621 mi"
+                                        : "> 1,000 km"
+                                }
                                 value={
                                     summary.legs_over_1000km
                                 }
@@ -662,7 +775,12 @@ export default function TravelPanel({
 
 
                             <ProfileComparisonRow
-                                label="> 2,000 km"
+                                label={
+                                    distanceUnit ===
+                                    "miles"
+                                        ? "> 1,243 mi"
+                                        : "> 2,000 km"
+                                }
                                 value={
                                     summary.legs_over_2000km
                                 }
@@ -674,7 +792,12 @@ export default function TravelPanel({
 
 
                             <ProfileComparisonRow
-                                label="> 3,000 km"
+                                label={
+                                    distanceUnit ===
+                                    "miles"
+                                        ? "> 1,864 mi"
+                                        : "> 3,000 km"
+                                }
                                 value={
                                     summary.legs_over_3000km
                                 }
@@ -794,8 +917,10 @@ export default function TravelPanel({
                                 `Longest road trip: ${longestTrip.cities.join(
                                     " → "
                                 )} · ${formatNumber(
-                                    longestTrip.miles
-                                )} mi`}
+                                    displayTripDistance(
+                                        longestTrip
+                                    )
+                                )} ${distanceSuffix}`}
 
                             {mapMode ===
                                 "frequency" &&
@@ -885,7 +1010,12 @@ export default function TravelPanel({
 
                                     <div className="flex justify-end">
                                         <SortHeader
-                                            label="Miles"
+                                            label={
+                                                distanceUnit ===
+                                                "miles"
+                                                    ? "Miles"
+                                                    : "KM"
+                                            }
                                             sortKey="miles"
                                             activeKey={
                                                 sortKey
@@ -907,8 +1037,7 @@ export default function TravelPanel({
 
                                 {pagedRoadTrips.map(
                                     (
-                                        trip,
-                                        index
+                                        trip
                                     ) => (
                                         <div
                                             key={
@@ -919,11 +1048,9 @@ export default function TravelPanel({
 
                                             <div>
                                                 <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-blue-500/15 text-xs font-semibold text-blue-400">
-                                                    {(currentPage -
-                                                        1) *
-                                                        pageSize +
-                                                        index +
-                                                        1}
+                                                    {
+                                                        trip.id
+                                                    }
                                                 </span>
                                             </div>
 
@@ -951,9 +1078,13 @@ export default function TravelPanel({
 
                                             <div className="text-right font-semibold text-white">
                                                 {formatNumber(
-                                                    trip.miles
+                                                    displayTripDistance(
+                                                        trip
+                                                    )
                                                 )}{" "}
-                                                mi
+                                                {
+                                                    distanceSuffix
+                                                }
                                             </div>
 
                                         </div>
@@ -1196,6 +1327,33 @@ function ProfileComparisonRow({
             )}
 
         </div>
+    );
+}
+
+
+function UnitToggle({
+    active,
+    onClick,
+    children,
+}: {
+    active: boolean;
+    onClick: () => void;
+    children: React.ReactNode;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={
+                onClick
+            }
+            className={`rounded-md px-4 py-2 text-xs font-semibold transition ${
+                active
+                    ? "bg-blue-600 text-white"
+                    : "text-slate-500 hover:text-slate-300"
+            }`}
+        >
+            {children}
+        </button>
     );
 }
 
@@ -1446,6 +1604,20 @@ function buildRoadTrips(
                                 total +
                                 Number(
                                     leg.travel_miles ??
+                                        0
+                                ),
+                            0
+                        ),
+
+                    km:
+                        sorted.reduce(
+                            (
+                                total,
+                                leg
+                            ) =>
+                                total +
+                                Number(
+                                    leg.travel_km ??
                                         0
                                 ),
                             0

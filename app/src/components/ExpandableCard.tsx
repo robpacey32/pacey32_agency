@@ -1,8 +1,8 @@
 type ExpandableCardProps = {
     title: string;
-    value: string;
-    detail?: string;
-    openDetail?: string;
+    value: React.ReactNode;
+    detail?: React.ReactNode;
+    openDetail?: React.ReactNode;
     open: boolean;
     compact?: boolean;
     uniformValueDetail?: boolean;
@@ -39,7 +39,7 @@ export default function ExpandableCard({
                         {title}
                     </p>
 
-                    <p
+                    <div
                         className={
                             uniformValueDetail
                                 ? `${compact ? "text-base" : "text-lg"} font-semibold text-white`
@@ -47,10 +47,10 @@ export default function ExpandableCard({
                         }
                     >
                         {value}
-                    </p>
+                    </div>
 
                     {!compact && displayedDetail && (
-                        <p
+                        <div
                             className={
                                 uniformValueDetail
                                     ? "mt-1 text-lg font-semibold text-white"
@@ -58,7 +58,7 @@ export default function ExpandableCard({
                             }
                         >
                             {displayedDetail}
-                        </p>
+                        </div>
                     )}
                 </div>
 

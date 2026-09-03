@@ -678,34 +678,32 @@ export default function TeamPage() {
         null;
 
 
-    const rosterPositionCount =
+    const organisationPositionCount =
         depthChart &&
         selectedPrimaryPosition
-            ? getRosterPositionCount(
-                  depthChart,
-                  selectedPrimaryPosition
-              )
+            ? getOrganisationPositionCount(
+                depthChart,
+                selectedPrimaryPosition
+            )
             : null;
 
 
     const depthChartValue =
         depthChartLoading
             ? "..."
-            : rosterPositionCount != null
-              ? String(
-                    rosterPositionCount
+            : organisationPositionCount != null
+            ? String(
+                    organisationPositionCount
                 )
-              : "—";
+            : "—";
 
 
     const depthChartDetail =
         depthChartLoading
             ? "Loading depth chart"
             : selectedPrimaryPosition
-              ? `Roster ${positionLabel(
-                    selectedPrimaryPosition
-                )}`
-              : "Roster players at selected position";
+            ? `${selectedPrimaryPosition} in organisation`
+            : "Players in organisation";
 
 
     // --------------------------------------------------
@@ -1185,50 +1183,59 @@ export default function TeamPage() {
 // DEPTH CHART HELPERS
 // --------------------------------------------------
 
-function getRosterPositionCount(
+function getOrganisationPositionCount(
     data: DepthChartData,
     position: string
 ) {
-    const players:
-        DepthChartPlayer[] =
-        [
-            ...data.forwards,
-            ...data.defence,
-            ...data.goalies,
-        ];
+    const players: DepthChartPlayer[] = [
+        ...data.forwards,
+        ...data.defence,
+        ...data.goalies,
+        ...data.organisationalDepth,
+    ];
 
     return players.filter(
-        (player) =>
-            player.is_depth_chart &&
-            player.depth_chart_position ===
+        (player) => {
+            const playerPosition =
+                getPlayerPrimaryPosition(
+                    player
+                );
+
+            if (position === "D") {
+                return (
+                    playerPosition === "D" ||
+                    playerPosition === "LD" ||
+                    playerPosition === "RD"
+                );
+            }
+
+            return (
+                playerPosition ===
                 position
+            );
+        }
     ).length;
 }
 
-
-function positionLabel(
-    position: string
+function getPlayerPrimaryPosition(
+    player: DepthChartPlayer
 ) {
-    const labels:
-        Record<
-            string,
-            string
-        > = {
-        C: "centres",
-        LW: "left wings",
-        RW: "right wings",
-        LD: "left defence",
-        RD: "right defence",
-        D: "defencemen",
-        G: "goalies",
-    };
+    if (
+        player.is_depth_chart &&
+        player.depth_chart_position
+    ) {
+        return player.depth_chart_position;
+    }
 
-    return (
-        labels[position] ??
-        position
-    );
+    if (!player.position) {
+        return null;
+    }
+
+    return player.position
+        .split(",")[0]
+        .trim()
+        .toUpperCase();
 }
-
 
 // --------------------------------------------------
 // MONEY

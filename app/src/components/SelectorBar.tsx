@@ -6,7 +6,11 @@ import {
     useRef,
     useState,
 } from "react";
-import { useAppContext } from "@/context/AppContext";
+
+import {
+    useAppContext,
+} from "@/context/AppContext";
+
 
 type Player = {
     playerId: number;
@@ -16,12 +20,14 @@ type Player = {
     headshot_url: string | null;
 };
 
+
 type Team = {
     code: string;
     name: string;
     conference: string;
     division: string;
 };
+
 
 export default function SelectorBar() {
     const {
@@ -33,62 +39,121 @@ export default function SelectorBar() {
         setTeam,
     } = useAppContext();
 
-    const [players, setPlayers] =
+
+    const [
+        players,
+        setPlayers,
+    ] =
         useState<Player[]>([]);
 
-    const [teams, setTeams] =
+
+    const [
+        teams,
+        setTeams,
+    ] =
         useState<Team[]>([]);
+
 
     const [
         playerSearch,
         setPlayerSearch,
-    ] = useState("");
+    ] =
+        useState("");
+
 
     const [
         playerOpen,
         setPlayerOpen,
-    ] = useState(false);
+    ] =
+        useState(false);
+
 
     const playerDropdownRef =
-        useRef<HTMLDivElement>(null);
+        useRef<HTMLDivElement>(
+            null
+        );
+
 
     useEffect(() => {
-        fetch("/api/players")
-            .then((res) => res.json())
-            .then((data: Player[]) => {
-                setPlayers(data);
-
-                const current =
-                    data.find(
-                        (item) =>
-                            String(
-                                item.playerId
-                            ) === player
-                    ) ?? null;
-
-                setSelectedPlayer(
-                    current
-                );
-            })
-            .catch((err) =>
-                console.error(
-                    "Failed to load players:",
-                    err
-                )
-            );
-
-        fetch("/api/teams")
-            .then((res) => res.json())
-            .then((data) =>
-                setTeams(data)
+        fetch(
+            "/api/players"
+        )
+            .then(
+                (res) =>
+                    res.json()
             )
-            .catch((err) =>
-                console.error(
-                    "Failed to load teams:",
-                    err
-                )
+            .then(
+                (
+                    data:
+                        Player[]
+                ) => {
+                    setPlayers(
+                        data
+                    );
+
+
+                    if (!player) {
+                        setSelectedPlayer(
+                            null
+                        );
+
+                        return;
+                    }
+
+
+                    const current =
+                        data.find(
+                            (
+                                item
+                            ) =>
+                                String(
+                                    item.playerId
+                                ) ===
+                                player
+                        ) ??
+                        null;
+
+
+                    setSelectedPlayer(
+                        current
+                    );
+                }
+            )
+            .catch(
+                (err) =>
+                    console.error(
+                        "Failed to load players:",
+                        err
+                    )
             );
+
+
+        fetch(
+            "/api/teams"
+        )
+            .then(
+                (res) =>
+                    res.json()
+            )
+            .then(
+                (
+                    data:
+                        Team[]
+                ) =>
+                    setTeams(
+                        data
+                    )
+            )
+            .catch(
+                (err) =>
+                    console.error(
+                        "Failed to load teams:",
+                        err
+                    )
+            );
+
     }, []);
+
 
     useEffect(() => {
         const handleClickOutside = (
@@ -100,15 +165,22 @@ export default function SelectorBar() {
                     event.target as Node
                 )
             ) {
-                setPlayerOpen(false);
-                setPlayerSearch("");
+                setPlayerOpen(
+                    false
+                );
+
+                setPlayerSearch(
+                    ""
+                );
             }
         };
+
 
         document.addEventListener(
             "mousedown",
             handleClickOutside
         );
+
 
         return () => {
             document.removeEventListener(
@@ -116,7 +188,9 @@ export default function SelectorBar() {
                 handleClickOutside
             );
         };
+
     }, []);
+
 
     const filteredPlayers =
         useMemo(() => {
@@ -125,6 +199,7 @@ export default function SelectorBar() {
                     .trim()
                     .toLowerCase();
 
+
             if (!search) {
                 return players.slice(
                     0,
@@ -132,45 +207,77 @@ export default function SelectorBar() {
                 );
             }
 
+
             return players
-                .filter((item) =>
-                    item.name
-                        .toLowerCase()
-                        .includes(search)
+                .filter(
+                    (
+                        item
+                    ) =>
+                        item.name
+                            .toLowerCase()
+                            .includes(
+                                search
+                            )
                 )
-                .slice(0, 100);
+                .slice(
+                    0,
+                    100
+                );
+
         }, [
             players,
             playerSearch,
         ]);
 
+
     const selectPlayer = (
         item: Player
     ) => {
         setPlayer(
-            String(item.playerId)
+            String(
+                item.playerId
+            )
         );
 
-        setSelectedPlayer(item);
 
-        setPlayerSearch("");
-        setPlayerOpen(false);
+        setSelectedPlayer(
+            item
+        );
+
+
+        setPlayerSearch(
+            ""
+        );
+
+
+        setPlayerOpen(
+            false
+        );
     };
 
-    const conferences = [
-        "Eastern",
-        "Western",
-    ];
+
+    const conferences =
+        [
+            "Eastern",
+            "Western",
+        ];
+
 
     return (
         <div className="grid gap-3 md:grid-cols-2">
+
+            {/* PLAYER */}
+
             <div
-                ref={playerDropdownRef}
+                ref={
+                    playerDropdownRef
+                }
                 className="relative"
             >
                 <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
                     Player
                 </label>
+
 
                 <button
                     type="button"
@@ -181,18 +288,28 @@ export default function SelectorBar() {
                     }
                     className="flex w-full items-center justify-between rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-left text-sm text-white outline-none hover:border-slate-700"
                 >
-                    <span>
-                        {selectedPlayer?.name ||
+                    <span
+                        className={
+                            selectedPlayer
+                                ? "text-white"
+                                : "text-slate-500"
+                        }
+                    >
+                        {selectedPlayer
+                            ?.name ??
                             "Select player"}
                     </span>
+
 
                     <span className="text-slate-500">
                         ⌄
                     </span>
                 </button>
 
+
                 {playerOpen && (
                     <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl">
+
                         <div className="border-b border-slate-800 p-2">
                             <input
                                 autoFocus
@@ -214,7 +331,9 @@ export default function SelectorBar() {
                             />
                         </div>
 
+
                         <div className="max-h-72 overflow-y-auto">
+
                             {filteredPlayers.map(
                                 (
                                     item
@@ -231,12 +350,14 @@ export default function SelectorBar() {
                                         }
                                         className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-800"
                                     >
+
                                         <div>
                                             <span>
                                                 {
                                                     item.name
                                                 }
                                             </span>
+
 
                                             {item.position && (
                                                 <span className="ml-2 text-xs text-slate-500">
@@ -247,6 +368,7 @@ export default function SelectorBar() {
                                             )}
                                         </div>
 
+
                                         {item.team && (
                                             <span className="ml-4 text-xs text-slate-500">
                                                 {
@@ -254,38 +376,67 @@ export default function SelectorBar() {
                                                 }
                                             </span>
                                         )}
+
                                     </button>
                                 )
                             )}
 
+
                             {filteredPlayers.length ===
                                 0 && (
                                 <div className="px-3 py-4 text-sm text-slate-500">
-                                    No players
-                                    found
+                                    No players found
                                 </div>
                             )}
+
                         </div>
+
                     </div>
                 )}
+
             </div>
+
+
+            {/* TEAM */}
 
             <div>
                 <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
                     Team
                 </label>
 
+
                 <select
-                    value={team}
-                    onChange={(e) =>
+                    value={
+                        team ??
+                        ""
+                    }
+                    onChange={(
+                        e
+                    ) =>
                         setTeam(
-                            e.target.value
+                            e.target
+                                .value ||
+                                null
                         )
                     }
-                    className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-slate-600"
+                    className={`w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-slate-600 ${
+                        team
+                            ? "text-white"
+                            : "text-slate-500"
+                    }`}
                 >
+                    <option
+                        value=""
+                        disabled
+                    >
+                        Select team
+                    </option>
+
+
                     {conferences.map(
-                        (conference) => {
+                        (
+                            conference
+                        ) => {
                             const conferenceTeams =
                                 teams.filter(
                                     (
@@ -294,6 +445,7 @@ export default function SelectorBar() {
                                         item.conference ===
                                         conference
                                 );
+
 
                             const divisions =
                                 [
@@ -306,6 +458,7 @@ export default function SelectorBar() {
                                         )
                                     ),
                                 ];
+
 
                             return divisions.map(
                                 (
@@ -346,8 +499,11 @@ export default function SelectorBar() {
                             );
                         }
                     )}
+
                 </select>
+
             </div>
+
         </div>
     );
 }
