@@ -17,8 +17,9 @@ PRODUCTION_FEATURES = [
     "points_per_game",
     "goals_per_60",
     "assists_per_60",
-    "points_per_60"
-    ]
+    "points_per_60",
+    "log_games_played"
+]
 
 
 # ---------------------------------------------------------
@@ -69,7 +70,7 @@ def load_production_data():
 
         FROM season_stats
 
-        WHERE games_played >= 20
+        WHERE games_played > 0
 
         GROUP BY playerId
     ),
@@ -108,7 +109,9 @@ def load_production_data():
         s.assists_per_60,
         s.points_per_60,
 
-        s.avg_toi_minutes
+        s.avg_toi_minutes,
+
+        LN(1 + s.games_played) AS log_games_played
 
     FROM profile p
 
@@ -119,7 +122,7 @@ def load_production_data():
         ON l.playerId = s.playerId
        AND l.season = s.season
 
-    WHERE s.games_played >= 20
+    WHERE s.games_played > 0
     """
 
     df = client.query(query).to_dataframe()
@@ -175,11 +178,13 @@ def find_production_comparables(player_id, n=10):
         df_compare["position"].eq(target["position"]).values
     )
 
-    #sims = cosine_similarity(
-    #    X_scaled[row].reshape(1, -1),
-    #    X_scaled
-    #)[0]
-    distances = np.sqrt(np.mean((X_scaled - X_scaled[row]) ** 2, axis=1))
+    distances = np.sqrt(
+        np.mean(
+            (X_scaled - X_scaled[row]) ** 2,
+            axis=1
+        )
+    )
+
     sims = np.exp(-distances)
 
     result = df_compare.loc[
