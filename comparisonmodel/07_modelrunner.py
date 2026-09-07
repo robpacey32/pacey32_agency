@@ -428,6 +428,113 @@ def write_batch(
         f"{len(target_ids):,} players."
     )
 
+# ---------------------------------------------------------
+# RUN ONE PLAYER
+# ---------------------------------------------------------
+
+def run_player(
+    client,
+    player_id,
+    write_to_bigquery=True,
+):
+    overall = load_overall_model()
+
+    player_query = """
+    SELECT
+        SAFE_CAST(playerId AS INT64) AS playerId,
+        ANY_VALUE(player_name) AS player_name,
+        ANY_VALUE(position) AS position
+    FROM `pacey32-agency.Comparison.01_PlayerProfile`
+    WHERE SAFE_CAST(playerId AS INT64) = @playerId
+      AND SAFE_CAST(activeFlag AS INT64) = 1
+    GROUP BY SAFE_CAST(playerId AS INT64)
+    """
+
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter(
+                "playerId",
+                "INT64",
+                int(player_id)
+            )
+        ]
+    )
+
+    player_df = client.query(
+        player_query,
+        job_config=job_config
+    ).to_dataframe()
+
+    if player_df.empty:
+        raise ValueError(
+            f"Active player {player_id} not found"
+        )
+
+    player_name = player_df.iloc[0]["player_name"]
+    position = player_df.iloc[0]["position"]
+
+    comps = overall.find_overall_comparables(
+        int(player_id),
+        n=TOP_N,
+        require_all_models=True
+    )
+
+    if comps is None or comps.empty:
+        raise ValueError(
+            f"No comparables found for player {player_id}"
+        )
+
+    comps = comps.copy()
+
+    comps.insert(
+        0,
+        "target_playerId",
+        int(player_id)
+    )
+
+    comps.insert(
+        1,
+        "target_player",
+        player_name
+    )
+
+    comps.insert(
+        2,
+        "target_position",
+        position
+    )
+
+    comps = comps.rename(
+        columns={
+            "rank":
+                "comparable_rank",
+
+            "playerId":
+                "comparable_playerId",
+
+            "player":
+                "comparable_player",
+
+            "position":
+                "comparable_position",
+        }
+    )
+
+    comps["RunDate"] = datetime.now(
+        timezone.utc
+    )
+
+    comps = prepare_output(
+        comps
+    )
+
+    if write_to_bigquery:
+        write_batch(
+            client,
+            comps
+        )
+
+    return comps
 
 # ---------------------------------------------------------
 # RUN COMPARISON MODEL
