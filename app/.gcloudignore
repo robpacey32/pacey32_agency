@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+.gcloudignore
+
+# Dependencies
+/node_modules
+
+# Next.js local build
+/.next/
+/out/
+
+# Production/local build output
+/build
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel
+
+# Testing
+/coverage
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+
+# TypeScript cache
+*.tsbuildinfo
