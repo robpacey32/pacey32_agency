@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 
+import EventMappingPanel, {
+    EventMappingData,
+} from "@/components/EventMappingPanel";
 import ExpandableCard from "@/components/ExpandableCard";
 import PlayerContractPanel, {
     PlayerContractData,
@@ -42,6 +45,14 @@ export default function PlayerPage() {
         );
 
     const [
+        eventMapping,
+        setEventMapping,
+    ] =
+        useState<EventMappingData | null>(
+            null
+        );
+
+    const [
         profileLoading,
         setProfileLoading,
     ] = useState(false);
@@ -54,6 +65,11 @@ export default function PlayerPage() {
     const [
         contractLoading,
         setContractLoading,
+    ] = useState(false);
+
+    const [
+        eventMappingLoading,
+        setEventMappingLoading,
     ] = useState(false);
 
     const [
@@ -81,6 +97,14 @@ export default function PlayerPage() {
         );
 
     const [
+        eventMappingError,
+        setEventMappingError,
+    ] =
+        useState<string | null>(
+            null
+        );
+
+    const [
         openCard,
         setOpenCard,
     ] =
@@ -93,14 +117,17 @@ export default function PlayerPage() {
             setProfile(null);
             setPerformance(null);
             setContract(null);
+            setEventMapping(null);
 
             setProfileError(null);
             setPerformanceError(null);
             setContractError(null);
+            setEventMappingError(null);
 
             setProfileLoading(false);
             setPerformanceLoading(false);
             setContractLoading(false);
+            setEventMappingLoading(false);
 
             setOpenCard(null);
 
@@ -231,6 +258,58 @@ export default function PlayerPage() {
             }
         }
 
+        async function loadEventMapping(
+            position: string | null
+        ) {
+            try {
+                setEventMappingLoading(true);
+                setEventMappingError(null);
+                setEventMapping(null);
+
+                const response =
+                    await fetch(
+                        `/api/event-mapping?playerId=${encodeURIComponent(
+                            String(
+                                selectedPlayerId
+                            )
+                        )}&position=${encodeURIComponent(
+                            position ?? ""
+                        )}`
+                    );
+
+                if (!response.ok) {
+                    const errorData =
+                        await response.json();
+
+                    throw new Error(
+                        errorData.error
+                        ?? "Failed to load event mapping"
+                    );
+                }
+
+                const result:
+                    EventMappingData =
+                    await response.json();
+
+                setEventMapping(result);
+
+            } catch (error) {
+                console.error(
+                    "Failed to load event mapping:",
+                    error
+                );
+
+                setEventMappingError(
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to load event mapping"
+                );
+
+            } finally {
+                setEventMappingLoading(false);
+            }
+        }
+
         async function initialisePlayer() {
             const profileResult =
                 await loadProfile();
@@ -243,6 +322,13 @@ export default function PlayerPage() {
                     String(
                         selectedPlayerId
                     )
+                );
+            }
+
+            if (profileResult) {
+                loadEventMapping(
+                    profileResult.position
+                    ?? null
                 );
             }
         }
@@ -493,14 +579,44 @@ export default function PlayerPage() {
             id: "events",
             title:
                 "Event Mapping",
-            value: "—",
+            value:
+                eventMappingLoading
+                    ? "Loading..."
+                    : eventMapping?.playerType
+                        === "goalie"
+                      ? "Shots & save profile"
+                      : eventMapping
+                        ? "Shooting, faceoffs & possession"
+                        : "—",
             detail:
-                "On-ice event locations",
-            content: (
-                <PlaceholderPanel
-                    title="Event Mapping"
-                />
-            ),
+                eventMappingLoading
+                    ? "Loading on-ice event locations"
+                    : eventMapping?.playerType
+                        === "goalie"
+                      ? "Shot locations, save zones & shot types"
+                      : eventMapping
+                        ? "Shot locations, faceoffs & possession events"
+                        : "On-ice event locations",
+            content:
+                eventMappingLoading ? (
+                    <LoadingPanel
+                        title="Event Mapping"
+                    />
+                ) : eventMappingError ? (
+                    <UnavailablePanel
+                        title="Event Mapping"
+                    />
+                ) : eventMapping ? (
+                    <EventMappingPanel
+                        data={
+                            eventMapping
+                        }
+                    />
+                ) : (
+                    <UnavailablePanel
+                        title="Event Mapping"
+                    />
+                ),
         },
     ];
 
