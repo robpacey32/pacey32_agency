@@ -206,11 +206,13 @@ async function loadBenchmarks(
 
     const [benchmarkRows] =
         await bigquery.query({
-            query:
-                benchmarkQuery,
+            query: benchmarkQuery,
             params: {
                 benchmarkGroup,
                 seasons,
+            },
+            types: {
+                seasons: ["INT64"],
             },
         });
 
@@ -246,9 +248,7 @@ export async function GET(
             position?.toUpperCase() === "G";
 
         const benchmarkGroup =
-            getBenchmarkGroup(
-                position
-            );
+            getBenchmarkGroup(position);
 
 
         // -------------------------------------------------
@@ -325,21 +325,25 @@ export async function GET(
                 },
             });
 
-        const allShots = (shotRows as ShotEventRow[]).map(row => {
-            const coords =
-                normaliseCoordinates(
-                    row.xCoord,
-                    row.yCoord,
-                    row.eventOwnerHomeAway,
-                    row.homeTeamDefendingSide
-                );
+        const allShots =
+            (shotRows as ShotEventRow[])
+                .map(row => {
+                    const coords =
+                        normaliseCoordinates(
+                            row.xCoord,
+                            row.yCoord,
+                            row.eventOwnerHomeAway,
+                            row.homeTeamDefendingSide
+                        );
 
-            return {
-                ...row,
-                normalisedX: coords.x,
-                normalisedY: coords.y,
-            };
-        });
+                    return {
+                        ...row,
+                        normalisedX:
+                            coords.x,
+                        normalisedY:
+                            coords.y,
+                    };
+                });
 
 
         // -------------------------------------------------
@@ -365,11 +369,19 @@ export async function GET(
         // -------------------------------------------------
 
         if (isGoalie) {
+            /*
+             * No shot records means the goalie has
+             * no NHL event mapping data.
+             */
+            if (shotSeasons.length === 0) {
+                return NextResponse.json({
+                    hasData: false,
+                    data: null,
+                });
+            }
+
             const seasons =
-                shotSeasons.slice(
-                    0,
-                    3
-                );
+                shotSeasons.slice(0, 3);
 
             const shots =
                 allShots.filter(
@@ -404,11 +416,13 @@ export async function GET(
                 shotsOnGoal;
 
             const officialShotsAgainst =
-                shotsOnGoal + goalsAgainst;
+                shotsOnGoal
+                + goalsAgainst;
 
             const savePct =
                 officialShotsAgainst > 0
-                    ? saves / officialShotsAgainst
+                    ? saves
+                      / officialShotsAgainst
                     : null;
 
             const blockedAttempts =
@@ -429,37 +443,41 @@ export async function GET(
                 + missedAttempts;
 
             return NextResponse.json({
-                playerId,
+                hasData: true,
 
-                position:
-                    position ?? "G",
+                data: {
+                    playerId,
 
-                playerType:
-                    "goalie",
+                    position:
+                        position ?? "G",
 
-                benchmarkGroup,
+                    playerType:
+                        "goalie",
 
-                seasons,
+                    benchmarkGroup,
 
-                benchmarks,
+                    seasons,
 
-                shots,
+                    benchmarks,
 
-                summary: {
-                    shotsAgainst:
-                        officialShotsAgainst,
+                    shots,
 
-                    saves,
+                    summary: {
+                        shotsAgainst:
+                            officialShotsAgainst,
 
-                    goalsAgainst,
+                        saves,
 
-                    savePct,
+                        goalsAgainst,
 
-                    blockedAttempts,
+                        savePct,
 
-                    missedAttempts,
+                        blockedAttempts,
 
-                    totalAttempts,
+                        missedAttempts,
+
+                        totalAttempts,
+                    },
                 },
             });
         }
@@ -507,10 +525,15 @@ export async function GET(
         const performanceSeasons = [
             ...new Set(
                 performance
-                    .map(row => Number(row.season))
+                    .map(
+                        row =>
+                            Number(row.season)
+                    )
                     .filter(
                         season =>
-                            Number.isFinite(season)
+                            Number.isFinite(
+                                season
+                            )
                     )
             ),
         ].sort(
@@ -519,8 +542,39 @@ export async function GET(
 
         const seasons =
             performanceSeasons.length > 0
-                ? performanceSeasons.slice(0, 3)
-                : shotSeasons.slice(0, 3);
+                ? performanceSeasons.slice(
+                      0,
+                      3
+                  )
+                : shotSeasons.slice(
+                      0,
+                      3
+                  );
+
+
+        // -------------------------------------------------
+        // NO NHL DATA
+        // -------------------------------------------------
+
+        /*
+         * This is the important guard.
+         *
+         * A prospect who has never played in the NHL,
+         * such as Angus MacDonell, will have:
+         *
+         * performanceSeasons = []
+         * shotSeasons = []
+         * seasons = []
+         *
+         * Return a normal no-data response here rather
+         * than passing [] into UNNEST(@seasons).
+         */
+        if (seasons.length === 0) {
+            return NextResponse.json({
+                hasData: false,
+                data: null,
+            });
+        }
 
 
         // -------------------------------------------------
@@ -544,7 +598,9 @@ export async function GET(
             allShots.filter(
                 row =>
                     row.season != null
-                    && seasons.includes(row.season)
+                    && seasons.includes(
+                        row.season
+                    )
             );
 
 
@@ -652,6 +708,11 @@ export async function GET(
                     playerId,
                     seasons,
                 },
+                types: {
+                    seasons: [
+                        "INT64",
+                    ],
+                },
             }),
 
             bigquery.query({
@@ -660,6 +721,11 @@ export async function GET(
                 params: {
                     playerId,
                     seasons,
+                },
+                types: {
+                    seasons: [
+                        "INT64",
+                    ],
                 },
             }),
 
@@ -670,6 +736,11 @@ export async function GET(
                     playerId,
                     seasons,
                 },
+                types: {
+                    seasons: [
+                        "INT64",
+                    ],
+                },
             }),
         ]);
 
@@ -679,29 +750,30 @@ export async function GET(
         // -------------------------------------------------
 
         const faceoffs = (faceoffResult[0] as FaceoffEventRow[]).map(row => {
-            const coords =
-                normaliseCoordinates(
-                    row.xCoord,
-                    row.yCoord,
-                    row.eventOwnerHomeAway,
-                    row.homeTeamDefendingSide
-                );
+                const coords =
+                    normaliseCoordinates(
+                        row.xCoord,
+                        row.yCoord,
+                        row.eventOwnerHomeAway,
+                        row.homeTeamDefendingSide
+                    );
 
-            return {
-                ...row,
+                return {
+                    ...row,
 
-                result:
-                    row.winningPlayerId === playerId
-                        ? "win"
-                        : "loss",
+                    result:
+                        row.winningPlayerId
+                            === playerId
+                            ? "win"
+                            : "loss",
 
-                normalisedX:
-                    coords.x,
+                    normalisedX:
+                        coords.x,
 
-                normalisedY:
-                    coords.y,
-            };
-        });
+                    normalisedY:
+                        coords.y,
+                };
+            });
 
 
         // -------------------------------------------------
@@ -709,66 +781,76 @@ export async function GET(
         // -------------------------------------------------
 
         const physicalEvents = (physicalResult[0] as PhysicalEventRow[]).map(row => {
-            const coords =
-                normaliseCoordinates(
-                    row.xCoord,
-                    row.yCoord,
-                    row.eventOwnerHomeAway,
-                    row.homeTeamDefendingSide
+                    const coords =
+                        normaliseCoordinates(
+                            row.xCoord,
+                            row.yCoord,
+                            row.eventOwnerHomeAway,
+                            row.homeTeamDefendingSide
+                        );
+
+                    const eventType =
+                        row.eventType
+                            ?.toLowerCase()
+                        ?? null;
+
+                    let playerRole:
+                        | "hit-given"
+                        | "hit-received"
+                        | "takeaway"
+                        | "giveaway"
+                        | null = null;
+
+                    if (
+                        eventType === "hit"
+                        && row.hittingPlayerId
+                            === playerId
+                    ) {
+                        playerRole =
+                            "hit-given";
+
+                    } else if (
+                        eventType === "hit"
+                        && row.hitteePlayerId
+                            === playerId
+                    ) {
+                        playerRole =
+                            "hit-received";
+
+                    } else if (
+                        eventType === "takeaway"
+                        && row.playerId
+                            === playerId
+                    ) {
+                        playerRole =
+                            "takeaway";
+
+                    } else if (
+                        eventType === "giveaway"
+                        && row.playerId
+                            === playerId
+                    ) {
+                        playerRole =
+                            "giveaway";
+                    }
+
+                    return {
+                        ...row,
+
+                        playerRole,
+
+                        normalisedX:
+                            coords.x,
+
+                        normalisedY:
+                            coords.y,
+                    };
+                })
+                .filter(
+                    row =>
+                        row.playerRole
+                        != null
                 );
-
-            const eventType =
-                row.eventType?.toLowerCase()
-                ?? null;
-
-            let playerRole:
-                | "hit-given"
-                | "hit-received"
-                | "takeaway"
-                | "giveaway"
-                | null = null;
-
-            if (
-                eventType === "hit"
-                && row.hittingPlayerId === playerId
-            ) {
-                playerRole =
-                    "hit-given";
-            } else if (
-                eventType === "hit"
-                && row.hitteePlayerId === playerId
-            ) {
-                playerRole =
-                    "hit-received";
-            } else if (
-                eventType === "takeaway"
-                && row.playerId === playerId
-            ) {
-                playerRole =
-                    "takeaway";
-            } else if (
-                eventType === "giveaway"
-                && row.playerId === playerId
-            ) {
-                playerRole =
-                    "giveaway";
-            }
-
-            return {
-                ...row,
-
-                playerRole,
-
-                normalisedX:
-                    coords.x,
-
-                normalisedY:
-                    coords.y,
-            };
-        }).filter(
-            row =>
-                row.playerRole != null
-        );
 
 
         // -------------------------------------------------
@@ -776,29 +858,30 @@ export async function GET(
         // -------------------------------------------------
 
         const penalties = (penaltyResult[0] as PenaltyEventRow[]).map(row => {
-            const coords =
-                normaliseCoordinates(
-                    row.xCoord,
-                    row.yCoord,
-                    row.eventOwnerHomeAway,
-                    row.homeTeamDefendingSide
-                );
+                const coords =
+                    normaliseCoordinates(
+                        row.xCoord,
+                        row.yCoord,
+                        row.eventOwnerHomeAway,
+                        row.homeTeamDefendingSide
+                    );
 
-            return {
-                ...row,
+                return {
+                    ...row,
 
-                playerRole:
-                    row.committedByPlayerId === playerId
-                        ? "committed"
-                        : "drawn",
+                    playerRole:
+                        row.committedByPlayerId
+                            === playerId
+                            ? "committed"
+                            : "drawn",
 
-                normalisedX:
-                    coords.x,
+                    normalisedX:
+                        coords.x,
 
-                normalisedY:
-                    coords.y,
-            };
-        });
+                    normalisedY:
+                        coords.y,
+                };
+            });
 
 
         // -------------------------------------------------
@@ -808,34 +891,41 @@ export async function GET(
         const shotsOnGoal =
             shots.filter(
                 row =>
-                    row.eventType === "shot-on-goal"
+                    row.eventType
+                    === "shot-on-goal"
             ).length;
 
         const goals =
             shots.filter(
                 row =>
-                    row.eventType === "goal"
+                    row.eventType
+                    === "goal"
             ).length;
 
         const missedShots =
             shots.filter(
                 row =>
-                    row.eventType === "missed-shot"
+                    row.eventType
+                    === "missed-shot"
             ).length;
 
         const blockedShots =
             shots.filter(
                 row =>
-                    row.eventType === "blocked-shot"
+                    row.eventType
+                    === "blocked-shot"
             ).length;
 
         const shootingPct =
             (
-                shotsOnGoal + goals
+                shotsOnGoal
+                + goals
             ) > 0
-                ? goals / (
-                    shotsOnGoal + goals
-                )
+                ? goals
+                  / (
+                      shotsOnGoal
+                      + goals
+                  )
                 : null;
 
 
@@ -844,92 +934,104 @@ export async function GET(
         // -------------------------------------------------
 
         return NextResponse.json({
-            playerId,
+            hasData: true,
 
-            position:
-                position ?? null,
+            data: {
+                playerId,
 
-            playerType:
-                "skater",
+                position:
+                    position ?? null,
 
-            benchmarkGroup,
+                playerType:
+                    "skater",
 
-            seasons,
+                benchmarkGroup,
 
-            benchmarks,
+                seasons,
 
-            performance,
+                benchmarks,
 
-            shots,
+                performance,
 
-            faceoffs,
+                shots,
 
-            physicalEvents,
+                faceoffs,
 
-            penalties,
+                physicalEvents,
 
-            summary: {
-                shotsOnGoal:
-                    shotsOnGoal + goals,
+                penalties,
 
-                goals,
+                summary: {
+                    shotsOnGoal:
+                        shotsOnGoal
+                        + goals,
 
-                shootingPct,
+                    goals,
 
-                missedShots,
+                    shootingPct,
 
-                blockedShots,
+                    missedShots,
 
-                totalAttempts:
-                    shotsOnGoal
-                    + goals
-                    + missedShots
-                    + blockedShots,
+                    blockedShots,
 
-                faceoffs:
-                    faceoffs.length,
+                    totalAttempts:
+                        shotsOnGoal
+                        + goals
+                        + missedShots
+                        + blockedShots,
 
-                faceoffWins:
-                    faceoffs.filter(
-                        row =>
-                            row.result === "win"
-                    ).length,
+                    faceoffs:
+                        faceoffs.length,
 
-                hitsGiven:
-                    physicalEvents.filter(
-                        row =>
-                            row.playerRole === "hit-given"
-                    ).length,
+                    faceoffWins:
+                        faceoffs.filter(
+                            row =>
+                                row.result
+                                === "win"
+                        ).length,
 
-                hitsReceived:
-                    physicalEvents.filter(
-                        row =>
-                            row.playerRole === "hit-received"
-                    ).length,
+                    hitsGiven:
+                        physicalEvents.filter(
+                            row =>
+                                row.playerRole
+                                === "hit-given"
+                        ).length,
 
-                takeaways:
-                    physicalEvents.filter(
-                        row =>
-                            row.playerRole === "takeaway"
-                    ).length,
+                    hitsReceived:
+                        physicalEvents.filter(
+                            row =>
+                                row.playerRole
+                                === "hit-received"
+                        ).length,
 
-                giveaways:
-                    physicalEvents.filter(
-                        row =>
-                            row.playerRole === "giveaway"
-                    ).length,
+                    takeaways:
+                        physicalEvents.filter(
+                            row =>
+                                row.playerRole
+                                === "takeaway"
+                        ).length,
 
-                penaltiesCommitted:
-                    penalties.filter(
-                        row =>
-                            row.playerRole === "committed"
-                    ).length,
+                    giveaways:
+                        physicalEvents.filter(
+                            row =>
+                                row.playerRole
+                                === "giveaway"
+                        ).length,
 
-                penaltiesDrawn:
-                    penalties.filter(
-                        row =>
-                            row.playerRole === "drawn"
-                    ).length,
+                    penaltiesCommitted:
+                        penalties.filter(
+                            row =>
+                                row.playerRole
+                                === "committed"
+                        ).length,
+
+                    penaltiesDrawn:
+                        penalties.filter(
+                            row =>
+                                row.playerRole
+                                === "drawn"
+                        ).length,
+                },
             },
         });
 
