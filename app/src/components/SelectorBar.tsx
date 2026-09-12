@@ -68,11 +68,116 @@ export default function SelectorBar() {
         useState(false);
 
 
+    const [
+        hydrated,
+        setHydrated,
+    ] =
+        useState(false);
+
+
     const playerDropdownRef =
         useRef<HTMLDivElement>(
             null
         );
 
+
+    // ---------------------------------------------------------
+    // RESTORE LAST SELECTED PLAYER / TEAM
+    // ---------------------------------------------------------
+
+    useEffect(() => {
+        const savedPlayer =
+            localStorage.getItem(
+                "pacey32_selected_player"
+            );
+
+        const savedTeam =
+            localStorage.getItem(
+                "pacey32_selected_team"
+            );
+
+
+        if (savedPlayer) {
+            setPlayer(
+                savedPlayer
+            );
+        }
+
+
+        if (savedTeam) {
+            setTeam(
+                savedTeam
+            );
+        }
+
+
+        setHydrated(
+            true
+        );
+
+    }, [
+        setPlayer,
+        setTeam,
+    ]);
+
+
+    // ---------------------------------------------------------
+    // SAVE SELECTED PLAYER
+    // ---------------------------------------------------------
+
+    useEffect(() => {
+        if (!hydrated) {
+            return;
+        }
+
+
+        if (player) {
+            localStorage.setItem(
+                "pacey32_selected_player",
+                player
+            );
+        } else {
+            localStorage.removeItem(
+                "pacey32_selected_player"
+            );
+        }
+
+    }, [
+        player,
+        hydrated,
+    ]);
+
+
+    // ---------------------------------------------------------
+    // SAVE SELECTED TEAM
+    // ---------------------------------------------------------
+
+    useEffect(() => {
+        if (!hydrated) {
+            return;
+        }
+
+
+        if (team) {
+            localStorage.setItem(
+                "pacey32_selected_team",
+                team
+            );
+        } else {
+            localStorage.removeItem(
+                "pacey32_selected_team"
+            );
+        }
+
+    }, [
+        team,
+        hydrated,
+    ]);
+
+
+    // ---------------------------------------------------------
+    // LOAD PLAYERS + TEAMS
+    // ---------------------------------------------------------
 
     useEffect(() => {
         fetch(
@@ -89,33 +194,6 @@ export default function SelectorBar() {
                 ) => {
                     setPlayers(
                         data
-                    );
-
-
-                    if (!player) {
-                        setSelectedPlayer(
-                            null
-                        );
-
-                        return;
-                    }
-
-
-                    const current =
-                        data.find(
-                            (
-                                item
-                            ) =>
-                                String(
-                                    item.playerId
-                                ) ===
-                                player
-                        ) ??
-                        null;
-
-
-                    setSelectedPlayer(
-                        current
                     );
                 }
             )
@@ -139,10 +217,11 @@ export default function SelectorBar() {
                 (
                     data:
                         Team[]
-                ) =>
+                ) => {
                     setTeams(
                         data
-                    )
+                    );
+                }
             )
             .catch(
                 (err) =>
@@ -154,6 +233,51 @@ export default function SelectorBar() {
 
     }, []);
 
+
+    // ---------------------------------------------------------
+    // MATCH PLAYER ID TO PLAYER OBJECT
+    // ---------------------------------------------------------
+
+    useEffect(() => {
+        if (
+            !player ||
+            players.length === 0
+        ) {
+            setSelectedPlayer(
+                null
+            );
+
+            return;
+        }
+
+
+        const current =
+            players.find(
+                (
+                    item
+                ) =>
+                    String(
+                        item.playerId
+                    ) ===
+                    player
+            ) ??
+            null;
+
+
+        setSelectedPlayer(
+            current
+        );
+
+    }, [
+        player,
+        players,
+        setSelectedPlayer,
+    ]);
+
+
+    // ---------------------------------------------------------
+    // CLOSE PLAYER DROPDOWN ON OUTSIDE CLICK
+    // ---------------------------------------------------------
 
     useEffect(() => {
         const handleClickOutside = (
@@ -192,6 +316,10 @@ export default function SelectorBar() {
     }, []);
 
 
+    // ---------------------------------------------------------
+    // FILTER PLAYERS
+    // ---------------------------------------------------------
+
     const filteredPlayers =
         useMemo(() => {
             const search =
@@ -229,6 +357,10 @@ export default function SelectorBar() {
             playerSearch,
         ]);
 
+
+    // ---------------------------------------------------------
+    // SELECT PLAYER
+    // ---------------------------------------------------------
 
     const selectPlayer = (
         item: Player
