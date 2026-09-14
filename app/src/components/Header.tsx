@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import SelectorBar from "@/components/SelectorBar";
 
 const tabs = [
+    { name: "Home", href: "/" },
     { name: "City", href: "/city" },
     { name: "Team", href: "/team" },
     { name: "Player", href: "/player" },
@@ -17,22 +18,39 @@ export default function Header() {
         <>
             <header className="border-b border-slate-800 bg-slate-950">
                 <div className="mx-auto flex max-w-7xl items-center justify-between gap-8 px-8 py-4">
+
+                    {/* BRAND */}
                     <div className="shrink-0">
-                        <p className="text-lg font-bold tracking-wide text-white">
-                            PACEY32 <span className="text-slate-400">ANALYTICS</span>
-                        </p>
+                        <Link
+                            href="/"
+                            className="text-lg font-bold tracking-wide text-white transition hover:text-slate-200"
+                        >
+                            PACEY32{" "}
+                            <span className="text-slate-400">
+                                ANALYTICS
+                            </span>
+                        </Link>
                     </div>
 
+                    {/* SELECTORS */}
                     <div className="w-full max-w-2xl">
                         <SelectorBar />
                     </div>
+
                 </div>
             </header>
 
+            {/* NAVIGATION */}
             <nav className="border-b border-slate-800 bg-slate-950">
                 <div className="mx-auto flex max-w-7xl items-end gap-2 px-8">
+
                     {tabs.map((tab) => {
-                        const active = pathname.startsWith(tab.href);
+                        const active =
+                            tab.href === "/"
+                                ? pathname === "/"
+                                : pathname.startsWith(
+                                      tab.href
+                                  );
 
                         return (
                             <Link
@@ -48,6 +66,7 @@ export default function Header() {
                             </Link>
                         );
                     })}
+
                 </div>
             </nav>
         </>
