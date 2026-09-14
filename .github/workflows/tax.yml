@@ -2,8 +2,21 @@ name: Refresh Tax Data
 
 on:
   workflow_dispatch:
+    inputs:
+      run_city_tax:
+        description: "Run city tax pipeline (tax.py)"
+        required: false
+        type: boolean
+        default: true
+
+      run_tax_brackets:
+        description: "Run tax bracket pipeline (tax_bracket.py)"
+        required: false
+        type: boolean
+        default: false
+
   schedule:
-    # Runs monthly. The Python code only refreshes cities whose
+    # Runs monthly. tax.py only refreshes cities whose
     # latest successful load is at least three calendar months old.
     - cron: "20 5 1 * *"
 
@@ -12,7 +25,7 @@ permissions:
   id-token: write
 
 jobs:
-  refresh-city-tax:
+  refresh-tax:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -33,7 +46,12 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # ======================================================
+      # CITY TAX
+      # ======================================================
+
       - name: Run city tax pipeline
+        if: ${{ github.event_name == 'schedule' || inputs.run_city_tax }}
         env:
           GCP_PROJECT: pacey32-agency
           TEAM_TABLE: pacey32-agency.Team.TeamList
@@ -41,3 +59,16 @@ jobs:
           REFRESH_MONTHS: "3"
           HTTP_USER_AGENT: pacey32-agency-city-tax/1.0
         run: python tax/tax.py
+
+      # ======================================================
+      # TAX BRACKETS
+      # ======================================================
+
+      - name: Run tax bracket pipeline
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_tax_brackets }}
+        env:
+          GCP_PROJECT: pacey32-agency
+          TAX_BRACKET_TABLE: pacey32-agency.City.tax_brackets
+          TAX_YEAR: "2026"
+          HTTP_USER_AGENT: pacey32-agency-tax-brackets/1.0
+        run: python tax/tax_bracket.py

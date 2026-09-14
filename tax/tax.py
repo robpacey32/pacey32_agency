@@ -238,11 +238,21 @@ def find_all_percentages(value: object) -> list[float]:
 
 
 def get_html(url: str) -> str:
-    """Download HTML and reject suspiciously short responses."""
-    response = HTTP.get(
-        url,
-        timeout=REQUEST_TIMEOUT,
-    )
+    print(f"Fetching: {url}")
+
+    if "canada.ca" in url:
+        response = requests.get(
+            url,
+            timeout=REQUEST_TIMEOUT,
+        )
+    else:
+        response = HTTP.get(
+            url,
+            timeout=REQUEST_TIMEOUT,
+        )
+
+    print(f"  HTTP {response.status_code}")
+
     response.raise_for_status()
 
     if len(response.text) < 500:
@@ -254,20 +264,30 @@ def get_html(url: str) -> str:
 
 
 def get_working_url(urls: list[str]) -> str:
-    """Return the first URL that has a usable HTTP response."""
     errors: list[str] = []
 
     for url in urls:
-        print(f"Trying {url}")
+        print(f"Trying: {url}")
 
         try:
-            response = HTTP.get(
-                url,
-                timeout=REQUEST_TIMEOUT,
-            )
+            if "canada.ca" in url:
+                response = requests.get(
+                    url,
+                    timeout=REQUEST_TIMEOUT,
+                )
+            else:
+                response = HTTP.get(
+                    url,
+                    timeout=REQUEST_TIMEOUT,
+                )
 
-            if response.status_code == 200:
-                print("  Found")
+            print(f"  HTTP {response.status_code}")
+
+            if (
+                response.status_code == 200
+                and len(response.text) >= 500
+            ):
+                print("  Using this URL.")
                 return url
 
             errors.append(
@@ -275,10 +295,15 @@ def get_working_url(urls: list[str]) -> str:
             )
 
         except requests.RequestException as exc:
-            errors.append(f"{url}: {exc}")
+            print(f"  Failed: {exc}")
+
+            errors.append(
+                f"{url}: {exc}"
+            )
 
     raise RuntimeError(
-        "No working URL found:\n" + "\n".join(errors)
+        "No working URL found:\n"
+        + "\n".join(errors)
     )
 
 
