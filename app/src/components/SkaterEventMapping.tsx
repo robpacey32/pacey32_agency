@@ -153,9 +153,11 @@ function formatSeason(
 function StatCard({
     label,
     value,
+    detail,
 }: {
     label: string;
     value: string | number;
+    detail?: string;
 }) {
     return (
         <div className="min-w-0 rounded-xl border border-slate-700 bg-slate-950/30 px-3 py-4 sm:px-4 sm:py-5">
@@ -167,6 +169,12 @@ function StatCard({
             <p className="mt-2 whitespace-nowrap text-[clamp(1.25rem,5vw,1.875rem)] font-semibold leading-none text-white">
                 {value}
             </p>
+
+            {detail && (
+                <p className="mt-2 break-words text-[10px] leading-4 text-slate-500 sm:text-xs">
+                    {detail}
+                </p>
+            )}
 
         </div>
     );
