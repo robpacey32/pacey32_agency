@@ -1038,10 +1038,10 @@ export default function TeamPage() {
     // --------------------------------------------------
 
     return (
-        <main className="min-h-screen bg-slate-950 px-8 py-10">
-            <div className="mx-auto max-w-7xl">
+        <main className="min-h-screen overflow-x-hidden bg-slate-950 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+            <div className="mx-auto w-full min-w-0 max-w-7xl">
 
-                <div className="mb-8">
+                <div className="mb-6 sm:mb-8">
                     {ahlAffiliate
                         ?.affiliate
                         .home_logo && (
@@ -1052,14 +1052,14 @@ export default function TeamPage() {
                                     .home_logo
                             }
                             alt=""
-                            className="h-24 w-24 object-contain"
+                            className="h-20 w-20 object-contain sm:h-24 sm:w-24"
                         />
                     )}
                 </div>
 
 
                 {!openCard && (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {cards.map(
                             (
                                 card
@@ -1097,7 +1097,7 @@ export default function TeamPage() {
 
                 {openCard && (
                     <>
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+                        <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                             {cards
                                 .filter(
                                     (
@@ -1142,7 +1142,7 @@ export default function TeamPage() {
 
 
                         {selectedCard && (
-                            <div className="mt-4">
+                            <div className="mt-4 w-full min-w-0 max-w-full">
                                 <ExpandableCard
                                     title={
                                         selectedCard.title
@@ -1236,6 +1236,7 @@ function getPlayerPrimaryPosition(
         .trim()
         .toUpperCase();
 }
+
 
 // --------------------------------------------------
 // MONEY

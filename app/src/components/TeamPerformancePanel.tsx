@@ -138,7 +138,7 @@ function Panel({
     children: React.ReactNode;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-400">
                 {title}
             </h3>
@@ -165,12 +165,14 @@ function Stat({
                 {label}
             </div>
 
-            <div className={`mt-2 text-2xl font-bold ${valueClassName}`}>
+            <div
+                className={`mt-2 break-words text-xl font-bold sm:text-2xl ${valueClassName}`}
+            >
                 {value}
             </div>
 
             {detail && (
-                <div className="mt-1 text-xs text-slate-400">
+                <div className="mt-1 break-words text-xs text-slate-400">
                     {detail}
                 </div>
             )}
@@ -242,9 +244,10 @@ export default function TeamPerformancePanel({
     }));
 
     return (
-        <div className="space-y-5">
+        <div className="w-full min-w-0 max-w-full space-y-5">
 
-            <div className="grid min-w-[950px] grid-cols-5 gap-4 overflow-x-auto">
+            {/* KPI CARDS */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <Stat
                     label="Points %"
                     value={pct(latest.point_pctg)}
@@ -295,12 +298,22 @@ export default function TeamPerformancePanel({
                 />
             </div>
 
-            <div className="grid min-w-[1000px] grid-cols-3 gap-5 overflow-x-auto">
+
+            {/* PERFORMANCE CHARTS */}
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
 
                 <Panel title="Points % Trend">
-                    <div className="h-64">
+                    <div className="h-64 w-full min-w-0 overflow-hidden">
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
+                            <LineChart
+                                data={chartData}
+                                margin={{
+                                    top: 5,
+                                    right: 5,
+                                    left: -20,
+                                    bottom: 5,
+                                }}
+                            >
                                 <CartesianGrid
                                     strokeDasharray="3 3"
                                     stroke="#1e293b"
@@ -310,7 +323,7 @@ export default function TeamPerformancePanel({
                                     dataKey="season"
                                     tick={{
                                         fill: "#94a3b8",
-                                        fontSize: 12,
+                                        fontSize: 10,
                                     }}
                                 />
 
@@ -324,7 +337,7 @@ export default function TeamPerformancePanel({
                                     }
                                     tick={{
                                         fill: "#94a3b8",
-                                        fontSize: 12,
+                                        fontSize: 10,
                                     }}
                                 />
 
@@ -348,10 +361,19 @@ export default function TeamPerformancePanel({
                     </div>
                 </Panel>
 
+
                 <Panel title="Goals For vs Against">
-                    <div className="h-64">
+                    <div className="h-64 w-full min-w-0 overflow-hidden">
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
+                            <LineChart
+                                data={chartData}
+                                margin={{
+                                    top: 5,
+                                    right: 5,
+                                    left: -20,
+                                    bottom: 5,
+                                }}
+                            >
                                 <CartesianGrid
                                     strokeDasharray="3 3"
                                     stroke="#1e293b"
@@ -361,19 +383,24 @@ export default function TeamPerformancePanel({
                                     dataKey="season"
                                     tick={{
                                         fill: "#94a3b8",
-                                        fontSize: 12,
+                                        fontSize: 10,
                                     }}
                                 />
 
                                 <YAxis
                                     tick={{
                                         fill: "#94a3b8",
-                                        fontSize: 12,
+                                        fontSize: 10,
                                     }}
                                 />
 
                                 <Tooltip contentStyle={tooltipStyle} />
-                                <Legend />
+
+                                <Legend
+                                    wrapperStyle={{
+                                        fontSize: 11,
+                                    }}
+                                />
 
                                 <Line
                                     type="monotone"
@@ -405,10 +432,19 @@ export default function TeamPerformancePanel({
                     </div>
                 </Panel>
 
+
                 <Panel title="League & Division Rank">
-                    <div className="h-64">
+                    <div className="h-64 w-full min-w-0 overflow-hidden">
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
+                            <LineChart
+                                data={chartData}
+                                margin={{
+                                    top: 5,
+                                    right: 5,
+                                    left: -10,
+                                    bottom: 5,
+                                }}
+                            >
                                 <CartesianGrid
                                     strokeDasharray="3 3"
                                     stroke="#1e293b"
@@ -418,7 +454,7 @@ export default function TeamPerformancePanel({
                                     dataKey="season"
                                     tick={{
                                         fill: "#94a3b8",
-                                        fontSize: 12,
+                                        fontSize: 10,
                                     }}
                                 />
 
@@ -428,7 +464,7 @@ export default function TeamPerformancePanel({
                                     domain={[1, 32]}
                                     tick={{
                                         fill: "#94a3b8",
-                                        fontSize: 12,
+                                        fontSize: 10,
                                     }}
                                     label={{
                                         value: "NHL",
@@ -446,7 +482,7 @@ export default function TeamPerformancePanel({
                                     allowDecimals={false}
                                     tick={{
                                         fill: "#94a3b8",
-                                        fontSize: 12,
+                                        fontSize: 10,
                                     }}
                                     label={{
                                         value: "Division",
@@ -464,7 +500,11 @@ export default function TeamPerformancePanel({
                                     contentStyle={tooltipStyle}
                                 />
 
-                                <Legend />
+                                <Legend
+                                    wrapperStyle={{
+                                        fontSize: 11,
+                                    }}
+                                />
 
                                 <Line
                                     yAxisId="league"
@@ -491,12 +531,22 @@ export default function TeamPerformancePanel({
                 </Panel>
             </div>
 
-            <div className="grid min-w-[1000px] grid-cols-3 gap-5 overflow-x-auto">
+
+            {/* SPECIAL TEAMS / HOME-AWAY / PLAYOFFS */}
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
 
                 <Panel title="Special Teams">
-                    <div className="h-64">
+                    <div className="h-64 w-full min-w-0 overflow-hidden">
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
+                            <LineChart
+                                data={chartData}
+                                margin={{
+                                    top: 5,
+                                    right: 5,
+                                    left: -20,
+                                    bottom: 5,
+                                }}
+                            >
                                 <CartesianGrid
                                     strokeDasharray="3 3"
                                     stroke="#1e293b"
@@ -506,7 +556,7 @@ export default function TeamPerformancePanel({
                                     dataKey="season"
                                     tick={{
                                         fill: "#94a3b8",
-                                        fontSize: 12,
+                                        fontSize: 10,
                                     }}
                                 />
 
@@ -516,7 +566,7 @@ export default function TeamPerformancePanel({
                                     }
                                     tick={{
                                         fill: "#94a3b8",
-                                        fontSize: 12,
+                                        fontSize: 10,
                                     }}
                                 />
 
@@ -527,7 +577,11 @@ export default function TeamPerformancePanel({
                                     contentStyle={tooltipStyle}
                                 />
 
-                                <Legend />
+                                <Legend
+                                    wrapperStyle={{
+                                        fontSize: 11,
+                                    }}
+                                />
 
                                 <Line
                                     type="monotone"
@@ -569,10 +623,19 @@ export default function TeamPerformancePanel({
                     </div>
                 </Panel>
 
+
                 <Panel title="Home vs Away Points %">
-                    <div className="h-64">
+                    <div className="h-64 w-full min-w-0 overflow-hidden">
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
+                            <LineChart
+                                data={chartData}
+                                margin={{
+                                    top: 5,
+                                    right: 5,
+                                    left: -20,
+                                    bottom: 5,
+                                }}
+                            >
                                 <CartesianGrid
                                     strokeDasharray="3 3"
                                     stroke="#1e293b"
@@ -582,7 +645,7 @@ export default function TeamPerformancePanel({
                                     dataKey="season"
                                     tick={{
                                         fill: "#94a3b8",
-                                        fontSize: 12,
+                                        fontSize: 10,
                                     }}
                                 />
 
@@ -592,7 +655,7 @@ export default function TeamPerformancePanel({
                                     }
                                     tick={{
                                         fill: "#94a3b8",
-                                        fontSize: 12,
+                                        fontSize: 10,
                                     }}
                                 />
 
@@ -603,7 +666,11 @@ export default function TeamPerformancePanel({
                                     contentStyle={tooltipStyle}
                                 />
 
-                                <Legend />
+                                <Legend
+                                    wrapperStyle={{
+                                        fontSize: 11,
+                                    }}
+                                />
 
                                 <Line
                                     type="monotone"
@@ -625,6 +692,7 @@ export default function TeamPerformancePanel({
                     </div>
                 </Panel>
 
+
                 <Panel title="Playoff Results">
                     <div className="space-y-3">
                         {[...seasons]
@@ -637,20 +705,21 @@ export default function TeamPerformancePanel({
                                 return (
                                     <div
                                         key={season.seasonId}
-                                        className="flex items-center justify-between gap-4 rounded-lg border border-slate-800 bg-slate-950/50 px-4 py-3"
+                                        className="flex min-w-0 flex-col gap-2 rounded-lg border border-slate-800 bg-slate-950/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                                     >
                                         <span className="text-sm font-medium text-slate-400">
                                             {season.season_label}
                                         </span>
 
                                         <span
-                                            className={`flex items-center gap-2 text-sm font-semibold ${playoffColour(
+                                            className={`flex min-w-0 items-center gap-2 break-words text-sm font-semibold sm:text-right ${playoffColour(
                                                 season.playoff_result
                                             )}`}
                                         >
                                             {winner && (
                                                 <Trophy
                                                     size={16}
+                                                    className="shrink-0"
                                                     strokeWidth={2}
                                                 />
                                             )}

@@ -100,14 +100,14 @@ export default function TravelMap({
 
 
     return (
-        <div className="overflow-hidden rounded-xl border border-slate-800">
+        <div className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-800">
             <MapContainer
                 center={center}
                 zoom={4}
                 scrollWheelZoom={
                     false
                 }
-                className="h-[520px] w-full"
+                className="h-[360px] w-full min-w-0 sm:h-[440px] lg:h-[520px]"
             >
                 <TileLayer
                     attribution="&copy; OpenStreetMap contributors"

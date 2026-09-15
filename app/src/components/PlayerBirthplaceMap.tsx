@@ -107,14 +107,14 @@ export default function PlayerBirthplaceMap({
     ]);
 
     return (
-        <div className="relative overflow-hidden rounded-xl border border-slate-800">
+        <div className="relative w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-800">
 
             <div
                 ref={mapElementRef}
-                className="h-[320px] w-full"
+                className="h-[240px] w-full min-w-0 sm:h-[280px] lg:h-[320px]"
             />
 
-            <div className="pointer-events-none absolute left-4 top-4 z-[500] rounded-lg bg-slate-950/90 px-4 py-2 text-sm font-semibold text-white">
+            <div className="pointer-events-none absolute left-3 right-3 top-3 z-[500] w-fit max-w-[calc(100%-1.5rem)] break-words rounded-lg bg-slate-950/90 px-3 py-2 text-xs font-semibold text-white sm:left-4 sm:right-auto sm:top-4 sm:max-w-[calc(100%-2rem)] sm:px-4 sm:text-sm">
                 {label}
             </div>
 

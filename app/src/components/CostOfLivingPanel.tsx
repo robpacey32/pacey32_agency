@@ -100,9 +100,9 @@ export default function CostOfLivingPanel({
     };
 
     return (
-        <div className="space-y-8">
-            <div>
-                <h3 className="text-2xl font-semibold text-white">
+        <div className="w-full min-w-0 max-w-full space-y-8">
+            <div className="min-w-0">
+                <h3 className="break-words text-xl font-semibold text-white sm:text-2xl">
                     {city}, {stateProvince}, {country}
                 </h3>
 
@@ -111,7 +111,8 @@ export default function CostOfLivingPanel({
                 </p>
             </div>
 
-            <div className="grid grid-cols-5 gap-4">
+            {/* MAIN KPIs */}
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <CostKpi
                     icon="$"
                     label="Overall Cost"
@@ -150,77 +151,84 @@ export default function CostOfLivingPanel({
                 />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* CHART + CATEGORY DETAIL */}
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
                 <ChartPanel title="Cost of Living by Category">
-                    <ResponsiveContainer width="100%" height={360}>
-                        <BarChart
-                            data={chartData}
-                            margin={{
-                                top: 10,
-                                right: 20,
-                                left: 0,
-                                bottom: 10,
-                            }}
-                        >
-                            <CartesianGrid
-                                stroke="#1e293b"
-                                vertical={false}
-                            />
-
-                            <XAxis
-                                dataKey="category"
-                                tick={{
-                                    fill: "#94a3b8",
-                                    fontSize: 12,
+                    <div className="w-full min-w-0 overflow-hidden">
+                        <ResponsiveContainer width="100%" height={360}>
+                            <BarChart
+                                data={chartData}
+                                margin={{
+                                    top: 10,
+                                    right: 5,
+                                    left: -20,
+                                    bottom: 45,
                                 }}
-                                axisLine={false}
-                                tickLine={false}
-                                interval={0}
-                            />
-
-                            <YAxis
-                                tick={{
-                                    fill: "#94a3b8",
-                                }}
-                                axisLine={false}
-                                tickLine={false}
-                                domain={[0, "auto"]}
-                                tickFormatter={(value) =>
-                                    Math.round(value).toString()
-                                }
-                            />
-
-                            <Tooltip content={<CostTooltip />} />
-
-                            <ReferenceLine
-                                y={100}
-                                stroke="#94a3b8"
-                                strokeWidth={1.5}
-                                strokeDasharray="5 5"
-                                label={{
-                                    value: "NHL Average",
-                                    position: "insideTopRight",
-                                    fill: "#94a3b8",
-                                    fontSize: 11,
-                                }}
-                            />
-
-                            <Bar
-                                dataKey="city"
-                                name={city}
-                                radius={[4, 4, 0, 0]}
                             >
-                                {chartData.map((item) => (
-                                    <Cell
-                                        key={item.category}
-                                        fill={getChartColour(
-                                            item.city
-                                        )}
-                                    />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                                <CartesianGrid
+                                    stroke="#1e293b"
+                                    vertical={false}
+                                />
+
+                                <XAxis
+                                    dataKey="category"
+                                    tick={{
+                                        fill: "#94a3b8",
+                                        fontSize: 10,
+                                    }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    interval={0}
+                                    angle={-35}
+                                    textAnchor="end"
+                                    height={60}
+                                />
+
+                                <YAxis
+                                    tick={{
+                                        fill: "#94a3b8",
+                                        fontSize: 10,
+                                    }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    domain={[0, "auto"]}
+                                    tickFormatter={(value) =>
+                                        Math.round(value).toString()
+                                    }
+                                />
+
+                                <Tooltip content={<CostTooltip />} />
+
+                                <ReferenceLine
+                                    y={100}
+                                    stroke="#94a3b8"
+                                    strokeWidth={1.5}
+                                    strokeDasharray="5 5"
+                                    label={{
+                                        value: "NHL Average",
+                                        position: "insideTopRight",
+                                        fill: "#94a3b8",
+                                        fontSize: 10,
+                                    }}
+                                />
+
+                                <Bar
+                                    dataKey="city"
+                                    name={city}
+                                    radius={[4, 4, 0, 0]}
+                                >
+                                    {chartData.map((item) => (
+                                        <Cell
+                                            key={item.category}
+                                            fill={getChartColour(
+                                                item.city
+                                            )}
+                                        />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
 
                     <p className="mt-2 text-center text-xs text-slate-500">
                         NHL average = 100. Lower values indicate lower
@@ -258,12 +266,13 @@ export default function CostOfLivingPanel({
                 </ChartPanel>
             </div>
 
-            <div>
+            {/* ADDITIONAL INSIGHTS */}
+            <div className="w-full min-w-0">
                 <p className="mb-4 text-sm font-medium uppercase tracking-wide text-slate-500">
                     Additional Cost Insights
                 </p>
 
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <CostKpi
                         icon="⚡"
                         label="Utilities"
@@ -300,8 +309,9 @@ export default function CostOfLivingPanel({
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+            {/* SUMMARY + METHODOLOGY */}
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
+                <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4 sm:p-5">
                     <p className="text-sm font-semibold text-white">
                         Overall Position
                     </p>
@@ -315,7 +325,7 @@ export default function CostOfLivingPanel({
                     </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+                <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4 sm:p-5">
                     <p className="text-sm font-semibold text-white">
                         Methodology
                     </p>
@@ -351,8 +361,8 @@ function CostKpi({
     const colour = getCostColour(value);
 
     return (
-        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-5">
-            <div className="flex items-start gap-4">
+        <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4 sm:p-5">
+            <div className="flex min-w-0 items-start gap-4">
                 <div
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xl font-semibold ${colour.text}`}
                 >
@@ -360,19 +370,19 @@ function CostKpi({
                 </div>
 
                 <div className="min-w-0">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                    <p className="break-words text-xs font-medium uppercase tracking-wide text-slate-400">
                         {label}
                     </p>
 
                     <p
-                        className={`mt-2 text-3xl font-semibold ${colour.text}`}
+                        className={`mt-2 break-words text-2xl font-semibold sm:text-3xl ${colour.text}`}
                     >
                         {value.toFixed(1)}
                     </p>
                 </div>
             </div>
 
-            <p className="mt-4 text-sm text-slate-400">
+            <p className="mt-4 break-words text-sm text-slate-400">
                 {detail}
             </p>
         </div>
@@ -391,24 +401,24 @@ function RankKpi({
     detail: string;
 }) {
     return (
-        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-5">
-            <div className="flex items-start gap-4">
+        <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4 sm:p-5">
+            <div className="flex min-w-0 items-start gap-4">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xl font-semibold text-sky-400">
                     {icon}
                 </div>
 
                 <div className="min-w-0">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                    <p className="break-words text-xs font-medium uppercase tracking-wide text-slate-400">
                         {label}
                     </p>
 
-                    <p className="mt-2 text-3xl font-semibold text-sky-400">
+                    <p className="mt-2 break-words text-2xl font-semibold text-sky-400 sm:text-3xl">
                         {value}
                     </p>
                 </div>
             </div>
 
-            <p className="mt-4 text-sm text-slate-400">
+            <p className="mt-4 break-words text-sm text-slate-400">
                 {detail}
             </p>
         </div>
@@ -423,7 +433,7 @@ function ChartPanel({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+        <div className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-950/40 p-4 sm:p-5">
             <p className="mb-5 font-semibold text-white">
                 {title}
             </p>
@@ -454,33 +464,33 @@ function CategoryRow({
     );
 
     return (
-        <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950/30">
+        <div className="w-full min-w-0 overflow-hidden rounded-lg border border-slate-800 bg-slate-950/30">
             <button
                 type="button"
                 onClick={onClick}
-                className="w-full p-3 text-left transition hover:bg-slate-900/60"
+                className="w-full min-w-0 p-3 text-left transition hover:bg-slate-900/60"
             >
-                <div className="mb-2 flex items-center justify-between gap-4">
+                <div className="mb-2 flex min-w-0 items-center justify-between gap-4">
                     <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-slate-200">
+                        <div className="flex min-w-0 items-center gap-2">
+                            <p className="min-w-0 break-words text-sm font-medium text-slate-200">
                                 {category}
                             </p>
 
-                            <span className="text-xs text-slate-500">
+                            <span className="shrink-0 text-xs text-slate-500">
                                 {open ? "▲" : "▼"}
                             </span>
                         </div>
 
                         <p
-                            className={`text-xs ${colour.text}`}
+                            className={`break-words text-xs ${colour.text}`}
                         >
                             {differenceText}
                         </p>
                     </div>
 
                     <p
-                        className={`text-lg font-semibold ${colour.text}`}
+                        className={`shrink-0 text-lg font-semibold ${colour.text}`}
                     >
                         {value.toFixed(1)}
                     </p>
@@ -497,7 +507,7 @@ function CategoryRow({
             </button>
 
             {open && (
-                <div className="border-t border-slate-800 px-3 py-2">
+                <div className="min-w-0 border-t border-slate-800 px-3 py-2">
                     {detail.length > 0 ? (
                         <div className="divide-y divide-slate-800">
                             {detail.map((item) => (
@@ -526,9 +536,9 @@ function MetricDetailRow({
     const colour = getCostColour(item.metric_index);
 
     return (
-        <div className="grid grid-cols-[minmax(0,1fr)_90px] gap-4 py-3">
+        <div className="grid min-w-0 grid-cols-1 gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_90px] sm:gap-4">
             <div className="min-w-0">
-                <p className="text-sm text-slate-300">
+                <p className="break-words text-sm text-slate-300">
                     {cleanMetricName(item.metric)}
                 </p>
 
@@ -538,14 +548,14 @@ function MetricDetailRow({
                     {comparisonText(item.metric_index)}
                 </p>
 
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 break-words text-xs text-slate-500">
                     Local: {formatDollar(item.avg_usd)} · NHL avg:{" "}
                     {formatDollar(item.nhl_avg_usd)}
                 </p>
             </div>
 
             <p
-                className={`text-right text-lg font-semibold ${colour.text}`}
+                className={`text-left text-lg font-semibold sm:text-right ${colour.text}`}
             >
                 {item.metric_index.toFixed(1)}
             </p>

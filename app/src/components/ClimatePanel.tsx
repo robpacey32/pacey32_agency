@@ -94,9 +94,10 @@ export default function ClimatePanel({
     }));
 
     return (
-        <div className="space-y-8">
-            <div>
-                <h3 className="text-2xl font-semibold text-white">
+        <div className="w-full min-w-0 max-w-full space-y-8">
+
+            <div className="min-w-0">
+                <h3 className="break-words text-xl font-semibold text-white sm:text-2xl">
                     {city}, {stateProvince}, {country}
                 </h3>
 
@@ -105,7 +106,8 @@ export default function ClimatePanel({
                 </p>
             </div>
 
-            <div className="grid grid-cols-5 gap-4">
+            {/* MAIN KPIs */}
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <ClimateKpi
                     icon="☀"
                     iconClass="text-yellow-400"
@@ -170,95 +172,107 @@ export default function ClimatePanel({
                 />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* CHARTS */}
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
+
                 <ChartPanel title="Monthly Temperature (°C)">
-                    <ResponsiveContainer
-                        width="100%"
-                        height={320}
-                    >
-                        <LineChart
-                            data={chartData}
-                            margin={{
-                                top: 10,
-                                right: 20,
-                                left: 0,
-                                bottom: 0,
-                            }}
+                    <div className="w-full min-w-0 overflow-hidden">
+                        <ResponsiveContainer
+                            width="100%"
+                            height={320}
                         >
-                            <CartesianGrid
-                                stroke="#1e293b"
-                                vertical={false}
-                            />
-
-                            <XAxis
-                                dataKey="monthName"
-                                tick={{ fill: "#94a3b8" }}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-
-                            <YAxis
-                                tick={{
-                                    fill: "#94a3b8",
+                            <LineChart
+                                data={chartData}
+                                margin={{
+                                    top: 10,
+                                    right: 5,
+                                    left: -20,
+                                    bottom: 0,
                                 }}
-                                axisLine={false}
-                                tickLine={false}
-                                tickFormatter={(value) =>
-                                    `${Math.round(value)}°`
-                                }
-                            />
+                            >
+                                <CartesianGrid
+                                    stroke="#1e293b"
+                                    vertical={false}
+                                />
 
-                            <Tooltip
-                                content={
-                                    <ClimateTooltip
-                                        chart="temperature"
-                                    />
-                                }
-                            />
+                                <XAxis
+                                    dataKey="monthName"
+                                    tick={{
+                                        fill: "#94a3b8",
+                                        fontSize: 10,
+                                    }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
 
-                            <Legend />
+                                <YAxis
+                                    tick={{
+                                        fill: "#94a3b8",
+                                        fontSize: 10,
+                                    }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tickFormatter={(value) =>
+                                        `${Math.round(value)}°`
+                                    }
+                                />
 
-                            <Line
-                                type="monotone"
-                                dataKey="avgTemp"
-                                name="Average"
-                                stroke="#ef4444"
-                                strokeWidth={3}
-                                dot={{ r: 3 }}
-                                activeDot={{ r: 5 }}
-                            />
+                                <Tooltip
+                                    content={
+                                        <ClimateTooltip
+                                            chart="temperature"
+                                        />
+                                    }
+                                />
 
-                            <Line
-                                type="monotone"
-                                dataKey="maxTemp"
-                                name="Maximum"
-                                stroke="#fca5a5"
-                                strokeWidth={1.25}
-                                strokeDasharray="4 4"
-                                dot={false}
-                            />
+                                <Legend
+                                    wrapperStyle={{
+                                        fontSize: "11px",
+                                    }}
+                                />
 
-                            <Line
-                                type="monotone"
-                                dataKey="minTemp"
-                                name="Minimum"
-                                stroke="#fecaca"
-                                strokeWidth={1.25}
-                                strokeDasharray="4 4"
-                                dot={false}
-                            />
+                                <Line
+                                    type="monotone"
+                                    dataKey="avgTemp"
+                                    name="Average"
+                                    stroke="#ef4444"
+                                    strokeWidth={3}
+                                    dot={{ r: 3 }}
+                                    activeDot={{ r: 5 }}
+                                />
 
-                            <Line
-                                type="monotone"
-                                dataKey="nhlAvgTemp"
-                                name="NHL Average"
-                                stroke="#94a3b8"
-                                strokeWidth={1.5}
-                                strokeDasharray="5 5"
-                                dot={false}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
+                                <Line
+                                    type="monotone"
+                                    dataKey="maxTemp"
+                                    name="Maximum"
+                                    stroke="#fca5a5"
+                                    strokeWidth={1.25}
+                                    strokeDasharray="4 4"
+                                    dot={false}
+                                />
+
+                                <Line
+                                    type="monotone"
+                                    dataKey="minTemp"
+                                    name="Minimum"
+                                    stroke="#fecaca"
+                                    strokeWidth={1.25}
+                                    strokeDasharray="4 4"
+                                    dot={false}
+                                />
+
+                                <Line
+                                    type="monotone"
+                                    dataKey="nhlAvgTemp"
+                                    name="NHL Average"
+                                    stroke="#94a3b8"
+                                    strokeWidth={1.5}
+                                    strokeDasharray="5 5"
+                                    dot={false}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
 
                     <p className="mt-2 text-center text-xs text-slate-500">
                         Monthly average, maximum and minimum
@@ -267,77 +281,87 @@ export default function ClimatePanel({
                 </ChartPanel>
 
                 <ChartPanel title="Monthly Precipitation">
-                    <ResponsiveContainer
-                        width="100%"
-                        height={320}
-                    >
-                        <ComposedChart
-                            data={chartData}
-                            margin={{
-                                top: 10,
-                                right: 20,
-                                left: 0,
-                                bottom: 0,
-                            }}
+                    <div className="w-full min-w-0 overflow-hidden">
+                        <ResponsiveContainer
+                            width="100%"
+                            height={320}
                         >
-                            <CartesianGrid
-                                stroke="#1e293b"
-                                vertical={false}
-                            />
-
-                            <XAxis
-                                dataKey="monthName"
-                                tick={{ fill: "#94a3b8" }}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-
-                            <YAxis
-                                tick={{
-                                    fill: "#94a3b8",
+                            <ComposedChart
+                                data={chartData}
+                                margin={{
+                                    top: 10,
+                                    right: 5,
+                                    left: -20,
+                                    bottom: 0,
                                 }}
-                                axisLine={false}
-                                tickLine={false}
-                                tickFormatter={(value) =>
-                                    `${Math.round(value)}`
-                                }
-                            />
+                            >
+                                <CartesianGrid
+                                    stroke="#1e293b"
+                                    vertical={false}
+                                />
 
-                            <Tooltip
-                                content={
-                                    <ClimateTooltip
-                                        chart="precipitation"
-                                    />
-                                }
-                            />
+                                <XAxis
+                                    dataKey="monthName"
+                                    tick={{
+                                        fill: "#94a3b8",
+                                        fontSize: 10,
+                                    }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
 
-                            <Legend />
+                                <YAxis
+                                    tick={{
+                                        fill: "#94a3b8",
+                                        fontSize: 10,
+                                    }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tickFormatter={(value) =>
+                                        `${Math.round(value)}`
+                                    }
+                                />
 
-                            <Bar
-                                dataKey="rainMM"
-                                name="Rainfall"
-                                fill="#3b82f6"
-                                radius={[3, 3, 0, 0]}
-                            />
+                                <Tooltip
+                                    content={
+                                        <ClimateTooltip
+                                            chart="precipitation"
+                                        />
+                                    }
+                                />
 
-                            <Bar
-                                dataKey="snowfall"
-                                name="Snowfall"
-                                fill="#67e8f9"
-                                radius={[3, 3, 0, 0]}
-                            />
+                                <Legend
+                                    wrapperStyle={{
+                                        fontSize: "11px",
+                                    }}
+                                />
 
-                            <Line
-                                type="monotone"
-                                dataKey="nhlAvgRainMM"
-                                name="NHL Avg Rain"
-                                stroke="#94a3b8"
-                                strokeWidth={1.5}
-                                strokeDasharray="5 5"
-                                dot={false}
-                            />
-                        </ComposedChart>
-                    </ResponsiveContainer>
+                                <Bar
+                                    dataKey="rainMM"
+                                    name="Rainfall"
+                                    fill="#3b82f6"
+                                    radius={[3, 3, 0, 0]}
+                                />
+
+                                <Bar
+                                    dataKey="snowfall"
+                                    name="Snowfall"
+                                    fill="#67e8f9"
+                                    radius={[3, 3, 0, 0]}
+                                />
+
+                                <Line
+                                    type="monotone"
+                                    dataKey="nhlAvgRainMM"
+                                    name="NHL Avg Rain"
+                                    stroke="#94a3b8"
+                                    strokeWidth={1.5}
+                                    strokeDasharray="5 5"
+                                    dot={false}
+                                />
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </div>
 
                     <p className="mt-2 text-center text-xs text-slate-500">
                         Monthly rainfall and snowfall
@@ -345,12 +369,13 @@ export default function ClimatePanel({
                 </ChartPanel>
             </div>
 
-            <div>
+            {/* ADDITIONAL INSIGHTS */}
+            <div className="w-full min-w-0">
                 <p className="mb-4 text-sm font-medium uppercase tracking-wide text-slate-500">
                     Additional Climate Insights
                 </p>
 
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <ClimateKpi
                         icon="❄"
                         iconClass="text-cyan-300"
@@ -430,8 +455,8 @@ function ClimateKpi({
     detail: string;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
-            <div className="flex items-start gap-4">
+        <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4 sm:p-5">
+            <div className="flex min-w-0 items-start gap-4">
                 <div
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xl ${iconClass}`}
                 >
@@ -439,19 +464,19 @@ function ClimateKpi({
                 </div>
 
                 <div className="min-w-0">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                    <p className="break-words text-xs font-medium uppercase tracking-wide text-slate-400">
                         {label}
                     </p>
 
                     <p
-                        className={`mt-2 text-3xl font-semibold ${valueClass}`}
+                        className={`mt-2 break-words text-2xl font-semibold sm:text-3xl ${valueClass}`}
                     >
                         {value}
                     </p>
                 </div>
             </div>
 
-            <p className="mt-4 text-sm text-slate-400">
+            <p className="mt-4 break-words text-sm text-slate-400">
                 {detail}
             </p>
         </div>
@@ -466,7 +491,7 @@ function ChartPanel({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+        <div className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-950/40 p-4 sm:p-5">
             <p className="mb-5 font-semibold text-white">
                 {title}
             </p>

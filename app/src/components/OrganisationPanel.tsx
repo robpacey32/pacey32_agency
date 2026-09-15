@@ -154,9 +154,10 @@ export default function OrganisationPanel({
         );
 
     return (
-        <div className="space-y-5">
+        <div className="w-full min-w-0 max-w-full space-y-5">
 
-            <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+            {/* MANAGEMENT */}
+            <section className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
                 <SectionHeader
                     icon={
                         <UsersRound
@@ -168,7 +169,7 @@ export default function OrganisationPanel({
                     subtitle="Key leadership and ownership of the organisation."
                 />
 
-                <div className="mt-5 grid min-w-[900px] grid-cols-3 gap-5 overflow-x-auto">
+                <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     <ManagementCard
                         type="GENERAL MANAGER"
                         name={
@@ -233,8 +234,10 @@ export default function OrganisationPanel({
                 </div>
             </section>
 
-            <div className="grid min-w-[900px] grid-cols-2 gap-5 overflow-x-auto">
-                <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+
+            {/* ORGANISATION PROFILE */}
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <section className="min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
                     <SectionHeader
                         icon={
                             <BriefcaseBusiness
@@ -252,7 +255,7 @@ export default function OrganisationPanel({
                     </p>
                 </section>
 
-                <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+                <section className="min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
                     <SectionHeader
                         icon={
                             <UsersRound
@@ -271,7 +274,9 @@ export default function OrganisationPanel({
                 </section>
             </div>
 
-            <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+
+            {/* LEADERSHIP GROUP */}
+            <section className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
                 <SectionHeader
                     icon={
                         <Shield
@@ -283,23 +288,26 @@ export default function OrganisationPanel({
                     subtitle="On-ice leadership group."
                 />
 
-                <div className="mt-5 grid min-w-[1050px] grid-cols-[1.35fr_2fr] gap-5 overflow-x-auto">
+                <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[1.35fr_2fr]">
 
-                    <div className="overflow-hidden rounded-xl border border-blue-500/50 bg-slate-950/50">
-                        <div className="grid min-h-[320px] grid-cols-[230px_1fr]">
+                    {/* CAPTAIN */}
+                    <div className="min-w-0 overflow-hidden rounded-xl border border-blue-500/50 bg-slate-950/50">
+                        <div className="grid grid-cols-1 sm:grid-cols-[200px_minmax(0,1fr)] lg:grid-cols-[230px_minmax(0,1fr)] xl:min-h-[320px]">
 
-                            <PlayerHeadshot
-                                player={
-                                    captain
-                                }
-                                name={
-                                    organisation.captain
-                                }
-                            />
+                            <div className="h-[260px] sm:h-auto sm:min-h-[300px]">
+                                <PlayerHeadshot
+                                    player={
+                                        captain
+                                    }
+                                    name={
+                                        organisation.captain
+                                    }
+                                />
+                            </div>
 
-                            <div className="flex flex-col justify-center p-6">
+                            <div className="flex min-w-0 flex-col justify-center p-5 sm:p-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-500/20 text-lg font-bold text-blue-300">
+                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-lg font-bold text-blue-300">
                                         C
                                     </div>
 
@@ -308,16 +316,17 @@ export default function OrganisationPanel({
                                     </div>
                                 </div>
 
-                                <div className="mt-5 text-3xl font-bold text-white">
+                                <div className="mt-5 break-words text-2xl font-bold text-white sm:text-3xl">
                                     {organisation.captain ??
                                         "—"}
                                 </div>
 
-                                <div className="mt-6 flex gap-5 border-t border-slate-800 pt-4 text-sm text-slate-400">
+                                <div className="mt-6 flex flex-col gap-3 border-t border-slate-800 pt-4 text-sm text-slate-400 sm:flex-row sm:flex-wrap sm:gap-5">
                                     {organisation.captain_since && (
                                         <span className="flex items-center gap-2">
                                             <CalendarDays
                                                 size={16}
+                                                className="shrink-0"
                                             />
                                             Since{" "}
                                             {
@@ -338,12 +347,14 @@ export default function OrganisationPanel({
                         </div>
                     </div>
 
-                    <div>
+
+                    {/* ALTERNATE CAPTAINS */}
+                    <div className="min-w-0">
                         <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                             Alternate Captains
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             {alternates.length ? (
                                 alternates.map(
                                     (name) => {
@@ -355,7 +366,7 @@ export default function OrganisationPanel({
                                         return (
                                             <div
                                                 key={name}
-                                                className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950/50"
+                                                className="min-w-0 overflow-hidden rounded-xl border border-slate-800 bg-slate-950/50"
                                             >
                                                 <div className="relative h-[230px]">
                                                     <PlayerHeadshot
@@ -373,7 +384,7 @@ export default function OrganisationPanel({
                                                 </div>
 
                                                 <div className="border-t border-slate-800 p-4 text-center">
-                                                    <div className="text-xl font-semibold text-white">
+                                                    <div className="break-words text-lg font-semibold text-white sm:text-xl">
                                                         {
                                                             name
                                                         }
@@ -384,7 +395,7 @@ export default function OrganisationPanel({
                                     }
                                 )
                             ) : (
-                                <div className="col-span-3 rounded-xl border border-dashed border-slate-700 p-5 text-sm text-slate-500">
+                                <div className="rounded-xl border border-dashed border-slate-700 p-5 text-sm text-slate-500 sm:col-span-2 lg:col-span-3">
                                     No alternate
                                     captains listed.
                                 </div>
@@ -394,7 +405,9 @@ export default function OrganisationPanel({
                 </div>
             </section>
 
-            <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+
+            {/* FRANCHISE SUCCESS */}
+            <section className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
                 <SectionHeader
                     icon={
                         <Trophy
@@ -442,6 +455,7 @@ export default function OrganisationPanel({
     );
 }
 
+
 function PlayerHeadshot({
     player,
     name,
@@ -451,7 +465,7 @@ function PlayerHeadshot({
 }) {
     if (!player?.headshot_url) {
         return (
-            <div className="flex h-full min-h-[230px] items-center justify-center bg-slate-900 text-slate-600">
+            <div className="flex h-full min-h-[230px] w-full items-center justify-center bg-slate-900 text-slate-600">
                 <UsersRound
                     size={72}
                 />
@@ -475,6 +489,7 @@ function PlayerHeadshot({
     );
 }
 
+
 function SuccessRow({
     count,
     seasons,
@@ -485,9 +500,9 @@ function SuccessRow({
     winner?: boolean;
 }) {
     return (
-        <div className="flex min-w-[700px] items-stretch gap-5 overflow-x-auto">
+        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-[80px_1px_minmax(0,1fr)] sm:items-stretch sm:gap-5">
 
-            <div className="flex w-20 shrink-0 items-center justify-center">
+            <div className="flex items-center justify-start sm:justify-center">
                 <div
                     className={
                         winner
@@ -499,33 +514,35 @@ function SuccessRow({
                 </div>
             </div>
 
-            <div className="w-px shrink-0 bg-slate-700" />
+            <div className="hidden w-px bg-slate-700 sm:block" />
 
-            <div className="flex flex-1 gap-4">
-                {seasons.map(
-                    (season) => (
-                        <CupCard
-                            key={
-                                season.seasonId
-                            }
-                            season={
-                                season.season_label
-                            }
-                            opponent={
-                                season.opponent
-                            }
-                            score={
-                                season.score
-                            }
-                            winner={
-                                winner
-                            }
-                        />
-                    )
-                )}
-
-                {!seasons.length && (
-                    <div className="flex min-h-[105px] flex-1 items-center text-sm text-slate-600">
+            <div className="min-w-0">
+                {seasons.length ? (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {seasons.map(
+                            (season) => (
+                                <CupCard
+                                    key={
+                                        season.seasonId
+                                    }
+                                    season={
+                                        season.season_label
+                                    }
+                                    opponent={
+                                        season.opponent
+                                    }
+                                    score={
+                                        season.score
+                                    }
+                                    winner={
+                                        winner
+                                    }
+                                />
+                            )
+                        )}
+                    </div>
+                ) : (
+                    <div className="flex min-h-[105px] items-center text-sm text-slate-600">
                         Historical season
                         data loading.
                     </div>
@@ -534,6 +551,7 @@ function SuccessRow({
         </div>
     );
 }
+
 
 function SectionHeader({
     icon,
@@ -545,12 +563,12 @@ function SectionHeader({
     subtitle: string;
 }) {
     return (
-        <div className="flex items-start gap-3">
-            <div className="mt-0.5">
+        <div className="flex min-w-0 items-start gap-3">
+            <div className="mt-0.5 shrink-0">
                 {icon}
             </div>
 
-            <div>
+            <div className="min-w-0">
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-white">
                     {title}
                 </h3>
@@ -562,6 +580,7 @@ function SectionHeader({
         </div>
     );
 }
+
 
 function ManagementCard({
     type,
@@ -602,7 +621,7 @@ function ManagementCard({
         yearsSince(since);
 
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-6">
+        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/50 p-5 sm:p-6">
             <div className="flex flex-col items-center text-center">
                 <div
                     className={`flex h-16 w-16 items-center justify-center rounded-full border ${styles.circle}`}
@@ -616,21 +635,19 @@ function ManagementCard({
                     {type}
                 </div>
 
-                <div className="mt-2 min-h-14 text-xl font-bold text-white">
+                <div className="mt-2 min-h-14 break-words text-xl font-bold text-white">
                     {name ?? "—"}
                 </div>
             </div>
 
             <div className="mt-5 space-y-3 border-t border-slate-800 pt-4 text-sm text-slate-300">
-                <div className="flex items-center gap-3">
+                <div className="flex items-start gap-3">
                     <CalendarDays
                         size={17}
-                        className={
-                            styles.label
-                        }
+                        className={`mt-0.5 shrink-0 ${styles.label}`}
                     />
 
-                    <span>
+                    <span className="min-w-0 break-words">
                         {sinceLabel}{" "}
                         {formatSince(
                             since
@@ -642,9 +659,7 @@ function ManagementCard({
                     <div className="flex items-center gap-3">
                         <Clock3
                             size={17}
-                            className={
-                                styles.label
-                            }
+                            className={`shrink-0 ${styles.label}`}
                         />
 
                         <span>
@@ -657,7 +672,7 @@ function ManagementCard({
                 )}
 
                 {footer && (
-                    <div className="border-t border-slate-800 pt-3 text-slate-400">
+                    <div className="break-words border-t border-slate-800 pt-3 text-slate-400">
                         {footer}
                     </div>
                 )}
@@ -665,6 +680,7 @@ function ManagementCard({
         </div>
     );
 }
+
 
 function CupCard({
     season,
@@ -681,8 +697,8 @@ function CupCard({
         <div
             className={
                 winner
-                    ? "min-w-[210px] rounded-xl border border-yellow-500/50 bg-yellow-500/[0.04] p-5 text-center"
-                    : "min-w-[210px] rounded-xl border border-slate-700 bg-slate-950/50 p-5 text-center"
+                    ? "min-w-0 rounded-xl border border-yellow-500/50 bg-yellow-500/[0.04] p-4 text-center sm:p-5"
+                    : "min-w-0 rounded-xl border border-slate-700 bg-slate-950/50 p-4 text-center sm:p-5"
             }
         >
             <div
@@ -713,7 +729,7 @@ function CupCard({
                 {season}
             </div>
 
-            <div className="mt-2 text-sm font-medium text-slate-300">
+            <div className="mt-2 break-words text-sm font-medium text-slate-300">
                 vs. {opponent ?? "—"}
                 {score &&
                     ` (${score})`}
@@ -721,6 +737,7 @@ function CupCard({
         </div>
     );
 }
+
 
 function formatSince(
     value: string | number | null
@@ -734,6 +751,7 @@ function formatSince(
         ""
     );
 }
+
 
 function yearsSince(
     value: string | number | null

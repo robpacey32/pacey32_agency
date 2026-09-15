@@ -141,17 +141,19 @@ export default function CityOverviewMap({
     );
 
     return (
-        <div className="space-y-5">
+        <div className="w-full min-w-0 max-w-full space-y-5">
             <div>
                 <p className="text-lg font-semibold text-white">
                     Explore the city
                 </p>
+
                 <p className="mt-1 text-sm text-slate-400">
                     Show or hide points of interest on the map.
                 </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            {/* LAYER CONTROLS */}
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                 {layerConfig.map((layer) => {
                     const active = visibleLayers.has(layer.key);
 
@@ -160,20 +162,22 @@ export default function CityOverviewMap({
                             key={layer.key}
                             type="button"
                             onClick={() => toggleLayer(layer.key)}
-                            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                            className={`flex min-w-0 items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-xs font-medium transition sm:px-3 sm:text-sm ${
                                 active
                                     ? "border-blue-500 bg-blue-500/10 text-blue-300"
                                     : "border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-600"
                             }`}
                         >
-                            <span className="text-base">
+                            <span className="shrink-0 text-base">
                                 {layer.icon}
                             </span>
 
-                            <span>{layer.label}</span>
+                            <span className="min-w-0 flex-1">
+                                {layer.label}
+                            </span>
 
                             {active && (
-                                <span className="text-blue-400">
+                                <span className="shrink-0 text-blue-400">
                                     ✓
                                 </span>
                             )}
@@ -182,13 +186,16 @@ export default function CityOverviewMap({
                 })}
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
-                <div className="overflow-hidden rounded-xl border border-slate-800">
+            {/* MAP + KEY */}
+            <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
+
+                {/* MAP */}
+                <div className="min-w-0 overflow-hidden rounded-xl border border-slate-800">
                     <MapContainer
                         center={[cityLatitude, cityLongitude]}
                         zoom={10}
                         scrollWheelZoom
-                        className="h-[560px] w-full"
+                        className="h-[400px] w-full sm:h-[480px] lg:h-[560px]"
                     >
                         <TileLayer
                             attribution="&copy; OpenStreetMap contributors"
@@ -338,12 +345,13 @@ export default function CityOverviewMap({
                     </MapContainer>
                 </div>
 
-                <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-5">
+                {/* KEY */}
+                <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/50 p-4 sm:p-5">
                     <p className="text-lg font-semibold text-white">
                         Key
                     </p>
 
-                    <div className="mt-5 space-y-5">
+                    <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3 lg:grid-cols-1">
                         <KeyGroup
                             title="Core Locations"
                             items={[
@@ -498,7 +506,7 @@ function KeyGroup({
     items: [string, string][];
 }) {
     return (
-        <div>
+        <div className="min-w-0">
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
                 {title}
             </p>
@@ -507,13 +515,13 @@ function KeyGroup({
                 {items.map(([icon, label]) => (
                     <div
                         key={label}
-                        className="flex items-center gap-3"
+                        className="flex min-w-0 items-center gap-2 sm:gap-3"
                     >
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-base">
                             {icon}
                         </div>
 
-                        <span className="text-sm text-slate-300">
+                        <span className="min-w-0 text-xs text-slate-300 sm:text-sm">
                             {label}
                         </span>
                     </div>

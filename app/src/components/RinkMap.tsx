@@ -41,7 +41,7 @@ type FaceoffLocation = {
 export default function RinkMap({
     events,
     title,
-    height = 420,
+    height,
     zoneOverlay = null,
 }: RinkMapProps) {
 
@@ -257,10 +257,10 @@ export default function RinkMap({
 
 
     return (
-        <div className="w-full">
+        <div className="w-full min-w-0 max-w-full">
 
             {title && (
-                <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="mb-3 flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
 
                     <div className="text-sm font-semibold text-slate-200">
                         {title}
@@ -276,15 +276,15 @@ export default function RinkMap({
             )}
 
 
-            <div className="w-full overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
+            <div className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
 
-                <div className="flex items-center justify-between border-b border-slate-800 px-5 py-2 text-xs font-medium uppercase tracking-wide">
+                <div className="flex min-w-0 items-center justify-between gap-3 border-b border-slate-800 px-3 py-2 text-[10px] font-medium uppercase tracking-wide sm:px-5 sm:text-xs">
 
-                    <div className="text-slate-500">
+                    <div className="min-w-0 text-slate-500">
                         ← Defensive Zone
                     </div>
 
-                    <div className="text-slate-400">
+                    <div className="min-w-0 text-right text-slate-400">
                         Offensive Zone →
                     </div>
 
@@ -292,13 +292,22 @@ export default function RinkMap({
 
 
                 <div
-                    style={{
-                        height,
-                    }}
+                    className={
+                        height == null
+                            ? "h-[180px] min-[420px]:h-[210px] sm:h-[280px] md:h-[340px] lg:h-[420px]"
+                            : undefined
+                    }
+                    style={
+                        height != null
+                            ? {
+                                height,
+                            }
+                            : undefined
+                    }
                 >
                     <svg
                         viewBox="-102 -44.5 204 89"
-                        className="h-full w-full"
+                        className="block h-full w-full"
                         preserveAspectRatio="xMidYMid meet"
                     >
 
@@ -915,17 +924,17 @@ Shooting %: ${(
             {!isFaceoffMap
             && !isPhysicalMap
             && !isPenaltyMap && (
-                <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
+                <div className="mt-3 flex min-w-0 flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400">
 
                     {isGoalieMap ? (
                         <>
                             <div className="flex items-center gap-1.5">
-                                <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-500" />
                                 Save
                             </div>
 
                             <div className="flex items-center gap-1.5">
-                                <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500" />
                                 Goal Allowed
                             </div>
 
@@ -933,35 +942,35 @@ Shooting %: ${(
                                 Centre value = save %
                             </div>
 
-                            <div className="border-l border-slate-700 pl-4 text-slate-500">
+                            <div className="text-slate-500 sm:border-l sm:border-slate-700 sm:pl-4">
                                 Centre colour = vs NHL goalie average
                             </div>
                         </>
                     ) : (
                         <>
                             <div className="flex items-center gap-1.5">
-                                <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500" />
                                 Non-Goal Shot
                             </div>
 
                             <div className="flex items-center gap-1.5">
-                                <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500" />
                                 Goal
                             </div>
 
                             <div className="flex items-center gap-1.5">
-                                <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500" />
                                 Blocked
                             </div>
 
                             <div className="flex items-center gap-1.5">
-                                <span className="h-2.5 w-2.5 rounded-full bg-slate-400" />
+                                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-slate-400" />
                                 Missed
                             </div>
 
                             {zoneOverlay && (
                                 <>
-                                    <div className="border-l border-slate-700 pl-4 text-slate-500">
+                                    <div className="text-slate-500 sm:border-l sm:border-slate-700 sm:pl-4">
                                         Zone values: {
                                             zoneOverlay.metricLabel
                                         }
@@ -981,15 +990,15 @@ Shooting %: ${(
 
             {/* Faceoff legend */}
             {isFaceoffMap && (
-                <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
+                <div className="mt-3 flex min-w-0 flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400">
 
                     <div className="flex items-center gap-1.5">
-                        <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-500" />
                         Won
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                        <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500" />
                         Lost
                     </div>
 
@@ -1003,32 +1012,32 @@ Shooting %: ${(
 
             {/* Physical / possession legend */}
             {isPhysicalMap && (
-                <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
+                <div className="mt-3 flex min-w-0 flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400">
 
                     {eventTypes.has("hit-given") && (
                         <div className="flex items-center gap-1.5">
-                            <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-500" />
                             Hit Given
                         </div>
                     )}
 
                     {eventTypes.has("hit-received") && (
                         <div className="flex items-center gap-1.5">
-                            <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500" />
                             Hit Received
                         </div>
                     )}
 
                     {eventTypes.has("takeaway") && (
                         <div className="flex items-center gap-1.5">
-                            <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-500" />
                             Takeaway
                         </div>
                     )}
 
                     {eventTypes.has("giveaway") && (
                         <div className="flex items-center gap-1.5">
-                            <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500" />
                             Giveaway
                         </div>
                     )}
@@ -1039,15 +1048,15 @@ Shooting %: ${(
 
             {/* Penalty legend */}
             {isPenaltyMap && (
-                <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
+                <div className="mt-3 flex min-w-0 flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400">
 
                     <div className="flex items-center gap-1.5">
-                        <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-500" />
                         Penalty Drawn
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                        <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500" />
                         Penalty Committed
                     </div>
 

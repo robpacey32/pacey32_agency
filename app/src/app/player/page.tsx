@@ -484,9 +484,6 @@ export default function PlayerPage() {
 
         // -----------------------------------------------------
         // COMPARABLES -> MARKET VALUE
-        //
-        // Market Value depends on comparable-player results
-        // existing in the cache.
         // -----------------------------------------------------
 
         async function initialiseValuation() {
@@ -526,8 +523,8 @@ export default function PlayerPage() {
 
     if (!selectedPlayerId) {
         return (
-            <main className="min-h-screen bg-slate-950 px-8 py-10">
-                <div className="mx-auto max-w-7xl text-slate-400">
+            <main className="min-h-screen overflow-x-hidden bg-slate-950 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+                <div className="mx-auto w-full min-w-0 max-w-7xl text-slate-400">
                     Please select a player to view player data.
                 </div>
             </main>
@@ -543,8 +540,8 @@ export default function PlayerPage() {
         !profile
     ) {
         return (
-            <main className="min-h-screen bg-slate-950 px-8 py-10">
-                <div className="mx-auto max-w-7xl text-slate-400">
+            <main className="min-h-screen overflow-x-hidden bg-slate-950 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+                <div className="mx-auto w-full min-w-0 max-w-7xl text-slate-400">
                     Loading player...
                 </div>
             </main>
@@ -560,8 +557,8 @@ export default function PlayerPage() {
         !profile
     ) {
         return (
-            <main className="min-h-screen bg-slate-950 px-8 py-10">
-                <div className="mx-auto max-w-7xl text-red-400">
+            <main className="min-h-screen overflow-x-hidden bg-slate-950 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+                <div className="mx-auto w-full min-w-0 max-w-7xl text-red-400">
                     {profileError ??
                         "Player profile unavailable"}
                 </div>
@@ -605,10 +602,6 @@ export default function PlayerPage() {
     // ---------------------------------------------------------
 
     const cards = [
-        // -----------------------------------------------------
-        // PROFILE
-        // -----------------------------------------------------
-
         {
             id: "profile",
 
@@ -651,10 +644,6 @@ export default function PlayerPage() {
                 />
             ),
         },
-
-        // -----------------------------------------------------
-        // PERFORMANCE
-        // -----------------------------------------------------
 
         {
             id: "performance",
@@ -719,10 +708,6 @@ export default function PlayerPage() {
                 ),
         },
 
-        // -----------------------------------------------------
-        // COMPARABLES
-        // -----------------------------------------------------
-
         {
             id: "comparables",
 
@@ -764,10 +749,6 @@ export default function PlayerPage() {
                     />
                 ),
         },
-
-        // -----------------------------------------------------
-        // CONTRACT
-        // -----------------------------------------------------
 
         {
             id: "contract",
@@ -828,10 +809,6 @@ export default function PlayerPage() {
                     />
                 ),
         },
-
-        // -----------------------------------------------------
-        // MARKET VALUE
-        // -----------------------------------------------------
 
         {
             id: "market",
@@ -901,10 +878,6 @@ export default function PlayerPage() {
                     />
                 ),
         },
-
-        // -----------------------------------------------------
-        // EVENT MAPPING
-        // -----------------------------------------------------
 
         {
             id: "events",
@@ -977,12 +950,12 @@ export default function PlayerPage() {
     // ---------------------------------------------------------
 
     return (
-        <main className="min-h-screen bg-slate-950 px-8 py-10">
+        <main className="min-h-screen overflow-x-hidden bg-slate-950 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
 
-            <div className="mx-auto max-w-7xl">
+            <div className="mx-auto w-full min-w-0 max-w-7xl">
 
                 {/* Player heading */}
-                <div className="mb-8 flex items-center gap-5">
+                <div className="mb-6 flex min-w-0 items-center gap-4 sm:mb-8 sm:gap-5">
 
                     {profile.team_logo && (
                         <img
@@ -990,23 +963,23 @@ export default function PlayerPage() {
                                 profile.team_logo
                             }
                             alt=""
-                            className="h-20 w-20 object-contain"
+                            className="h-16 w-16 shrink-0 object-contain sm:h-20 sm:w-20"
                         />
                     )}
 
-                    <div>
+                    <div className="min-w-0">
 
-                        <p className="text-sm font-medium text-slate-500">
+                        <p className="text-xs font-medium text-slate-500 sm:text-sm">
                             PLAYER
                         </p>
 
-                        <h1 className="text-4xl font-bold text-white">
+                        <h1 className="mt-0.5 break-words text-2xl font-bold text-white sm:text-3xl lg:text-4xl">
                             {
                                 profile.player_name
                             }
                         </h1>
 
-                        <p className="mt-1 text-slate-400">
+                        <p className="mt-1 break-words text-sm text-slate-400 sm:text-base">
                             {[
                                 profile.position,
 
@@ -1040,7 +1013,7 @@ export default function PlayerPage() {
 
                 {/* All cards */}
                 {!openCard && (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid w-full min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 
                         {cards.map(
                             card => (
@@ -1076,7 +1049,7 @@ export default function PlayerPage() {
                 {openCard && (
                     <>
 
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+                        <div className="grid w-full min-w-0 grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
 
                             {cards
                                 .filter(
@@ -1115,7 +1088,7 @@ export default function PlayerPage() {
                         </div>
 
                         {selectedCard && (
-                            <div className="mt-4">
+                            <div className="mt-4 w-full min-w-0 max-w-full">
 
                                 <ExpandableCard
                                     title={
@@ -1160,7 +1133,7 @@ function LoadingPanel({
     title: string;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-6 text-slate-400">
+        <div className="w-full min-w-0 max-w-full rounded-xl border border-slate-800 bg-slate-950/40 p-4 text-slate-400 sm:p-6">
             Loading {title.toLowerCase()}...
         </div>
     );
@@ -1172,7 +1145,7 @@ function UnavailablePanel({
     title: string;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-6 text-slate-500">
+        <div className="w-full min-w-0 max-w-full rounded-xl border border-slate-800 bg-slate-950/40 p-4 text-slate-500 sm:p-6">
             No {title.toLowerCase()} data available.
         </div>
     );
@@ -1184,7 +1157,7 @@ function NoDataPanel({
     title: string;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-6 text-slate-500">
+        <div className="w-full min-w-0 max-w-full rounded-xl border border-slate-800 bg-slate-950/40 p-4 text-slate-500 sm:p-6">
             No {title.toLowerCase()} data available for this player.
         </div>
     );

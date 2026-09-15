@@ -46,12 +46,12 @@ export default function CityLocationMap({
     });
 
     return (
-        <div className="overflow-hidden rounded-xl border border-slate-800">
+        <div className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-800">
             <MapContainer
                 center={[latitude, longitude]}
                 zoom={4}
                 scrollWheelZoom={false}
-                className="h-[480px] w-full"
+                className="h-[320px] w-full min-w-0 sm:h-[400px] lg:h-[480px]"
             >
                 <TileLayer
                     attribution="&copy; OpenStreetMap contributors"

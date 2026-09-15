@@ -396,7 +396,7 @@ export default function SelectorBar() {
 
 
     return (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid w-full min-w-0 max-w-full grid-cols-1 gap-3 md:grid-cols-2">
 
             {/* PLAYER */}
 
@@ -404,7 +404,7 @@ export default function SelectorBar() {
                 ref={
                     playerDropdownRef
                 }
-                className="relative"
+                className="relative min-w-0"
             >
                 <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
                     Player
@@ -418,14 +418,14 @@ export default function SelectorBar() {
                             !playerOpen
                         )
                     }
-                    className="flex w-full items-center justify-between rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-left text-sm text-white outline-none hover:border-slate-700"
+                    className="flex w-full min-w-0 items-center justify-between gap-3 rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-left text-sm text-white outline-none hover:border-slate-700"
                 >
                     <span
-                        className={
+                        className={`min-w-0 flex-1 truncate ${
                             selectedPlayer
                                 ? "text-white"
                                 : "text-slate-500"
-                        }
+                        }`}
                     >
                         {selectedPlayer
                             ?.name ??
@@ -433,14 +433,14 @@ export default function SelectorBar() {
                     </span>
 
 
-                    <span className="text-slate-500">
+                    <span className="shrink-0 text-slate-500">
                         ⌄
                     </span>
                 </button>
 
 
                 {playerOpen && (
-                    <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl">
+                    <div className="absolute left-0 right-0 z-50 mt-2 w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl">
 
                         <div className="border-b border-slate-800 p-2">
                             <input
@@ -459,12 +459,12 @@ export default function SelectorBar() {
                                     )
                                 }
                                 placeholder="Search player..."
-                                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none placeholder:text-slate-600 focus:border-slate-500"
+                                className="w-full min-w-0 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none placeholder:text-slate-600 focus:border-slate-500"
                             />
                         </div>
 
 
-                        <div className="max-h-72 overflow-y-auto">
+                        <div className="max-h-72 overflow-y-auto overscroll-contain">
 
                             {filteredPlayers.map(
                                 (
@@ -480,11 +480,12 @@ export default function SelectorBar() {
                                                 item
                                             )
                                         }
-                                        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-800"
+                                        className="flex w-full min-w-0 items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-slate-800"
                                     >
 
-                                        <div>
-                                            <span>
+                                        <div className="flex min-w-0 flex-1 items-baseline gap-2">
+
+                                            <span className="min-w-0 truncate text-slate-200">
                                                 {
                                                     item.name
                                                 }
@@ -492,17 +493,18 @@ export default function SelectorBar() {
 
 
                                             {item.position && (
-                                                <span className="ml-2 text-xs text-slate-500">
+                                                <span className="shrink-0 text-xs text-slate-500">
                                                     {
                                                         item.position
                                                     }
                                                 </span>
                                             )}
+
                                         </div>
 
 
                                         {item.team && (
-                                            <span className="ml-4 text-xs text-slate-500">
+                                            <span className="shrink-0 text-xs text-slate-500">
                                                 {
                                                     item.team
                                                 }
@@ -531,7 +533,7 @@ export default function SelectorBar() {
 
             {/* TEAM */}
 
-            <div>
+            <div className="min-w-0">
                 <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
                     Team
                 </label>
@@ -551,7 +553,7 @@ export default function SelectorBar() {
                                 null
                         )
                     }
-                    className={`w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-slate-600 ${
+                    className={`w-full min-w-0 max-w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-slate-600 ${
                         team
                             ? "text-white"
                             : "text-slate-500"

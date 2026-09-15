@@ -153,27 +153,21 @@ function formatSeason(
 function StatCard({
     label,
     value,
-    detail,
 }: {
     label: string;
     value: string | number;
-    detail?: string;
 }) {
     return (
-        <div className="rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
+        <div className="min-w-0 rounded-xl border border-slate-700 bg-slate-950/30 px-3 py-4 sm:px-4 sm:py-5">
+
+            <p className="min-h-[2.5rem] break-words text-[10px] font-medium uppercase tracking-wide text-slate-500 sm:text-xs">
                 {label}
-            </div>
+            </p>
 
-            <div className="mt-1 text-xl font-semibold text-slate-100">
+            <p className="mt-2 whitespace-nowrap text-[clamp(1.25rem,5vw,1.875rem)] font-semibold leading-none text-white">
                 {value}
-            </div>
+            </p>
 
-            {detail && (
-                <div className="mt-1 text-xs text-slate-500">
-                    {detail}
-                </div>
-            )}
         </div>
     );
 }
@@ -1125,10 +1119,11 @@ export default function SkaterEventMapping({
 
 
     return (
-        <div className="space-y-5">
+        <div className="w-full min-w-0 max-w-full space-y-5">
 
             {/* Main tabs */}
-            <div className="flex flex-wrap gap-2">
+
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                 {[
                     ["shooting", "Shooting"],
                     ["faceoffs", "Faceoffs"],
@@ -1139,8 +1134,12 @@ export default function SkaterEventMapping({
                         <button
                             key={value}
                             type="button"
-                            onClick={() => setTab(value as Tab)}
-                            className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                            onClick={() =>
+                                setTab(
+                                    value as Tab
+                                )
+                            }
+                            className={`min-w-0 rounded-lg border px-2 py-2 text-xs font-medium transition sm:px-3 sm:text-sm ${
                                 tab === value
                                     ? "border-slate-500 bg-slate-700 text-white"
                                     : "border-slate-700 bg-slate-900 text-slate-400 hover:bg-slate-800"
@@ -1154,11 +1153,12 @@ export default function SkaterEventMapping({
 
 
             {/* Global filters */}
-            <div className="flex flex-wrap items-center gap-3 border-y border-slate-800 py-3">
+
+            <div className="flex min-w-0 flex-col gap-3 border-y border-slate-800 py-3 sm:flex-row sm:flex-wrap sm:items-center">
 
                 <div
                     ref={seasonMenuRef}
-                    className="relative"
+                    className="relative w-full sm:w-auto"
                 >
                     <button
                         type="button"
@@ -1167,7 +1167,7 @@ export default function SkaterEventMapping({
                                 value => !value
                             )
                         }
-                        className="flex min-w-[180px] items-center justify-between gap-3 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-200"
+                        className="flex w-full min-w-0 items-center justify-between gap-3 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-200 sm:min-w-[180px] sm:w-auto"
                     >
                         <span>
                             {selectedSeasons.length === data.seasons.length
@@ -1183,7 +1183,7 @@ export default function SkaterEventMapping({
                     </button>
 
                     {seasonMenuOpen && (
-                        <div className="absolute left-0 top-full z-50 mt-2 w-56 rounded-xl border border-slate-700 bg-slate-950 p-2 shadow-2xl">
+                        <div className="absolute left-0 top-full z-50 mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 p-2 shadow-2xl sm:w-56">
 
                             <div className="mb-2 flex gap-2 border-b border-slate-800 pb-2">
                                 <button
@@ -1226,7 +1226,7 @@ export default function SkaterEventMapping({
                                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-800"
                                     >
                                         <span
-                                            className={`flex h-4 w-4 items-center justify-center rounded border ${
+                                            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
                                                 selectedSeasons.includes(season)
                                                     ? "border-slate-400 bg-slate-700 text-white"
                                                     : "border-slate-600"
@@ -1248,13 +1248,13 @@ export default function SkaterEventMapping({
                 </div>
 
 
-                <div className="flex rounded-lg border border-slate-700 bg-slate-900 p-1">
+                <div className="grid w-full grid-cols-2 rounded-lg border border-slate-700 bg-slate-900 p-1 sm:flex sm:w-auto">
                     <button
                         type="button"
                         onClick={() =>
                             setSeasonPart("RegularSeason")
                         }
-                        className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                        className={`rounded-md px-2 py-1.5 text-xs font-medium sm:px-3 ${
                             seasonPart === "RegularSeason"
                                 ? "bg-slate-700 text-white"
                                 : "text-slate-400"
@@ -1268,7 +1268,7 @@ export default function SkaterEventMapping({
                         onClick={() =>
                             setSeasonPart("Playoffs")
                         }
-                        className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                        className={`rounded-md px-2 py-1.5 text-xs font-medium sm:px-3 ${
                             seasonPart === "Playoffs"
                                 ? "bg-slate-700 text-white"
                                 : "text-slate-400"
@@ -1284,13 +1284,16 @@ export default function SkaterEventMapping({
                         ? `${gamesPlayed} GP · ${toiMinutes.toFixed(0)} TOI`
                         : ""}
                 </div>
+
             </div>
 
 
             {/* SHOOTING */}
+
             {tab === "shooting" && (
                 <>
-                    <div className="grid min-w-[620px] grid-cols-4 gap-3 overflow-x-auto">
+                    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+
                         <StatCard
                             label="Shots"
                             value={shotSummary.shots}
@@ -1320,10 +1323,12 @@ export default function SkaterEventMapping({
                                     : shotSummary.shotsPer60.toFixed(2)
                             }
                         />
+
                     </div>
 
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+
                         {[
                             [
                                 "Non-Goal Shots",
@@ -1359,7 +1364,7 @@ export default function SkaterEventMapping({
                                             !(active as boolean)
                                         )
                                     }
-                                    className={`rounded-lg border px-3 py-1.5 text-xs ${
+                                    className={`min-w-0 rounded-lg border px-2 py-1.5 text-xs sm:px-3 ${
                                         active
                                             ? "border-slate-500 bg-slate-700 text-white"
                                             : "border-slate-700 bg-slate-900 text-slate-500"
@@ -1380,7 +1385,7 @@ export default function SkaterEventMapping({
                                     value => !value
                                 )
                             }
-                            className={`rounded-lg border px-3 py-1.5 text-xs ${
+                            className={`col-span-2 min-w-0 rounded-lg border px-2 py-1.5 text-xs sm:col-span-1 sm:px-3 ${
                                 showShootingZones
                                     ? "border-slate-500 bg-slate-700 text-white"
                                     : "border-slate-700 bg-slate-900 text-slate-500"
@@ -1391,17 +1396,19 @@ export default function SkaterEventMapping({
                                 : ""}
                             Shooting Zones
                         </button>
+
                     </div>
 
 
                     {showShootingZones && (
-                        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/30 p-3">
+                        <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-slate-800 bg-slate-950/30 p-3 sm:flex-row sm:flex-wrap sm:items-center">
 
                             <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
                                 Zone Metric
                             </div>
 
-                            <div className="flex rounded-lg border border-slate-700 bg-slate-900 p-1">
+                            <div className="grid w-full grid-cols-3 rounded-lg border border-slate-700 bg-slate-900 p-1 sm:flex sm:w-auto">
+
                                 {[
                                     ["shotShare", "Shot Share"],
                                     ["goalShare", "Goal Share"],
@@ -1411,8 +1418,12 @@ export default function SkaterEventMapping({
                                         <button
                                             key={value}
                                             type="button"
-                                            onClick={() => setZoneMetric(value as ZoneMetric)}
-                                            className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                                            onClick={() =>
+                                                setZoneMetric(
+                                                    value as ZoneMetric
+                                                )
+                                            }
+                                            className={`min-w-0 rounded-md px-2 py-1.5 text-[10px] font-medium sm:px-3 sm:text-xs ${
                                                 zoneMetric === value
                                                     ? "bg-slate-700 text-white"
                                                     : "text-slate-400"
@@ -1422,32 +1433,36 @@ export default function SkaterEventMapping({
                                         </button>
                                     )
                                 )}
+
                             </div>
+
                         </div>
                     )}
 
 
-                    <RinkMap
-                        title="Shot Location"
-                        events={shootingRinkEvents}
-                        zoneOverlay={
-                            showShootingZones
-                                ? {
-                                    zones: zoneData,
-                                    metricLabel:
-                                        zoneMetric === "shotShare"
-                                            ? "Shot Share"
-                                            : zoneMetric === "goalShare"
-                                              ? "Goal Share"
-                                              : "Shooting %",
-                                }
-                                : null
-                        }
-                    />
+                    <div className="w-full min-w-0 max-w-full">
+                        <RinkMap
+                            title="Shot Location"
+                            events={shootingRinkEvents}
+                            zoneOverlay={
+                                showShootingZones
+                                    ? {
+                                        zones: zoneData,
+                                        metricLabel:
+                                            zoneMetric === "shotShare"
+                                                ? "Shot Share"
+                                                : zoneMetric === "goalShare"
+                                                  ? "Goal Share"
+                                                  : "Shooting %",
+                                    }
+                                    : null
+                            }
+                        />
+                    </div>
 
 
                     {showShootingZones && (
-                        <div className="rounded-xl border border-slate-800 bg-slate-950/30 p-4">
+                        <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-950/30 p-3 sm:p-4">
 
                             <div className="mb-4">
                                 <div className="text-sm font-semibold text-slate-200">
@@ -1459,76 +1474,77 @@ export default function SkaterEventMapping({
                                 </div>
                             </div>
 
-                            <div className="overflow-x-auto">
-                                <div className="grid min-w-[720px] grid-cols-3 gap-3">
-                                    {zoneData.map(
-                                        zone => (
-                                            <div
-                                                key={zone.key}
-                                                className="rounded-xl border border-slate-700 bg-slate-900/70 p-4"
-                                            >
-                                                <div className="text-xs uppercase tracking-wide text-slate-500">
-                                                    {zone.label}
-                                                </div>
 
-                                                <div className="mt-2 text-2xl font-semibold text-slate-100">
-                                                    {zone.value == null
-                                                        ? "—"
-                                                        : `${(
-                                                            zone.value * 100
-                                                        ).toFixed(1)}%`}
-                                                </div>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 
-                                                <div className="mt-3 border-t border-slate-800 pt-3">
-
-                                                    <div className="flex items-center justify-between gap-3 text-xs">
-                                                        <span className="text-slate-500">
-                                                            {benchmarkLabel}
-                                                        </span>
-
-                                                        <span className="font-medium text-slate-300">
-                                                            {zone.benchmarkValue == null
-                                                                ? "—"
-                                                                : `${(
-                                                                    zone.benchmarkValue * 100
-                                                                ).toFixed(1)}%`}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="mt-1 flex items-center justify-between gap-3 text-xs">
-                                                        <span className="text-slate-500">
-                                                            Difference
-                                                        </span>
-
-                                                        <span
-                                                            className={
-                                                                zone.value != null
-                                                                && zone.benchmarkValue != null
-                                                                && zone.value > zone.benchmarkValue
-                                                                    ? "font-medium text-green-400"
-                                                                    : zone.value != null
-                                                                      && zone.benchmarkValue != null
-                                                                      && zone.value < zone.benchmarkValue
-                                                                        ? "font-medium text-red-400"
-                                                                        : "font-medium text-slate-400"
-                                                            }
-                                                        >
-                                                            {formatDifference(
-                                                                zone.value,
-                                                                zone.benchmarkValue
-                                                            )}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="mt-2 text-xs text-slate-600">
-                                                        {zone.goals} goals · {zone.shots} attempts
-                                                    </div>
-
-                                                </div>
+                                {zoneData.map(
+                                    zone => (
+                                        <div
+                                            key={zone.key}
+                                            className="min-w-0 rounded-xl border border-slate-700 bg-slate-900/70 p-4"
+                                        >
+                                            <div className="text-xs uppercase tracking-wide text-slate-500">
+                                                {zone.label}
                                             </div>
-                                        )
-                                    )}
-                                </div>
+
+                                            <div className="mt-2 text-2xl font-semibold text-slate-100">
+                                                {zone.value == null
+                                                    ? "—"
+                                                    : `${(
+                                                        zone.value * 100
+                                                    ).toFixed(1)}%`}
+                                            </div>
+
+                                            <div className="mt-3 border-t border-slate-800 pt-3">
+
+                                                <div className="flex items-center justify-between gap-3 text-xs">
+                                                    <span className="min-w-0 text-slate-500">
+                                                        {benchmarkLabel}
+                                                    </span>
+
+                                                    <span className="shrink-0 font-medium text-slate-300">
+                                                        {zone.benchmarkValue == null
+                                                            ? "—"
+                                                            : `${(
+                                                                zone.benchmarkValue * 100
+                                                            ).toFixed(1)}%`}
+                                                    </span>
+                                                </div>
+
+                                                <div className="mt-1 flex items-center justify-between gap-3 text-xs">
+                                                    <span className="text-slate-500">
+                                                        Difference
+                                                    </span>
+
+                                                    <span
+                                                        className={
+                                                            zone.value != null
+                                                            && zone.benchmarkValue != null
+                                                            && zone.value > zone.benchmarkValue
+                                                                ? "shrink-0 font-medium text-green-400"
+                                                                : zone.value != null
+                                                                  && zone.benchmarkValue != null
+                                                                  && zone.value < zone.benchmarkValue
+                                                                    ? "shrink-0 font-medium text-red-400"
+                                                                    : "shrink-0 font-medium text-slate-400"
+                                                        }
+                                                    >
+                                                        {formatDifference(
+                                                            zone.value,
+                                                            zone.benchmarkValue
+                                                        )}
+                                                    </span>
+                                                </div>
+
+                                                <div className="mt-2 text-xs text-slate-600">
+                                                    {zone.goals} goals · {zone.shots} attempts
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    )
+                                )}
+
                             </div>
 
                         </div>
@@ -1538,9 +1554,11 @@ export default function SkaterEventMapping({
 
 
             {/* FACEOFFS */}
+
             {tab === "faceoffs" && (
                 <>
-                    <div className="grid min-w-[460px] grid-cols-3 gap-3 overflow-x-auto">
+                    <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-3">
+
                         <StatCard
                             label="Faceoffs"
                             value={filteredFaceoffs.length}
@@ -1561,25 +1579,31 @@ export default function SkaterEventMapping({
                                     ).toFixed(1)}%`
                             }
                         />
+
                     </div>
 
-                    <RinkMap
-                        title="Faceoff Locations"
-                        events={faceoffRinkEvents}
-                    />
+                    <div className="w-full min-w-0 max-w-full">
+                        <RinkMap
+                            title="Faceoff Locations"
+                            events={faceoffRinkEvents}
+                        />
+                    </div>
                 </>
             )}
 
 
             {/* PHYSICAL & POSSESSION */}
+
             {tab === "physical" && (
                 <>
-                    <div>
+                    <div className="min-w-0">
+
                         <div className="mb-3 text-sm font-semibold text-slate-200">
                             Hits
                         </div>
 
-                        <div className="grid min-w-[500px] grid-cols-2 gap-3 overflow-x-auto">
+                        <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+
                             <StatCard
                                 label="Hits Given"
                                 value={hitsGiven.length}
@@ -1591,16 +1615,20 @@ export default function SkaterEventMapping({
                                 value={hitsReceived.length}
                                 detail="Red on rink"
                             />
+
                         </div>
+
                     </div>
 
 
-                    <div>
+                    <div className="min-w-0">
+
                         <div className="mb-3 text-sm font-semibold text-slate-200">
                             Possession
                         </div>
 
-                        <div className="grid min-w-[900px] grid-cols-7 gap-3 overflow-x-auto">
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+
                             <StatCard
                                 label="Takeaways"
                                 value={possessionStats.takeawayCount}
@@ -1655,22 +1683,28 @@ export default function SkaterEventMapping({
                                         : possessionStats.ratio.toFixed(2)
                                 }
                             />
+
                         </div>
+
                     </div>
 
 
-                    <RinkMap
-                        title="Physical & Possession Locations"
-                        events={physicalRinkEvents}
-                    />
+                    <div className="w-full min-w-0 max-w-full">
+                        <RinkMap
+                            title="Physical & Possession Locations"
+                            events={physicalRinkEvents}
+                        />
+                    </div>
                 </>
             )}
 
 
             {/* PENALTIES */}
+
             {tab === "penalties" && (
                 <>
-                    <div className="grid min-w-[900px] grid-cols-7 gap-3 overflow-x-auto">
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+
                         <StatCard
                             label="Drawn"
                             value={penaltyStats.drawn}
@@ -1725,13 +1759,16 @@ export default function SkaterEventMapping({
                                     : penaltyStats.ratio.toFixed(2)
                             }
                         />
+
                     </div>
 
 
-                    <RinkMap
-                        title="Penalty Locations"
-                        events={penaltyRinkEvents}
-                    />
+                    <div className="w-full min-w-0 max-w-full">
+                        <RinkMap
+                            title="Penalty Locations"
+                            events={penaltyRinkEvents}
+                        />
+                    </div>
                 </>
             )}
 

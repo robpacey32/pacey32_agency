@@ -114,19 +114,19 @@ export default function ComparablePlayersPanel({
 }) {
     if (!data.comparables.length) {
         return (
-            <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-6 text-slate-500">
+            <div className="w-full min-w-0 max-w-full rounded-xl border border-slate-800 bg-slate-950/40 p-4 text-slate-500 sm:p-6">
                 No comparable players available.
             </div>
         );
     }
 
     return (
-        <div className="space-y-4">
+        <div className="w-full min-w-0 max-w-full space-y-4">
 
             {/* Header */}
-            <div className="flex flex-col gap-3 border-b border-slate-800 pb-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex min-w-0 flex-col gap-3 border-b border-slate-800 pb-5 lg:flex-row lg:items-end lg:justify-between">
 
-                <div>
+                <div className="min-w-0">
                     <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                         Comparable Players
                     </div>
@@ -141,7 +141,7 @@ export default function ComparablePlayersPanel({
                     </div>
                 </div>
 
-                <div className="text-xs text-slate-500">
+                <div className="shrink-0 text-xs text-slate-500">
                     Higher score = closer statistical match
                 </div>
 
@@ -177,7 +177,7 @@ export default function ComparablePlayersPanel({
             </div>
 
             {/* Players */}
-            <div className="space-y-2">
+            <div className="min-w-0 space-y-2">
                 {data.comparables.map((player) => (
                     <ComparableRow
                         key={player.comparable_playerId}
@@ -188,7 +188,7 @@ export default function ComparablePlayersPanel({
             </div>
 
             {/* Legend */}
-            <div className="flex flex-wrap justify-end gap-x-5 gap-y-2 border-t border-slate-800 pt-4 text-xs text-slate-500">
+            <div className="grid grid-cols-1 gap-2 border-t border-slate-800 pt-4 text-xs text-slate-500 min-[420px]:grid-cols-2 sm:flex sm:flex-wrap sm:justify-end sm:gap-x-5 sm:gap-y-2">
 
                 <LegendDot
                     className="bg-emerald-400"
@@ -295,6 +295,10 @@ function ComparableRow({
     return (
         <div
             className="
+                w-full
+                min-w-0
+                max-w-full
+                overflow-hidden
                 rounded-xl
                 border border-slate-800
                 bg-slate-950/30
@@ -303,7 +307,7 @@ function ComparableRow({
                 hover:bg-slate-950/50
             "
         >
-            <div className="px-4 py-3">
+            <div className="min-w-0 px-3 py-3 sm:px-4">
 
                 {/* Desktop */}
                 <div className="hidden grid-cols-[48px_280px_1.4fr_repeat(5,1fr)] items-center gap-4 xl:grid">
@@ -393,21 +397,21 @@ function ComparableRow({
                 </div>
 
                 {/* Tablet / Mobile */}
-                <div className="xl:hidden">
+                <div className="min-w-0 xl:hidden">
 
-                    <div className="flex items-start gap-3">
+                    <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] gap-3 sm:grid-cols-[auto_minmax(0,1fr)_112px]">
 
                         <div className="pt-2 text-lg font-bold text-slate-500">
                             #{player.comparable_rank}
                         </div>
 
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0">
                             <PlayerIdentity
                                 player={player}
                             />
                         </div>
 
-                        <div className="w-28">
+                        <div className="col-span-2 min-w-0 border-t border-slate-800 pt-3 sm:col-span-1 sm:border-0 sm:pt-0">
                             <OverallMatch
                                 value={player.overall_similarity}
                             />
@@ -415,7 +419,7 @@ function ComparableRow({
 
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-5">
+                    <div className="mt-4 grid grid-cols-1 gap-2 min-[360px]:grid-cols-2 sm:gap-3 md:grid-cols-5">
 
                         <MobileMetric
                             label="Style"
@@ -498,16 +502,16 @@ function ComparableRow({
             </div>
 
             {selectedModel && (
-                <div className="border-t border-slate-800">
+                <div className="min-w-0 border-t border-slate-800">
 
                     {loading && (
-                        <div className="px-5 py-6 text-sm text-slate-500">
+                        <div className="px-4 py-5 text-sm text-slate-500 sm:px-5 sm:py-6">
                             Calculating explanation...
                         </div>
                     )}
 
                     {error && (
-                        <div className="px-5 py-6 text-sm text-rose-400">
+                        <div className="break-words px-4 py-5 text-sm text-rose-400 sm:px-5 sm:py-6">
                             {error}
                         </div>
                     )}
@@ -545,17 +549,17 @@ function SimilarityExplanationPanel({
         );
 
     return (
-        <div className="space-y-6 bg-slate-950/40 px-5 py-6">
+        <div className="w-full min-w-0 max-w-full space-y-6 bg-slate-950/40 px-3 py-5 sm:px-5 sm:py-6">
 
             {/* Explanation heading */}
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 
-                <div>
+                <div className="min-w-0">
                     <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                         {explanation.title} similarity
                     </div>
 
-                    <div className="mt-1 text-lg font-semibold text-white">
+                    <div className="mt-1 break-words text-base font-semibold text-white sm:text-lg">
                         {explanation.target.player}
                         <span className="mx-2 text-slate-600">
                             vs
@@ -568,7 +572,7 @@ function SimilarityExplanationPanel({
                     </div>
                 </div>
 
-                <div className="shrink-0 rounded-xl border border-slate-800 bg-slate-900/50 px-5 py-3 text-right">
+                <div className="w-full shrink-0 rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-left sm:w-auto sm:px-5 sm:text-right">
                     <div className="text-xs uppercase tracking-wide text-slate-500">
                         Similarity
                     </div>
@@ -588,12 +592,12 @@ function SimilarityExplanationPanel({
             </div>
 
             {/* Feature values */}
-            <div>
+            <div className="min-w-0">
                 <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                     Feature comparison
                 </div>
 
-                <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+                <div className="grid min-w-0 grid-cols-1 gap-2 xl:grid-cols-2">
                     {explanation.features.map(
                         (feature) => (
                             <FeatureComparison
@@ -619,7 +623,7 @@ function SimilarityExplanationPanel({
             </div>
 
             {/* Contribution */}
-            <div>
+            <div className="min-w-0">
                 <div className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                     What drives the difference?
                 </div>
@@ -629,7 +633,7 @@ function SimilarityExplanationPanel({
                     distance contributed by each metric.
                 </div>
 
-                <div className="space-y-3">
+                <div className="min-w-0 space-y-3">
                     {sortedFeatures.map(
                         (feature) => (
                             <ContributionBar
@@ -646,13 +650,13 @@ function SimilarityExplanationPanel({
             </div>
 
             {/* Calculation */}
-            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+            <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-900/40 p-3 sm:p-4">
 
                 <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                     Calculation
                 </div>
 
-                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <div className="mt-4 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 sm:grid-cols-3">
 
                     <CalculationMetric
                         label="Mean squared difference"
@@ -677,7 +681,7 @@ function SimilarityExplanationPanel({
 
                 </div>
 
-                <div className="mt-4 rounded-lg bg-slate-950/70 px-4 py-3 font-mono text-sm text-slate-300">
+                <div className="mt-4 min-w-0 break-words rounded-lg bg-slate-950/70 px-3 py-3 font-mono text-xs leading-6 text-slate-300 sm:px-4 sm:text-sm">
                     similarity = e
                     <sup>
                         −
@@ -745,17 +749,17 @@ function FeatureComparison({
         );
 
     return (
-        <div className="rounded-lg border border-slate-800 bg-slate-900/30 px-4 py-3">
+        <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-900/30 px-3 py-3 sm:px-4">
 
-            <div className="grid gap-3">
+            <div className="grid min-w-0 gap-3">
 
-                <div>
+                <div className="min-w-0">
                     <div className="text-sm font-medium text-slate-200">
                         {feature.label}
                     </div>
 
                     <div
-                        className="mt-0.5 truncate text-[11px] text-slate-600"
+                        className="mt-0.5 line-clamp-2 text-[11px] text-slate-600 sm:truncate"
                         title={
                             feature.description
                         }
@@ -764,9 +768,67 @@ function FeatureComparison({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-[90px_1fr_90px] items-center gap-3">
+                {/* Mobile values */}
+                <div className="grid grid-cols-2 gap-2 sm:hidden">
 
-                    <div className="text-right text-sm">
+                    <div className="min-w-0 rounded-lg bg-slate-950/40 px-3 py-2">
+                        <div className="truncate text-[10px] text-slate-600">
+                            {shortName(
+                                targetName
+                            )}
+                        </div>
+
+                        <div className="mt-0.5 font-semibold text-sky-300">
+                            {formatFeatureValue(
+                                feature.targetRaw
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="min-w-0 rounded-lg bg-slate-950/40 px-3 py-2 text-right">
+                        <div className="truncate text-[10px] text-slate-600">
+                            {shortName(
+                                comparableName
+                            )}
+                        </div>
+
+                        <div className="mt-0.5 font-semibold text-violet-300">
+                            {formatFeatureValue(
+                                feature.comparableRaw
+                            )}
+                        </div>
+                    </div>
+
+                </div>
+
+                {/* Mobile scale */}
+                <div className="sm:hidden">
+                    <FeatureScale
+                        targetPosition={
+                            targetPosition
+                        }
+                        comparablePosition={
+                            comparablePosition
+                        }
+                        left={left}
+                        width={width}
+                        targetName={
+                            targetName
+                        }
+                        comparableName={
+                            comparableName
+                        }
+                        target={target}
+                        comparable={
+                            comparable
+                        }
+                    />
+                </div>
+
+                {/* Tablet / Desktop */}
+                <div className="hidden min-w-0 grid-cols-[76px_minmax(0,1fr)_76px] items-center gap-2 sm:grid lg:grid-cols-[90px_minmax(0,1fr)_90px] lg:gap-3">
+
+                    <div className="min-w-0 text-right text-sm">
                         <div className="font-semibold text-sky-300">
                             {formatFeatureValue(
                                 feature.targetRaw
@@ -780,55 +842,28 @@ function FeatureComparison({
                         </div>
                     </div>
 
-                    <div>
-                        <div className="relative h-6">
+                    <FeatureScale
+                        targetPosition={
+                            targetPosition
+                        }
+                        comparablePosition={
+                            comparablePosition
+                        }
+                        left={left}
+                        width={width}
+                        targetName={
+                            targetName
+                        }
+                        comparableName={
+                            comparableName
+                        }
+                        target={target}
+                        comparable={
+                            comparable
+                        }
+                    />
 
-                            <div className="absolute left-0 right-0 top-1/2 h-px bg-slate-700" />
-
-                            <div className="absolute left-1/2 top-0 h-6 w-px bg-slate-600" />
-
-                            <div
-                                className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-slate-500"
-                                style={{
-                                    left:
-                                        `${left}%`,
-                                    width:
-                                        `${width}%`,
-                                }}
-                            />
-
-                            <div
-                                className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-400 ring-2 ring-slate-950"
-                                style={{
-                                    left:
-                                        `${targetPosition}%`,
-                                }}
-                                title={`${targetName}: z=${target.toFixed(
-                                    2
-                                )}`}
-                            />
-
-                            <div
-                                className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-400 ring-2 ring-slate-950"
-                                style={{
-                                    left:
-                                        `${comparablePosition}%`,
-                                }}
-                                title={`${comparableName}: z=${comparable.toFixed(
-                                    2
-                                )}`}
-                            />
-
-                        </div>
-
-                        <div className="mt-1 flex justify-between text-[9px] text-slate-700">
-                            <span>-3σ</span>
-                            <span>Avg</span>
-                            <span>+3σ</span>
-                        </div>
-                    </div>
-
-                    <div className="text-sm">
+                    <div className="min-w-0 text-sm">
                         <div className="font-semibold text-violet-300">
                             {formatFeatureValue(
                                 feature.comparableRaw
@@ -844,6 +879,78 @@ function FeatureComparison({
 
                 </div>
 
+            </div>
+
+        </div>
+    );
+}
+
+function FeatureScale({
+    targetPosition,
+    comparablePosition,
+    left,
+    width,
+    targetName,
+    comparableName,
+    target,
+    comparable,
+}: {
+    targetPosition: number;
+    comparablePosition: number;
+    left: number;
+    width: number;
+    targetName: string;
+    comparableName: string;
+    target: number;
+    comparable: number;
+}) {
+    return (
+        <div className="min-w-0">
+
+            <div className="relative h-6">
+
+                <div className="absolute left-0 right-0 top-1/2 h-px bg-slate-700" />
+
+                <div className="absolute left-1/2 top-0 h-6 w-px bg-slate-600" />
+
+                <div
+                    className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-slate-500"
+                    style={{
+                        left:
+                            `${left}%`,
+                        width:
+                            `${width}%`,
+                    }}
+                />
+
+                <div
+                    className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-400 ring-2 ring-slate-950"
+                    style={{
+                        left:
+                            `${targetPosition}%`,
+                    }}
+                    title={`${targetName}: z=${target.toFixed(
+                        2
+                    )}`}
+                />
+
+                <div
+                    className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-400 ring-2 ring-slate-950"
+                    style={{
+                        left:
+                            `${comparablePosition}%`,
+                    }}
+                    title={`${comparableName}: z=${comparable.toFixed(
+                        2
+                    )}`}
+                />
+
+            </div>
+
+            <div className="mt-1 flex justify-between text-[9px] text-slate-700">
+                <span>-3σ</span>
+                <span>Avg</span>
+                <span>+3σ</span>
             </div>
 
         </div>
@@ -870,13 +977,24 @@ function ContributionBar({
         );
 
     return (
-        <div className="grid grid-cols-[170px_1fr_60px] items-center gap-3">
+        <div className="min-w-0">
 
-            <div className="truncate text-xs text-slate-400">
-                {feature.label}
+            <div className="mb-1.5 flex min-w-0 items-center justify-between gap-3 sm:hidden">
+
+                <div className="min-w-0 truncate text-xs text-slate-400">
+                    {feature.label}
+                </div>
+
+                <div className="shrink-0 text-xs font-medium text-slate-300">
+                    {contribution.toFixed(
+                        1
+                    )}
+                    %
+                </div>
+
             </div>
 
-            <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+            <div className="h-2 overflow-hidden rounded-full bg-slate-800 sm:hidden">
                 <div
                     className="h-full rounded-full bg-slate-500"
                     style={{
@@ -886,11 +1004,29 @@ function ContributionBar({
                 />
             </div>
 
-            <div className="text-right text-xs font-medium text-slate-300">
-                {contribution.toFixed(
-                    1
-                )}
-                %
+            <div className="hidden min-w-0 grid-cols-[140px_minmax(0,1fr)_55px] items-center gap-3 sm:grid lg:grid-cols-[170px_minmax(0,1fr)_60px]">
+
+                <div className="truncate text-xs text-slate-400">
+                    {feature.label}
+                </div>
+
+                <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                    <div
+                        className="h-full rounded-full bg-slate-500"
+                        style={{
+                            width:
+                                `${contribution}%`,
+                        }}
+                    />
+                </div>
+
+                <div className="text-right text-xs font-medium text-slate-300">
+                    {contribution.toFixed(
+                        1
+                    )}
+                    %
+                </div>
+
             </div>
 
         </div>
@@ -905,12 +1041,12 @@ function CalculationMetric({
     value: string;
 }) {
     return (
-        <div>
+        <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-wide text-slate-600">
                 {label}
             </div>
 
-            <div className="mt-1 text-lg font-semibold text-slate-200">
+            <div className="mt-1 break-words text-lg font-semibold text-slate-200">
                 {value}
             </div>
         </div>
@@ -927,7 +1063,7 @@ function PlayerIdentity({
     player: ComparablePlayer;
 }) {
     return (
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
 
             <PlayerHeadshot
                 player={player}
@@ -935,7 +1071,7 @@ function PlayerIdentity({
 
             <div className="min-w-0">
 
-                <div className="truncate text-base font-semibold text-white">
+                <div className="truncate text-sm font-semibold text-white sm:text-base">
                     {player.comparable_player}
                 </div>
 
@@ -943,7 +1079,7 @@ function PlayerIdentity({
                     {player.comparable_position}
                 </div>
 
-                <div className="mt-1 truncate text-xs text-slate-400">
+                <div className="mt-1 truncate text-[11px] text-slate-400 sm:text-xs">
                     {contractText(player)}
                 </div>
 
@@ -969,12 +1105,13 @@ function PlayerHeadshot({
         <div
             className="
                 relative
-                h-14 w-14
+                h-12 w-12
                 shrink-0
                 overflow-hidden
                 rounded-full
                 border border-slate-700
                 bg-slate-800
+                sm:h-14 sm:w-14
             "
         >
             {showImage ? (
@@ -1011,7 +1148,7 @@ function OverallMatch({
     value: number;
 }) {
     return (
-        <div>
+        <div className="min-w-0">
 
             <div className="text-xl font-bold text-white">
                 {value.toFixed(1)}%
@@ -1114,6 +1251,7 @@ function MobileMetric({
             type="button"
             onClick={onClick}
             className={`
+                min-w-0
                 rounded-lg
                 border
                 p-3
@@ -1127,7 +1265,7 @@ function MobileMetric({
             `}
         >
 
-            <div className="text-[10px] uppercase tracking-wide text-slate-500">
+            <div className="truncate text-[10px] uppercase tracking-wide text-slate-500">
                 {label}
             </div>
 
@@ -1141,7 +1279,7 @@ function MobileMetric({
                     {value.toFixed(1)}%
                 </span>
 
-                <span className="text-[10px] text-slate-600">
+                <span className="shrink-0 text-[10px] text-slate-600">
                     #{rank}
                 </span>
 
@@ -1181,6 +1319,8 @@ function SimilarityBar({
         <div
             className={`
                 relative
+                w-full
+                min-w-0
                 overflow-hidden
                 rounded-full
                 bg-slate-800
@@ -1286,10 +1426,10 @@ function LegendDot({
     label: string;
 }) {
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
 
             <div
-                className={`h-2.5 w-2.5 rounded-full ${className}`}
+                className={`h-2.5 w-2.5 shrink-0 rounded-full ${className}`}
             />
 
             <span>

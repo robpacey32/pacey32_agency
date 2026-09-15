@@ -182,9 +182,9 @@ function StatCard({
     accent?: string;
 }) {
     return (
-        <div className="@container rounded-2xl border border-slate-800 bg-slate-950/55 p-5">
-            <div className="flex h-full flex-col items-start gap-4 @min-[240px]:flex-row">
-                <div className={`shrink-0 rounded-xl bg-slate-900 p-3 ${accent}`}>
+        <div className="@container w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-950/55 p-4 sm:p-5">
+            <div className="flex h-full items-start gap-3 sm:gap-4">
+                <div className={`shrink-0 rounded-xl bg-slate-900 p-2.5 sm:p-3 ${accent}`}>
                     <Icon size={24} strokeWidth={1.8} />
                 </div>
 
@@ -193,7 +193,7 @@ function StatCard({
                         {label}
                     </p>
 
-                    <p className="mt-1 whitespace-nowrap text-2xl font-bold text-white">
+                    <p className="mt-1 break-words text-xl font-bold text-white sm:text-2xl">
                         {value}
                     </p>
 
@@ -253,8 +253,8 @@ function CapBar({
             : 0;
 
     return (
-        <div>
-            <div className="mb-2 flex items-end justify-between">
+        <div className="min-w-0">
+            <div className="mb-2 flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-end min-[420px]:justify-between">
                 <div>
                     {logo ? (
                         <img
@@ -279,7 +279,7 @@ function CapBar({
                     </p>
                 </div>
 
-                <div className="text-right">
+                <div className="min-[420px]:text-right">
                     <p className="font-semibold text-white">
                         {money(capCeiling)} cap
                     </p>
@@ -326,7 +326,7 @@ function CapBar({
             </div>
 
             {overCap && (
-                <div className="mt-2 flex items-center justify-between text-xs">
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
                     <span className="text-slate-500">
                         100% cap limit
                     </span>
@@ -361,7 +361,7 @@ function PositionSpendBar({
 
     return (
         <div
-            className={`absolute left-1/2 top-1/2 flex w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl border border-white/15 ${colour} text-lg font-bold text-white shadow-lg`}
+            className={`absolute left-1/2 top-1/2 flex w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl border border-white/15 sm:w-20 ${colour} text-lg font-bold text-white shadow-lg`}
             style={{
                 height: `${height}px`,
             }}
@@ -570,385 +570,429 @@ export default function SalaryCapPanel({
     }
 
     return (
-        <div className="space-y-6">
+        <div className="w-full min-w-0 max-w-full space-y-6">
             {/* TOP KPI STRIP */}
-            <div className="overflow-x-auto">
-                <div className="grid min-w-[1200px] grid-cols-6 gap-4">
-                    <div
-                        className={`@container rounded-2xl border p-5 ${rankBg(
-                            summary.cap_space_rank
-                        )}`}
-                    >
-                        <div className="flex h-full flex-col items-start gap-4 @min-[240px]:flex-row">
-                            <div
-                                className={`shrink-0 rounded-xl bg-slate-900 p-3 ${rankColour(
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                <div
+                    className={`@container w-full min-w-0 rounded-2xl border p-4 sm:p-5 ${rankBg(
+                        summary.cap_space_rank
+                    )}`}
+                >
+                    <div className="flex h-full items-start gap-3 sm:gap-4">
+                        <div
+                            className={`shrink-0 rounded-xl bg-slate-900 p-2.5 sm:p-3 ${rankColour(
+                                summary.cap_space_rank
+                            )}`}
+                        >
+                            <WalletCards
+                                size={24}
+                                strokeWidth={1.8}
+                            />
+                        </div>
+
+                        <div className="min-w-0">
+                            <p className="text-sm leading-5 text-slate-400">
+                                Projected Cap Space
+                            </p>
+
+                            <p
+                                className={`mt-1 break-words text-3xl font-bold sm:text-4xl ${rankColour(
                                     summary.cap_space_rank
                                 )}`}
                             >
-                                <WalletCards
-                                    size={24}
-                                    strokeWidth={1.8}
+                                {capSpaceMoney(
+                                    summary.projected_cap_space
+                                )}
+                            </p>
+
+                            <p className="mt-2 text-sm text-slate-500">
+                                #{summary.cap_space_rank} in NHL
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <StatCard
+                    label="Projected Cap Hit"
+                    value={money(
+                        summary.projected_cap_hit
+                    )}
+                    icon={Coins}
+                    accent="text-blue-400"
+                />
+
+                <StatCard
+                    label="Cap Space Rank"
+                    value={`#${summary.cap_space_rank}`}
+                    sub="of 32 teams"
+                    icon={BarChart3}
+                    accent={rankColour(
+                        summary.cap_space_rank
+                    )}
+                />
+
+                <StatCard
+                    label="Dead Cap"
+                    value={money(
+                        summary.dead_cap_space
+                    )}
+                    icon={Landmark}
+                    accent="text-orange-400"
+                />
+
+                <StatCard
+                    label="Cap Utilisation"
+                    value={`${Number(
+                        summary.cap_utilisation_pct
+                    ).toFixed(1)}%`}
+                    icon={CircleDollarSign}
+                    accent="text-violet-400"
+                />
+
+                <StatCard
+                    label="Active Roster"
+                    value={String(
+                        summary.active_roster
+                    )}
+                    icon={Users}
+                    accent="text-cyan-400"
+                />
+            </div>
+
+            {/* CAP POSITION + POSITIONAL SPEND */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {/* CAP POSITION */}
+                <section className="w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
+                    <h3 className="text-lg font-bold text-white sm:text-xl">
+                        Cap Position
+                    </h3>
+
+                    <div className="mt-6 space-y-8">
+                        <CapBar
+                            label={data.team}
+                            logo={teamLogo}
+                            capHit={
+                                summary.projected_cap_hit
+                            }
+                            capSpace={
+                                summary.projected_cap_space
+                            }
+                            capCeiling={capCeiling}
+                        />
+
+                        <CapBar
+                            label="NHL Average"
+                            capHit={nhlAvgCapHit}
+                            capSpace={
+                                summary.nhl_avg_projected_cap_space
+                            }
+                            capCeiling={capCeiling}
+                        />
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-400">
+                        <div className="flex items-center gap-2">
+                            <span className="h-3 w-3 rounded-sm bg-blue-500" />
+                            Committed
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <span className="h-3 w-3 rounded-sm bg-slate-800 ring-1 ring-slate-600" />
+                            Available
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <span className="h-3 w-3 rounded-sm bg-rose-500" />
+                            Over cap
+                        </div>
+                    </div>
+                </section>
+
+                {/* POSITIONAL SPEND */}
+                <section className="w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <h3 className="text-lg font-bold text-white sm:text-xl">
+                            Positional Spend
+                        </h3>
+
+                        <p className="text-xs text-slate-500">
+                            Average cap hit per roster player
+                        </p>
+                    </div>
+
+                    <div className="relative mt-5 h-[205px] overflow-hidden rounded-[75px] border-2 border-slate-500/60 bg-slate-950/40">
+                        <div className="absolute inset-y-0 left-1/4 border-l border-slate-500/40" />
+                        <div className="absolute inset-y-0 left-1/2 border-l border-slate-500/60" />
+                        <div className="absolute inset-y-0 left-3/4 border-l border-slate-500/40" />
+
+                        <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-slate-500/50" />
+
+                        <div className="absolute inset-0 grid grid-cols-3">
+                            <div className="relative">
+                                <PositionSpendBar
+                                    label="G"
+                                    spend={goaliePerPlayer}
+                                    maxSpend={maxPositionSpend}
+                                    colour={G_COLOUR}
                                 />
                             </div>
 
-                            <div className="min-w-0">
-                                <p className="text-sm leading-5 text-slate-400">
-                                    Projected Cap Space
-                                </p>
+                            <div className="relative">
+                                <PositionSpendBar
+                                    label="D"
+                                    spend={defensePerPlayer}
+                                    maxSpend={maxPositionSpend}
+                                    colour={D_COLOUR}
+                                />
+                            </div>
 
-                                <p
-                                    className={`mt-1 whitespace-nowrap text-4xl font-bold ${rankColour(
-                                        summary.cap_space_rank
-                                    )}`}
-                                >
-                                    {capSpaceMoney(
-                                        summary.projected_cap_space
-                                    )}
-                                </p>
-
-                                <p className="mt-2 text-sm text-slate-500">
-                                    #{summary.cap_space_rank} in NHL
-                                </p>
+                            <div className="relative">
+                                <PositionSpendBar
+                                    label="F"
+                                    spend={forwardPerPlayer}
+                                    maxSpend={maxPositionSpend}
+                                    colour={F_COLOUR}
+                                />
                             </div>
                         </div>
                     </div>
 
-                    <StatCard
-                        label="Projected Cap Hit"
-                        value={money(
-                            summary.projected_cap_hit
-                        )}
-                        icon={Coins}
-                        accent="text-blue-400"
-                    />
+                    {/* TEAM POSITION VALUES */}
+                    <div className="mt-5 grid grid-cols-3 divide-x divide-slate-800 text-center">
+                        <div className="min-w-0 px-1 sm:px-3">
+                            <p className={`text-sm font-semibold sm:text-base ${G_TEXT}`}>
+                                Goalies
+                            </p>
 
-                    <StatCard
-                        label="Cap Space Rank"
-                        value={`#${summary.cap_space_rank}`}
-                        sub="of 32 teams"
-                        icon={BarChart3}
-                        accent={rankColour(
-                            summary.cap_space_rank
-                        )}
-                    />
-
-                    <StatCard
-                        label="Dead Cap"
-                        value={money(
-                            summary.dead_cap_space
-                        )}
-                        icon={Landmark}
-                        accent="text-orange-400"
-                    />
-
-                    <StatCard
-                        label="Cap Utilisation"
-                        value={`${Number(
-                            summary.cap_utilisation_pct
-                        ).toFixed(1)}%`}
-                        icon={CircleDollarSign}
-                        accent="text-violet-400"
-                    />
-
-                    <StatCard
-                        label="Active Roster"
-                        value={String(
-                            summary.active_roster
-                        )}
-                        icon={Users}
-                        accent="text-cyan-400"
-                    />
-                </div>
-            </div>
-
-            {/* CAP POSITION + POSITIONAL SPEND */}
-            <div className="overflow-x-auto">
-                <div className="grid min-w-[1150px] grid-cols-2 gap-6">
-                    {/* CAP POSITION */}
-                    <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-                        <h3 className="text-xl font-bold text-white">
-                            Cap Position
-                        </h3>
-
-                        <div className="mt-6 space-y-8">
-                            <CapBar
-                                label={data.team}
-                                logo={teamLogo}
-                                capHit={
-                                    summary.projected_cap_hit
-                                }
-                                capSpace={
-                                    summary.projected_cap_space
-                                }
-                                capCeiling={capCeiling}
-                            />
-
-                            <CapBar
-                                label="NHL Average"
-                                capHit={nhlAvgCapHit}
-                                capSpace={
-                                    summary.nhl_avg_projected_cap_space
-                                }
-                                capCeiling={capCeiling}
-                            />
-                        </div>
-
-                        <div className="mt-6 flex gap-5 text-sm text-slate-400">
-                            <div className="flex items-center gap-2">
-                                <span className="h-3 w-3 rounded-sm bg-blue-500" />
-                                Committed
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <span className="h-3 w-3 rounded-sm bg-slate-800 ring-1 ring-slate-600" />
-                                Available
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <span className="h-3 w-3 rounded-sm bg-rose-500" />
-                                Over cap
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* POSITIONAL SPEND */}
-                    <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-white">
-                                Positional Spend
-                            </h3>
+                            <p className="mt-1 text-base font-bold text-white sm:text-xl">
+                                {money(goaliePerPlayer)}
+                            </p>
 
                             <p className="text-xs text-slate-500">
-                                Average cap hit per roster player
+                                {goaliePlayers} players
+                            </p>
+
+                            <p className="mt-2 text-xs text-slate-500">
+                                {money(goalieCap)} total
                             </p>
                         </div>
 
-                        <div className="relative mt-5 h-[205px] overflow-hidden rounded-[75px] border-2 border-slate-500/60 bg-slate-950/40">
-                            <div className="absolute inset-y-0 left-1/4 border-l border-slate-500/40" />
-                            <div className="absolute inset-y-0 left-1/2 border-l border-slate-500/60" />
-                            <div className="absolute inset-y-0 left-3/4 border-l border-slate-500/40" />
-
-                            <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-slate-500/50" />
-
-                            <div className="absolute inset-0 grid grid-cols-3">
-                                <div className="relative">
-                                    <PositionSpendBar
-                                        label="G"
-                                        spend={goaliePerPlayer}
-                                        maxSpend={maxPositionSpend}
-                                        colour={G_COLOUR}
-                                    />
-                                </div>
-
-                                <div className="relative">
-                                    <PositionSpendBar
-                                        label="D"
-                                        spend={defensePerPlayer}
-                                        maxSpend={maxPositionSpend}
-                                        colour={D_COLOUR}
-                                    />
-                                </div>
-
-                                <div className="relative">
-                                    <PositionSpendBar
-                                        label="F"
-                                        spend={forwardPerPlayer}
-                                        maxSpend={maxPositionSpend}
-                                        colour={F_COLOUR}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* TEAM POSITION VALUES */}
-                        <div className="mt-5 grid grid-cols-3 divide-x divide-slate-800 text-center">
-                            <div className="px-3">
-                                <p className={`font-semibold ${G_TEXT}`}>
-                                    Goalies
-                                </p>
-
-                                <p className="mt-1 text-xl font-bold text-white">
-                                    {money(goaliePerPlayer)}
-                                </p>
-
-                                <p className="text-xs text-slate-500">
-                                    {goaliePlayers} players
-                                </p>
-
-                                <p className="mt-2 text-xs text-slate-500">
-                                    {money(goalieCap)} total
-                                </p>
-                            </div>
-
-                            <div className="px-3">
-                                <p className={`font-semibold ${D_TEXT}`}>
-                                    Defence
-                                </p>
-
-                                <p className="mt-1 text-xl font-bold text-white">
-                                    {money(defensePerPlayer)}
-                                </p>
-
-                                <p className="text-xs text-slate-500">
-                                    {defensePlayers} players
-                                </p>
-
-                                <p className="mt-2 text-xs text-slate-500">
-                                    {money(defenseCap)} total
-                                </p>
-                            </div>
-
-                            <div className="px-3">
-                                <p className={`font-semibold ${F_TEXT}`}>
-                                    Forwards
-                                </p>
-
-                                <p className="mt-1 text-xl font-bold text-white">
-                                    {money(forwardPerPlayer)}
-                                </p>
-
-                                <p className="text-xs text-slate-500">
-                                    {forwardPlayers} players
-                                </p>
-
-                                <p className="mt-2 text-xs text-slate-500">
-                                    {money(forwardCap)} total
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* NHL AVERAGE COMPARISON */}
-                        <div className="mt-5 border-t border-slate-800 pt-4">
-                            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                NHL Avg
+                        <div className="min-w-0 px-1 sm:px-3">
+                            <p className={`text-sm font-semibold sm:text-base ${D_TEXT}`}>
+                                Defence
                             </p>
 
-                            <div className="grid grid-cols-[90px_repeat(3,minmax(0,1fr))] items-center gap-x-4 gap-y-2 text-xs">
-                                {/* TOTAL */}
-                                <span className="font-medium text-slate-500">
-                                    Total
+                            <p className="mt-1 text-base font-bold text-white sm:text-xl">
+                                {money(defensePerPlayer)}
+                            </p>
+
+                            <p className="text-xs text-slate-500">
+                                {defensePlayers} players
+                            </p>
+
+                            <p className="mt-2 text-xs text-slate-500">
+                                {money(defenseCap)} total
+                            </p>
+                        </div>
+
+                        <div className="min-w-0 px-1 sm:px-3">
+                            <p className={`text-sm font-semibold sm:text-base ${F_TEXT}`}>
+                                Forwards
+                            </p>
+
+                            <p className="mt-1 text-base font-bold text-white sm:text-xl">
+                                {money(forwardPerPlayer)}
+                            </p>
+
+                            <p className="text-xs text-slate-500">
+                                {forwardPlayers} players
+                            </p>
+
+                            <p className="mt-2 text-xs text-slate-500">
+                                {money(forwardCap)} total
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* NHL AVERAGE COMPARISON */}
+                    <div className="mt-5 border-t border-slate-800 pt-4">
+                        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            NHL Avg
+                        </p>
+
+                        <div className="space-y-4 lg:hidden">
+                            <PositionAverageMobile
+                                label="Goalies"
+                                total={nhlAvgGoalieCap}
+                                totalDifference={
+                                    goalieCap -
+                                    nhlAvgGoalieCap
+                                }
+                                perPlayer={
+                                    nhlGoaliePerPlayer
+                                }
+                                perPlayerDifference={
+                                    goaliePerPlayer -
+                                    nhlGoaliePerPlayer
+                                }
+                            />
+
+                            <PositionAverageMobile
+                                label="Defence"
+                                total={nhlAvgDefenseCap}
+                                totalDifference={
+                                    defenseCap -
+                                    nhlAvgDefenseCap
+                                }
+                                perPlayer={
+                                    nhlDefensePerPlayer
+                                }
+                                perPlayerDifference={
+                                    defensePerPlayer -
+                                    nhlDefensePerPlayer
+                                }
+                            />
+
+                            <PositionAverageMobile
+                                label="Forwards"
+                                total={nhlAvgForwardCap}
+                                totalDifference={
+                                    forwardCap -
+                                    nhlAvgForwardCap
+                                }
+                                perPlayer={
+                                    nhlForwardPerPlayer
+                                }
+                                perPlayerDifference={
+                                    forwardPerPlayer -
+                                    nhlForwardPerPlayer
+                                }
+                            />
+                        </div>
+
+                        <div className="hidden grid-cols-[90px_repeat(3,minmax(0,1fr))] items-center gap-x-4 gap-y-2 text-xs lg:grid">
+                            <span className="font-medium text-slate-500">
+                                Total
+                            </span>
+
+                            <div className="flex items-center gap-2 whitespace-nowrap">
+                                <span className="font-medium text-slate-300">
+                                    {money(nhlAvgGoalieCap)}
                                 </span>
 
-                                <div className="flex items-center gap-2 whitespace-nowrap">
-                                    <span className="font-medium text-slate-300">
-                                        {money(nhlAvgGoalieCap)}
-                                    </span>
-
-                                    <span className="text-slate-600">
-                                        /
-                                    </span>
-
-                                    <span className="font-medium text-sky-400">
-                                        {signedMoney(
-                                            goalieCap -
-                                                nhlAvgGoalieCap
-                                        )}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center gap-2 whitespace-nowrap">
-                                    <span className="font-medium text-slate-300">
-                                        {money(nhlAvgDefenseCap)}
-                                    </span>
-
-                                    <span className="text-slate-600">
-                                        /
-                                    </span>
-
-                                    <span className="font-medium text-sky-400">
-                                        {signedMoney(
-                                            defenseCap -
-                                                nhlAvgDefenseCap
-                                        )}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center gap-2 whitespace-nowrap">
-                                    <span className="font-medium text-slate-300">
-                                        {money(nhlAvgForwardCap)}
-                                    </span>
-
-                                    <span className="text-slate-600">
-                                        /
-                                    </span>
-
-                                    <span className="font-medium text-sky-400">
-                                        {signedMoney(
-                                            forwardCap -
-                                                nhlAvgForwardCap
-                                        )}
-                                    </span>
-                                </div>
-
-                                {/* PER PLAYER */}
-                                <span className="whitespace-nowrap font-medium text-slate-500">
-                                    Per Player
+                                <span className="text-slate-600">
+                                    /
                                 </span>
 
-                                <div className="flex items-center gap-2 whitespace-nowrap">
-                                    <span className="font-medium text-slate-300">
-                                        {money(nhlGoaliePerPlayer)}
-                                    </span>
+                                <span className="font-medium text-sky-400">
+                                    {signedMoney(
+                                        goalieCap -
+                                            nhlAvgGoalieCap
+                                    )}
+                                </span>
+                            </div>
 
-                                    <span className="text-slate-600">
-                                        /
-                                    </span>
+                            <div className="flex items-center gap-2 whitespace-nowrap">
+                                <span className="font-medium text-slate-300">
+                                    {money(nhlAvgDefenseCap)}
+                                </span>
 
-                                    <span className="font-medium text-sky-400">
-                                        {signedMoney(
-                                            goaliePerPlayer -
-                                                nhlGoaliePerPlayer
-                                        )}
-                                    </span>
-                                </div>
+                                <span className="text-slate-600">
+                                    /
+                                </span>
 
-                                <div className="flex items-center gap-2 whitespace-nowrap">
-                                    <span className="font-medium text-slate-300">
-                                        {money(nhlDefensePerPlayer)}
-                                    </span>
+                                <span className="font-medium text-sky-400">
+                                    {signedMoney(
+                                        defenseCap -
+                                            nhlAvgDefenseCap
+                                    )}
+                                </span>
+                            </div>
 
-                                    <span className="text-slate-600">
-                                        /
-                                    </span>
+                            <div className="flex items-center gap-2 whitespace-nowrap">
+                                <span className="font-medium text-slate-300">
+                                    {money(nhlAvgForwardCap)}
+                                </span>
 
-                                    <span className="font-medium text-sky-400">
-                                        {signedMoney(
-                                            defensePerPlayer -
-                                                nhlDefensePerPlayer
-                                        )}
-                                    </span>
-                                </div>
+                                <span className="text-slate-600">
+                                    /
+                                </span>
 
-                                <div className="flex items-center gap-2 whitespace-nowrap">
-                                    <span className="font-medium text-slate-300">
-                                        {money(nhlForwardPerPlayer)}
-                                    </span>
+                                <span className="font-medium text-sky-400">
+                                    {signedMoney(
+                                        forwardCap -
+                                            nhlAvgForwardCap
+                                    )}
+                                </span>
+                            </div>
 
-                                    <span className="text-slate-600">
-                                        /
-                                    </span>
+                            <span className="whitespace-nowrap font-medium text-slate-500">
+                                Per Player
+                            </span>
 
-                                    <span className="font-medium text-sky-400">
-                                        {signedMoney(
-                                            forwardPerPlayer -
-                                                nhlForwardPerPlayer
-                                        )}
-                                    </span>
-                                </div>
+                            <div className="flex items-center gap-2 whitespace-nowrap">
+                                <span className="font-medium text-slate-300">
+                                    {money(nhlGoaliePerPlayer)}
+                                </span>
+
+                                <span className="text-slate-600">
+                                    /
+                                </span>
+
+                                <span className="font-medium text-sky-400">
+                                    {signedMoney(
+                                        goaliePerPlayer -
+                                            nhlGoaliePerPlayer
+                                    )}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 whitespace-nowrap">
+                                <span className="font-medium text-slate-300">
+                                    {money(nhlDefensePerPlayer)}
+                                </span>
+
+                                <span className="text-slate-600">
+                                    /
+                                </span>
+
+                                <span className="font-medium text-sky-400">
+                                    {signedMoney(
+                                        defensePerPlayer -
+                                            nhlDefensePerPlayer
+                                    )}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 whitespace-nowrap">
+                                <span className="font-medium text-slate-300">
+                                    {money(nhlForwardPerPlayer)}
+                                </span>
+
+                                <span className="text-slate-600">
+                                    /
+                                </span>
+
+                                <span className="font-medium text-sky-400">
+                                    {signedMoney(
+                                        forwardPerPlayer -
+                                            nhlForwardPerPlayer
+                                    )}
+                                </span>
                             </div>
                         </div>
-                    </section>
-                </div>
+                    </div>
+                </section>
             </div>
 
             {/* FUTURE COMMITMENTS */}
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-white">
+            <section className="w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h3 className="text-lg font-bold text-white sm:text-xl">
                         Future Commitments
                     </h3>
 
-                    <div className="flex gap-5 text-sm text-slate-400">
+                    <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-400 sm:text-sm">
                         <span className="flex items-center gap-2">
                             <span
                                 className={`h-3 w-3 rounded ${G_COLOUR}`}
@@ -995,8 +1039,11 @@ export default function SalaryCapPanel({
                             100;
 
                         return (
-                            <div key={row.year}>
-                                <div className="mb-2 flex justify-between">
+                            <div
+                                key={row.year}
+                                className="min-w-0"
+                            >
+                                <div className="mb-2 flex flex-col gap-2 min-[420px]:flex-row min-[420px]:justify-between">
                                     <div>
                                         <p className="font-semibold text-white">
                                             {row.season}
@@ -1007,7 +1054,7 @@ export default function SalaryCapPanel({
                                         </p>
                                     </div>
 
-                                    <div className="text-right">
+                                    <div className="min-[420px]:text-right">
                                         <p className="font-semibold text-white">
                                             {money(
                                                 row.roster_cap
@@ -1025,12 +1072,12 @@ export default function SalaryCapPanel({
 
                                 <div className="flex h-9 overflow-hidden rounded-lg bg-slate-800">
                                     <div
-                                        className={`${G_COLOUR} flex items-center justify-center text-xs font-semibold`}
+                                        className={`${G_COLOUR} flex items-center justify-center text-[10px] font-semibold sm:text-xs`}
                                         style={{
                                             width: `${gPct}%`,
                                         }}
                                     >
-                                        {gPct > 6
+                                        {gPct > 10
                                             ? money(
                                                   row.goalie_cap
                                               )
@@ -1038,12 +1085,12 @@ export default function SalaryCapPanel({
                                     </div>
 
                                     <div
-                                        className={`${D_COLOUR} flex items-center justify-center text-xs font-semibold`}
+                                        className={`${D_COLOUR} flex items-center justify-center text-[10px] font-semibold sm:text-xs`}
                                         style={{
                                             width: `${dPct}%`,
                                         }}
                                     >
-                                        {dPct > 8
+                                        {dPct > 12
                                             ? money(
                                                   row.defense_cap
                                               )
@@ -1051,12 +1098,12 @@ export default function SalaryCapPanel({
                                     </div>
 
                                     <div
-                                        className={`${F_COLOUR} flex items-center justify-center text-xs font-semibold`}
+                                        className={`${F_COLOUR} flex items-center justify-center text-[10px] font-semibold sm:text-xs`}
                                         style={{
                                             width: `${fPct}%`,
                                         }}
                                     >
-                                        {fPct > 10
+                                        {fPct > 14
                                             ? money(
                                                   row.forward_cap
                                               )
@@ -1070,213 +1117,334 @@ export default function SalaryCapPanel({
             </section>
 
             {/* DECISIONS + CONTRACTS */}
-            <div className="overflow-x-auto">
-                <div className="grid min-w-[1000px] grid-cols-2 gap-6">
-                    {/* CONTRACT DECISIONS */}
-                    <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-                        <div className="flex items-center gap-3">
-                            <CalendarDays className="text-orange-400" />
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {/* CONTRACT DECISIONS */}
+                <section className="w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
+                    <div className="flex items-center gap-3">
+                        <CalendarDays className="shrink-0 text-orange-400" />
 
-                            <h3 className="text-xl font-bold text-white">
-                                Upcoming Contract Decisions
-                            </h3>
-                        </div>
+                        <h3 className="text-lg font-bold text-white sm:text-xl">
+                            Upcoming Contract Decisions
+                        </h3>
+                    </div>
 
-                        <div className="mt-5 divide-y divide-slate-800">
-                            {data.expiries.map(
-                                (row) => (
-                                    <div
-                                        key={
-                                            row.expiry_year
-                                        }
-                                        className="flex items-center justify-between py-4"
-                                    >
-                                        <div>
+                    <div className="mt-5 divide-y divide-slate-800">
+                        {data.expiries.map(
+                            (row) => (
+                                <div
+                                    key={
+                                        row.expiry_year
+                                    }
+                                    className="flex items-center justify-between gap-4 py-4"
+                                >
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-white">
+                                            {row.expiry_year}
+                                        </p>
+
+                                        <p className="text-sm text-slate-500">
+                                            {row.ufa_players} UFA ·{" "}
+                                            {row.rfa_players} RFA ·{" "}
+                                            {row.elc_players} ELC
+                                        </p>
+                                    </div>
+
+                                    <div className="shrink-0 text-right">
+                                        <p className="font-semibold text-white">
+                                            {money(
+                                                row.expiring_cap_hit
+                                            )}
+                                        </p>
+
+                                        <p className="text-sm text-slate-500">
+                                            {row.expiring_players} players
+                                        </p>
+                                    </div>
+                                </div>
+                            )
+                        )}
+                    </div>
+                </section>
+
+                {/* LARGEST CONTRACTS */}
+                <section className="w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
+                    <div className="flex items-center gap-3">
+                        <FileText className="shrink-0 text-blue-400" />
+
+                        <h3 className="text-lg font-bold text-white sm:text-xl">
+                            Largest Contracts
+                        </h3>
+                    </div>
+
+                    {/* MOBILE CONTRACT CARDS */}
+                    <div className="mt-5 space-y-3 md:hidden">
+                        {sortedContracts.map(
+                            (contract) => (
+                                <div
+                                    key={
+                                        contract.player
+                                    }
+                                    className="rounded-xl border border-slate-800 bg-slate-950/40 p-4"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        {contract.headshot_url ? (
+                                            <img
+                                                src={
+                                                    contract.headshot_url
+                                                }
+                                                alt={
+                                                    contract.player
+                                                }
+                                                className="h-12 w-12 shrink-0 rounded-full bg-slate-800 object-cover object-top"
+                                            />
+                                        ) : (
+                                            <div className="h-12 w-12 shrink-0 rounded-full bg-slate-800" />
+                                        )}
+
+                                        <div className="min-w-0 flex-1">
                                             <p className="font-semibold text-white">
-                                                {row.expiry_year}
+                                                {contract.player}
                                             </p>
 
                                             <p className="text-sm text-slate-500">
-                                                {row.ufa_players} UFA ·{" "}
-                                                {row.rfa_players} RFA ·{" "}
-                                                {row.elc_players} ELC
+                                                {contract.position || "—"} ·{" "}
+                                                {contract.expiry_status || "—"}{" "}
+                                                {contract.expiry_year || ""}
+                                            </p>
+                                        </div>
+
+                                        <p className="shrink-0 font-semibold text-blue-400">
+                                            {money(
+                                                contract.cap_hit
+                                            )}
+                                        </p>
+                                    </div>
+
+                                    <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-800 pt-3">
+                                        <div>
+                                            <p className="text-xs uppercase tracking-wide text-slate-500">
+                                                Years
+                                            </p>
+
+                                            <p className="mt-1 text-sm font-medium text-slate-300">
+                                                {contract.term ?? "—"}
                                             </p>
                                         </div>
 
                                         <div className="text-right">
-                                            <p className="font-semibold text-white">
+                                            <p className="text-xs uppercase tracking-wide text-slate-500">
+                                                Total
+                                            </p>
+
+                                            <p className="mt-1 text-sm font-semibold text-white">
                                                 {money(
-                                                    row.expiring_cap_hit
+                                                    contract.total_value
                                                 )}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        )}
+                    </div>
+
+                    {/* DESKTOP CONTRACT TABLE */}
+                    <div className="mt-5 hidden md:block">
+                        <div className="grid grid-cols-[2fr_0.45fr_0.75fr_0.65fr_0.9fr] gap-3 border-b border-slate-800 pb-2 text-xs uppercase tracking-wide">
+                            <span className="text-slate-500">
+                                Player
+                            </span>
+
+                            <span className="text-slate-500">
+                                Pos
+                            </span>
+
+                            <SortHeader
+                                label="AAV"
+                                field="cap_hit"
+                                currentField={sortField}
+                                direction={sortDirection}
+                                onClick={changeSort}
+                            />
+
+                            <SortHeader
+                                label="Years"
+                                field="term"
+                                currentField={sortField}
+                                direction={sortDirection}
+                                onClick={changeSort}
+                            />
+
+                            <SortHeader
+                                label="Total"
+                                field="total_value"
+                                currentField={sortField}
+                                direction={sortDirection}
+                                onClick={changeSort}
+                            />
+                        </div>
+
+                        {sortedContracts.map(
+                            (contract) => (
+                                <div
+                                    key={
+                                        contract.player
+                                    }
+                                    className="grid grid-cols-[2fr_0.45fr_0.75fr_0.65fr_0.9fr] items-center gap-3 border-b border-slate-800 py-3"
+                                >
+                                    <div className="flex min-w-0 items-center gap-3">
+                                        {contract.headshot_url ? (
+                                            <img
+                                                src={
+                                                    contract.headshot_url
+                                                }
+                                                alt={
+                                                    contract.player
+                                                }
+                                                className="h-12 w-12 shrink-0 rounded-full bg-slate-800 object-cover object-top"
+                                            />
+                                        ) : (
+                                            <div className="h-12 w-12 shrink-0 rounded-full bg-slate-800" />
+                                        )}
+
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-white">
+                                                {contract.player}
                                             </p>
 
                                             <p className="text-sm text-slate-500">
-                                                {row.expiring_players} players
+                                                {contract.expiry_status ||
+                                                    "—"}{" "}
+                                                {contract.expiry_year ||
+                                                    ""}
                                             </p>
                                         </div>
                                     </div>
-                                )
-                            )}
-                        </div>
-                    </section>
 
-                    {/* LARGEST CONTRACTS */}
-                    <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-                        <div className="flex items-center gap-3">
-                            <FileText className="text-blue-400" />
+                                    <span className="text-slate-300">
+                                        {contract.position ||
+                                            "—"}
+                                    </span>
 
-                            <h3 className="text-xl font-bold text-white">
-                                Largest Contracts
-                            </h3>
-                        </div>
+                                    <span className="font-semibold text-blue-400">
+                                        {money(
+                                            contract.cap_hit
+                                        )}
+                                    </span>
 
-                        <div className="mt-5">
-                            <div className="grid grid-cols-[2fr_0.45fr_0.75fr_0.65fr_0.9fr] gap-3 border-b border-slate-800 pb-2 text-xs uppercase tracking-wide">
-                                <span className="text-slate-500">
-                                    Player
-                                </span>
+                                    <span className="text-slate-300">
+                                        {contract.term ??
+                                            "—"}
+                                    </span>
 
-                                <span className="text-slate-500">
-                                    Pos
-                                </span>
-
-                                <SortHeader
-                                    label="AAV"
-                                    field="cap_hit"
-                                    currentField={sortField}
-                                    direction={sortDirection}
-                                    onClick={changeSort}
-                                />
-
-                                <SortHeader
-                                    label="Years"
-                                    field="term"
-                                    currentField={sortField}
-                                    direction={sortDirection}
-                                    onClick={changeSort}
-                                />
-
-                                <SortHeader
-                                    label="Total"
-                                    field="total_value"
-                                    currentField={sortField}
-                                    direction={sortDirection}
-                                    onClick={changeSort}
-                                />
-                            </div>
-
-                            {sortedContracts.map(
-                                (contract) => (
-                                    <div
-                                        key={
-                                            contract.player
-                                        }
-                                        className="grid grid-cols-[2fr_0.45fr_0.75fr_0.65fr_0.9fr] items-center gap-3 border-b border-slate-800 py-3"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            {contract.headshot_url ? (
-                                                <img
-                                                    src={
-                                                        contract.headshot_url
-                                                    }
-                                                    alt={
-                                                        contract.player
-                                                    }
-                                                    className="h-12 w-12 shrink-0 rounded-full bg-slate-800 object-cover object-top"
-                                                />
-                                            ) : (
-                                                <div className="h-12 w-12 shrink-0 rounded-full bg-slate-800" />
-                                            )}
-
-                                            <div>
-                                                <p className="font-semibold text-white">
-                                                    {contract.player}
-                                                </p>
-
-                                                <p className="text-sm text-slate-500">
-                                                    {contract.expiry_status ||
-                                                        "—"}{" "}
-                                                    {contract.expiry_year ||
-                                                        ""}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <span className="text-slate-300">
-                                            {contract.position ||
-                                                "—"}
-                                        </span>
-
-                                        <span className="font-semibold text-blue-400">
-                                            {money(
-                                                contract.cap_hit
-                                            )}
-                                        </span>
-
-                                        <span className="text-slate-300">
-                                            {contract.term ??
-                                                "—"}
-                                        </span>
-
-                                        <span className="font-semibold text-white">
-                                            {money(
-                                                contract.total_value
-                                            )}
-                                        </span>
-                                    </div>
-                                )
-                            )}
-                        </div>
-                    </section>
-                </div>
+                                    <span className="font-semibold text-white">
+                                        {money(
+                                            contract.total_value
+                                        )}
+                                    </span>
+                                </div>
+                            )
+                        )}
+                    </div>
+                </section>
             </div>
 
             {/* ROSTER DETAILS */}
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-                <h3 className="text-xl font-bold text-white">
+            <section className="w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
+                <h3 className="text-lg font-bold text-white sm:text-xl">
                     Roster & Cap Details
                 </h3>
 
-                <div className="mt-5 overflow-x-auto">
-                    <div className="grid min-w-[900px] grid-cols-4 gap-4">
-                        <StatCard
-                            label="Average Age"
-                            value={Number(
-                                summary.average_age
-                            ).toFixed(1)}
-                            icon={Users}
-                            accent="text-sky-400"
-                        />
+                <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <StatCard
+                        label="Average Age"
+                        value={Number(
+                            summary.average_age
+                        ).toFixed(1)}
+                        icon={Users}
+                        accent="text-sky-400"
+                    />
 
-                        <StatCard
-                            label="Active Roster"
-                            value={String(
-                                summary.active_roster
-                            )}
-                            icon={Shirt}
-                            accent="text-blue-400"
-                        />
+                    <StatCard
+                        label="Active Roster"
+                        value={String(
+                            summary.active_roster
+                        )}
+                        icon={Shirt}
+                        accent="text-blue-400"
+                    />
 
-                        <StatCard
-                            label="Contracts"
-                            value={String(
-                                summary.contracts
-                            )}
-                            icon={FileText}
-                            accent="text-violet-400"
-                        />
+                    <StatCard
+                        label="Contracts"
+                        value={String(
+                            summary.contracts
+                        )}
+                        icon={FileText}
+                        accent="text-violet-400"
+                    />
 
-                        <StatCard
-                            label="Deadline Cap Space"
-                            value={capSpaceMoney(
-                                summary.deadline_cap_space
-                            )}
-                            icon={Goal}
-                            accent="text-cyan-400"
-                        />
-                    </div>
+                    <StatCard
+                        label="Deadline Cap Space"
+                        value={capSpaceMoney(
+                            summary.deadline_cap_space
+                        )}
+                        icon={Goal}
+                        accent="text-cyan-400"
+                    />
                 </div>
             </section>
+        </div>
+    );
+}
+
+function PositionAverageMobile({
+    label,
+    total,
+    totalDifference,
+    perPlayer,
+    perPlayerDifference,
+}: {
+    label: string;
+    total: number;
+    totalDifference: number;
+    perPlayer: number;
+    perPlayerDifference: number;
+}) {
+    return (
+        <div className="rounded-lg border border-slate-800 bg-slate-950/30 p-3">
+            <p className="mb-2 text-sm font-semibold text-slate-300">
+                {label}
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                    <p className="text-slate-500">
+                        Total
+                    </p>
+
+                    <p className="mt-1 font-medium text-slate-300">
+                        {money(total)}
+                    </p>
+
+                    <p className="mt-1 font-medium text-sky-400">
+                        {signedMoney(totalDifference)}
+                    </p>
+                </div>
+
+                <div>
+                    <p className="text-slate-500">
+                        Per Player
+                    </p>
+
+                    <p className="mt-1 font-medium text-slate-300">
+                        {money(perPlayer)}
+                    </p>
+
+                    <p className="mt-1 font-medium text-sky-400">
+                        {signedMoney(perPlayerDifference)}
+                    </p>
+                </div>
+            </div>
         </div>
     );
 }

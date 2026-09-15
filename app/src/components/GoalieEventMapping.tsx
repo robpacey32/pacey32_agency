@@ -145,15 +145,15 @@ function StatCard({
     value: string | number;
 }) {
     return (
-        <div className="rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3">
+        <div className="min-w-0 rounded-xl border border-slate-700 bg-slate-950/30 px-3 py-4 sm:px-4 sm:py-5">
 
-            <div className="text-xs uppercase tracking-wide text-slate-500">
+            <p className="min-h-[2.5rem] break-words text-[10px] font-medium uppercase tracking-wide text-slate-500 sm:text-xs">
                 {label}
-            </div>
+            </p>
 
-            <div className="mt-1 text-xl font-semibold text-slate-100">
+            <p className="mt-2 whitespace-nowrap text-[clamp(1.25rem,5vw,1.875rem)] font-semibold leading-none text-white">
                 {value}
-            </div>
+            </p>
 
         </div>
     );
@@ -734,10 +734,10 @@ export default function GoalieEventMapping({
 
 
     return (
-        <div className="space-y-5">
+        <div className="w-full min-w-0 max-w-full space-y-5">
 
             {/* Tabs */}
-            <div className="flex flex-wrap gap-2">
+            <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto sm:flex-wrap">
 
                 {[
                     [
@@ -763,7 +763,7 @@ export default function GoalieEventMapping({
                             }
                             type="button"
                             onClick={() => setTab(value as Tab)}
-                            className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                            className={`min-w-0 rounded-lg border px-2 py-2 text-xs font-medium transition sm:px-3 sm:text-sm ${
                                 tab === value
                                     ? "border-slate-500 bg-slate-700 text-white"
                                     : "border-slate-700 bg-slate-900 text-slate-400 hover:bg-slate-800"
@@ -778,13 +778,13 @@ export default function GoalieEventMapping({
 
 
             {/* Global filters */}
-            <div className="flex flex-wrap items-center gap-3 border-y border-slate-800 py-3">
+            <div className="flex min-w-0 flex-col gap-3 border-y border-slate-800 py-3 sm:flex-row sm:flex-wrap sm:items-center">
 
                 <div
                     ref={
                         seasonMenuRef
                     }
-                    className="relative"
+                    className="relative w-full sm:w-auto"
                 >
                     <button
                         type="button"
@@ -794,7 +794,7 @@ export default function GoalieEventMapping({
                                     !value
                             )
                         }
-                        className="flex min-w-[180px] items-center justify-between gap-3 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-200"
+                        className="flex w-full min-w-0 items-center justify-between gap-3 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-200 sm:w-auto sm:min-w-[180px]"
                     >
 
                         <span>
@@ -819,7 +819,7 @@ export default function GoalieEventMapping({
 
 
                     {seasonMenuOpen && (
-                        <div className="absolute left-0 top-full z-50 mt-2 w-56 rounded-xl border border-slate-700 bg-slate-950 p-2 shadow-2xl">
+                        <div className="absolute left-0 top-full z-50 mt-2 w-full min-w-0 rounded-xl border border-slate-700 bg-slate-950 p-2 shadow-2xl sm:w-56">
 
                             <div className="mb-2 flex gap-2 border-b border-slate-800 pb-2">
 
@@ -876,7 +876,7 @@ export default function GoalieEventMapping({
                                     >
 
                                         <span
-                                            className={`flex h-4 w-4 items-center justify-center rounded border ${
+                                            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
                                                 selectedSeasons.includes(
                                                     season
                                                 )
@@ -905,7 +905,7 @@ export default function GoalieEventMapping({
                 </div>
 
 
-                <div className="flex rounded-lg border border-slate-700 bg-slate-900 p-1">
+                <div className="grid w-full grid-cols-2 rounded-lg border border-slate-700 bg-slate-900 p-1 sm:flex sm:w-auto">
 
                     <button
                         type="button"
@@ -914,7 +914,7 @@ export default function GoalieEventMapping({
                                 "RegularSeason"
                             )
                         }
-                        className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                        className={`rounded-md px-2 py-1.5 text-xs font-medium sm:px-3 ${
                             seasonPart
                             === "RegularSeason"
                                 ? "bg-slate-700 text-white"
@@ -932,7 +932,7 @@ export default function GoalieEventMapping({
                                 "Playoffs"
                             )
                         }
-                        className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                        className={`rounded-md px-2 py-1.5 text-xs font-medium sm:px-3 ${
                             seasonPart
                             === "Playoffs"
                                 ? "bg-slate-700 text-white"
@@ -948,7 +948,7 @@ export default function GoalieEventMapping({
 
 
             {/* KPIs */}
-            <div className="grid min-w-[620px] grid-cols-4 gap-3 overflow-x-auto">
+            <div className="grid w-full min-w-0 grid-cols-2 gap-3 lg:grid-cols-4">
 
                 <StatCard
                     label="Shots Against"
@@ -990,120 +990,120 @@ export default function GoalieEventMapping({
 
             {/* SHOT MAP */}
             {tab === "shotMap" && (
-                <RinkMap
-                    title="Shots Faced"
-                    events={
-                        rinkEvents
-                    }
-                />
+                <div className="w-full min-w-0 max-w-full">
+                    <RinkMap
+                        title="Shots Faced"
+                        events={
+                            rinkEvents
+                        }
+                    />
+                </div>
             )}
 
 
             {/* SAVE PROFILE */}
             {tab === "saveProfile" && (
                 <>
-                    <RinkMap
-                        title="Save Profile by Location"
-                        events={
-                            rinkEvents
-                        }
-                        zoneOverlay={{
-                            zones:
-                                goalieZoneData,
+                    <div className="w-full min-w-0 max-w-full">
+                        <RinkMap
+                            title="Save Profile by Location"
+                            events={
+                                rinkEvents
+                            }
+                            zoneOverlay={{
+                                zones:
+                                    goalieZoneData,
 
-                            metricLabel:
-                                "Save %",
+                                metricLabel:
+                                    "Save %",
 
-                            type:
-                                "goalie",
-                        }}
-                    />
+                                type:
+                                    "goalie",
+                            }}
+                        />
+                    </div>
 
 
-                    <div className="overflow-x-auto">
+                    <div className="grid w-full min-w-0 grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-3">
 
-                        <div className="grid min-w-[720px] grid-cols-3 gap-3">
+                        {goalieZoneData.map(
+                            zone => (
+                                <div
+                                    key={
+                                        zone.key
+                                    }
+                                    className="min-w-0 rounded-xl border border-slate-700 bg-slate-900/70 p-4"
+                                >
 
-                            {goalieZoneData.map(
-                                zone => (
-                                    <div
-                                        key={
-                                            zone.key
-                                        }
-                                        className="rounded-xl border border-slate-700 bg-slate-900/70 p-4"
-                                    >
+                                    <div className="text-xs uppercase tracking-wide text-slate-500">
+                                        {zone.label}
+                                    </div>
 
-                                        <div className="text-xs uppercase tracking-wide text-slate-500">
-                                            {zone.label}
+                                    <div className="mt-2 text-xl font-semibold text-slate-100 sm:text-2xl">
+                                        {zone.value == null
+                                            ? "—"
+                                            : `${(
+                                                zone.value
+                                                * 100
+                                            ).toFixed(
+                                                1
+                                            )}%`}
+                                    </div>
+
+                                    <div className="mt-1 text-xs text-slate-500">
+                                        {zone.saves} saves / {zone.shots} shots
+                                    </div>
+
+
+                                    <div className="mt-3 border-t border-slate-800 pt-3">
+
+                                        <div className="flex min-w-0 items-center justify-between gap-3 text-xs">
+                                            <span className="min-w-0 text-slate-500">
+                                                NHL Goalie Avg
+                                            </span>
+
+                                            <span className="shrink-0 font-medium text-slate-300">
+                                                {zone.benchmarkValue == null
+                                                    ? "—"
+                                                    : `${(
+                                                        zone.benchmarkValue * 100
+                                                    ).toFixed(1)}%`}
+                                            </span>
                                         </div>
 
-                                        <div className="mt-2 text-2xl font-semibold text-slate-100">
-                                            {zone.value == null
-                                                ? "—"
-                                                : `${(
-                                                    zone.value
-                                                    * 100
-                                                ).toFixed(
-                                                    1
-                                                )}%`}
-                                        </div>
 
-                                        <div className="mt-1 text-xs text-slate-500">
-                                            {zone.saves} saves / {zone.shots} shots
-                                        </div>
+                                        <div className="mt-1 flex min-w-0 items-center justify-between gap-3 text-xs">
 
+                                            <span className="text-slate-500">
+                                                Difference
+                                            </span>
 
-                                        <div className="mt-3 border-t border-slate-800 pt-3">
-
-                                            <div className="flex items-center justify-between gap-3 text-xs">
-                                                <span className="text-slate-500">
-                                                    NHL Goalie Avg
-                                                </span>
-
-                                                <span className="font-medium text-slate-300">
-                                                    {zone.benchmarkValue == null
-                                                        ? "—"
-                                                        : `${(
-                                                            zone.benchmarkValue * 100
-                                                        ).toFixed(1)}%`}
-                                                </span>
-                                            </div>
-
-
-                                            <div className="mt-1 flex items-center justify-between gap-3 text-xs">
-
-                                                <span className="text-slate-500">
-                                                    Difference
-                                                </span>
-
-                                                <span
-                                                    className={
-                                                        zone.value != null
-                                                        && zone.benchmarkValue != null
-                                                        && zone.value > zone.benchmarkValue
-                                                            ? "font-medium text-green-400"
-                                                            : zone.value != null
-                                                              && zone.benchmarkValue != null
-                                                              && zone.value < zone.benchmarkValue
-                                                                ? "font-medium text-red-400"
-                                                                : "font-medium text-slate-400"
-                                                    }
-                                                >
-                                                    {formatDifference(
-                                                        zone.value,
-                                                        zone.benchmarkValue
-                                                    )}
-                                                </span>
-
-                                            </div>
+                                            <span
+                                                className={`shrink-0 ${
+                                                    zone.value != null
+                                                    && zone.benchmarkValue != null
+                                                    && zone.value > zone.benchmarkValue
+                                                        ? "font-medium text-green-400"
+                                                        : zone.value != null
+                                                          && zone.benchmarkValue != null
+                                                          && zone.value < zone.benchmarkValue
+                                                            ? "font-medium text-red-400"
+                                                            : "font-medium text-slate-400"
+                                                }`}
+                                            >
+                                                {formatDifference(
+                                                    zone.value,
+                                                    zone.benchmarkValue
+                                                )}
+                                            </span>
 
                                         </div>
 
                                     </div>
-                                )
-                            )}
 
-                        </div>
+                                </div>
+                            )
+                        )}
 
                     </div>
                 </>
@@ -1112,87 +1112,175 @@ export default function GoalieEventMapping({
 
             {/* SHOT TYPES */}
             {tab === "shotTypes" && (
-                <div className="overflow-x-auto rounded-xl border border-slate-700">
+                <>
+                    {/* Mobile */}
+                    <div className="space-y-3 sm:hidden">
 
-                    <table className="min-w-[640px] w-full text-sm">
+                        {shotTypes.map(
+                            row => (
+                                <div
+                                    key={
+                                        row.type
+                                    }
+                                    className="min-w-0 rounded-xl border border-slate-700 bg-slate-950/40 p-4"
+                                >
 
-                        <thead className="bg-slate-900 text-left text-xs uppercase tracking-wide text-slate-500">
+                                    <div className="mb-3 text-sm font-semibold capitalize text-slate-200">
+                                        {row.type}
+                                    </div>
 
-                            <tr>
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
 
-                                <th className="px-4 py-3">
-                                    Shot Type
-                                </th>
+                                        <ShotTypeMetric
+                                            label="Shots"
+                                            value={String(
+                                                row.shots
+                                            )}
+                                        />
 
-                                <th className="px-4 py-3 text-right">
-                                    Shots
-                                </th>
+                                        <ShotTypeMetric
+                                            label="Saves"
+                                            value={String(
+                                                row.saves
+                                            )}
+                                        />
 
-                                <th className="px-4 py-3 text-right">
-                                    Saves
-                                </th>
+                                        <ShotTypeMetric
+                                            label="Goals"
+                                            value={String(
+                                                row.goals
+                                            )}
+                                        />
 
-                                <th className="px-4 py-3 text-right">
-                                    Goals
-                                </th>
+                                        <ShotTypeMetric
+                                            label="Save %"
+                                            value={
+                                                row.savePct == null
+                                                    ? "—"
+                                                    : `${(
+                                                        row.savePct
+                                                        * 100
+                                                    ).toFixed(
+                                                        1
+                                                    )}%`
+                                            }
+                                        />
 
-                                <th className="px-4 py-3 text-right">
-                                    Save %
-                                </th>
+                                    </div>
 
-                            </tr>
+                                </div>
+                            )
+                        )}
 
-                        </thead>
+                    </div>
 
 
-                        <tbody className="divide-y divide-slate-800">
+                    {/* Tablet / desktop */}
+                    <div className="hidden w-full min-w-0 overflow-hidden rounded-xl border border-slate-700 sm:block">
 
-                            {shotTypes.map(
-                                row => (
-                                    <tr
-                                        key={
-                                            row.type
-                                        }
-                                        className="bg-slate-950/40 text-slate-300"
-                                    >
+                        <table className="w-full table-fixed text-sm">
 
-                                        <td className="px-4 py-3 capitalize">
-                                            {row.type}
-                                        </td>
+                            <thead className="bg-slate-900 text-left text-xs uppercase tracking-wide text-slate-500">
 
-                                        <td className="px-4 py-3 text-right">
-                                            {row.shots}
-                                        </td>
+                                <tr>
 
-                                        <td className="px-4 py-3 text-right">
-                                            {row.saves}
-                                        </td>
+                                    <th className="w-[36%] px-4 py-3">
+                                        Shot Type
+                                    </th>
 
-                                        <td className="px-4 py-3 text-right">
-                                            {row.goals}
-                                        </td>
+                                    <th className="w-[16%] px-4 py-3 text-right">
+                                        Shots
+                                    </th>
 
-                                        <td className="px-4 py-3 text-right">
-                                            {row.savePct == null
-                                                ? "—"
-                                                : `${(
-                                                    row.savePct
-                                                    * 100
-                                                ).toFixed(
-                                                    1
-                                                )}%`}
-                                        </td>
+                                    <th className="w-[16%] px-4 py-3 text-right">
+                                        Saves
+                                    </th>
 
-                                    </tr>
-                                )
-                            )}
+                                    <th className="w-[16%] px-4 py-3 text-right">
+                                        Goals
+                                    </th>
 
-                        </tbody>
+                                    <th className="w-[16%] px-4 py-3 text-right">
+                                        Save %
+                                    </th>
 
-                    </table>
+                                </tr>
 
-                </div>
+                            </thead>
+
+
+                            <tbody className="divide-y divide-slate-800">
+
+                                {shotTypes.map(
+                                    row => (
+                                        <tr
+                                            key={
+                                                row.type
+                                            }
+                                            className="bg-slate-950/40 text-slate-300"
+                                        >
+
+                                            <td className="break-words px-4 py-3 capitalize">
+                                                {row.type}
+                                            </td>
+
+                                            <td className="px-4 py-3 text-right">
+                                                {row.shots}
+                                            </td>
+
+                                            <td className="px-4 py-3 text-right">
+                                                {row.saves}
+                                            </td>
+
+                                            <td className="px-4 py-3 text-right">
+                                                {row.goals}
+                                            </td>
+
+                                            <td className="px-4 py-3 text-right">
+                                                {row.savePct == null
+                                                    ? "—"
+                                                    : `${(
+                                                        row.savePct
+                                                        * 100
+                                                    ).toFixed(
+                                                        1
+                                                    )}%`}
+                                            </td>
+
+                                        </tr>
+                                    )
+                                )}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </>
             )}
+
+        </div>
+    );
+}
+
+
+function ShotTypeMetric({
+    label,
+    value,
+}: {
+    label: string;
+    value: string;
+}) {
+    return (
+        <div className="min-w-0">
+
+            <div className="text-[11px] uppercase tracking-wide text-slate-500">
+                {label}
+            </div>
+
+            <div className="mt-0.5 break-words text-sm font-semibold text-slate-200">
+                {value}
+            </div>
 
         </div>
     );

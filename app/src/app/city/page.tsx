@@ -247,57 +247,18 @@ type Card = {
 export default function CityPage() {
     const { team: selectedTeam } = useAppContext();
 
-    const [data, setData] =
-        useState<CityData | null>(
-            null
-        );
+    const [data, setData] = useState<CityData | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [openCard, setOpenCard] = useState<string | null>(null);
 
-    const [loading, setLoading] =
-        useState(false);
-
-    const [error, setError] =
-        useState<string | null>(
-            null
-        );
-
-    const [openCard, setOpenCard] =
-        useState<string | null>(
-            null
-        );
-
-    const [taxSalary, setTaxSalary] =
-        useState(5_000_000);
-
-    const [
-        includeLocalTax,
-        setIncludeLocalTax,
-    ] = useState(true);
-
-    const [
-        taxSalaryInput,
-        setTaxSalaryInput,
-    ] = useState("5000000");
-
-    const [
-        taxComparison,
-        setTaxComparison,
-    ] =
-        useState<NHLTaxResponse | null>(
-            null
-        );
-
-    const [
-        taxLoading,
-        setTaxLoading,
-    ] = useState(false);
-
-    const [
-        taxError,
-        setTaxError,
-    ] =
-        useState<string | null>(
-            null
-        );
+    const [taxSalary, setTaxSalary] = useState(5_000_000);
+    const [includeLocalTax, setIncludeLocalTax] = useState(true);
+    const [taxSalaryInput, setTaxSalaryInput] = useState("5000000");
+    const [taxComparison, setTaxComparison] =
+        useState<NHLTaxResponse | null>(null);
+    const [taxLoading, setTaxLoading] = useState(false);
+    const [taxError, setTaxError] = useState<string | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -317,22 +278,18 @@ export default function CityPage() {
                 setOpenCard(null);
                 setData(null);
 
-                const response =
-                    await fetch(
-                        `/api/city?team=${selectedTeam}`,
-                        {
-                            cache: "no-store",
-                        }
-                    );
+                const response = await fetch(
+                    `/api/city?team=${selectedTeam}`,
+                    {
+                        cache: "no-store",
+                    }
+                );
 
                 if (!response.ok) {
-                    throw new Error(
-                        "Failed to load city data"
-                    );
+                    throw new Error("Failed to load city data");
                 }
 
-                const result: CityData =
-                    await response.json();
+                const result: CityData = await response.json();
 
                 if (!cancelled) {
                     setData(result);
@@ -342,9 +299,7 @@ export default function CityPage() {
 
                 if (!cancelled) {
                     setData(null);
-                    setError(
-                        "Failed to load city data"
-                    );
+                    setError("Failed to load city data");
                 }
             } finally {
                 if (!cancelled) {
@@ -374,39 +329,28 @@ export default function CityPage() {
                 setTaxLoading(true);
                 setTaxError(null);
 
-                const response =
-                    await fetch(
-                        `/api/tax?salary=${taxSalary}&includeLocalTax=${includeLocalTax}`,
-                        {
-                            cache: "no-store",
-                        }
-                    );
+                const response = await fetch(
+                    `/api/tax?salary=${taxSalary}&includeLocalTax=${includeLocalTax}`,
+                    {
+                        cache: "no-store",
+                    }
+                );
 
                 if (!response.ok) {
-                    throw new Error(
-                        "Failed to calculate tax"
-                    );
+                    throw new Error("Failed to calculate tax");
                 }
 
-                const result: NHLTaxResponse =
-                    await response.json();
+                const result: NHLTaxResponse = await response.json();
 
                 if (!cancelled) {
-                    setTaxComparison(
-                        result
-                    );
+                    setTaxComparison(result);
                 }
             } catch (err) {
                 console.error(err);
 
                 if (!cancelled) {
-                    setTaxComparison(
-                        null
-                    );
-
-                    setTaxError(
-                        "Tax comparison unavailable"
-                    );
+                    setTaxComparison(null);
+                    setTaxError("Tax comparison unavailable");
                 }
             } finally {
                 if (!cancelled) {
@@ -420,15 +364,9 @@ export default function CityPage() {
         return () => {
             cancelled = true;
         };
-    }, [
-        selectedTeam,
-        taxSalary,
-        includeLocalTax,
-    ]);
+    }, [selectedTeam, taxSalary, includeLocalTax]);
 
-    const toggleCard = (
-        card: string
-    ) => {
+    const toggleCard = (card: string) => {
         setOpenCard(
             openCard === card
                 ? null
@@ -438,10 +376,7 @@ export default function CityPage() {
 
     const calculateTaxSalary = () => {
         const parsed = Number(
-            taxSalaryInput.replace(
-                /[^0-9.]/g,
-                ""
-            )
+            taxSalaryInput.replace(/[^0-9.]/g, "")
         );
 
         if (
@@ -454,33 +389,24 @@ export default function CityPage() {
         setTaxSalary(parsed);
     };
 
-    const selectQuickTaxSalary = (
-        salary: number
-    ) => {
-        setTaxSalaryInput(
-            salary.toString()
-        );
-
+    const selectQuickTaxSalary = (salary: number) => {
+        setTaxSalaryInput(salary.toString());
         setTaxSalary(salary);
     };
 
     if (!selectedTeam) {
         return (
-            <main className="min-h-screen bg-slate-950 px-8 py-10">
-                <div className="mx-auto max-w-7xl">
+            <main className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+                <div className="mx-auto w-full min-w-0 max-w-7xl">
                     <div className="flex min-h-[420px] items-center justify-center">
                         <div className="text-center">
-
                             <h1 className="text-2xl font-semibold text-white">
                                 Please select a team
                             </h1>
 
                             <p className="mt-2 text-sm text-slate-500">
-                                Choose a team above
-                                to view city
-                                information.
+                                Choose a team above to view city information.
                             </p>
-
                         </div>
                     </div>
                 </div>
@@ -490,8 +416,8 @@ export default function CityPage() {
 
     if (loading) {
         return (
-            <main className="min-h-screen bg-slate-950 px-8 py-10">
-                <div className="mx-auto max-w-7xl text-slate-400">
+            <main className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+                <div className="mx-auto w-full min-w-0 max-w-7xl text-slate-400">
                     Loading city data...
                 </div>
             </main>
@@ -500,40 +426,26 @@ export default function CityPage() {
 
     if (error || !data) {
         return (
-            <main className="min-h-screen bg-slate-950 px-8 py-10">
-                <div className="mx-auto max-w-7xl text-red-400">
-                    {error ??
-                        "City data unavailable"}
+            <main className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+                <div className="mx-auto w-full min-w-0 max-w-7xl text-red-400">
+                    {error ?? "City data unavailable"}
                 </div>
             </main>
         );
     }
 
-    const climate =
-        data.climate.summary;
-
-    const cost =
-        data.costOfLiving.summary;
-
-    const costDetail =
-        data.costOfLiving.detail;
-
-    const tax =
-        data.tax.summary;
-
-    const incomeTaxDistribution =
-        data.tax.incomeTaxDistribution;
-
-    const salesTaxDistribution =
-        data.tax.salesTaxDistribution;
-
+    const climate = data.climate.summary;
+    const cost = data.costOfLiving.summary;
+    const costDetail = data.costOfLiving.detail;
+    const tax = data.tax.summary;
+    const incomeTaxDistribution = data.tax.incomeTaxDistribution;
+    const salesTaxDistribution = data.tax.salesTaxDistribution;
     const city = data.city;
 
     const selectedTaxTeam =
         taxComparison?.teams.find(
             (team) =>
-                team.team_code ===
-                selectedTeam
+                team.team_code === selectedTeam
         ) ?? null;
 
     const cards: Card[] = [
@@ -554,22 +466,11 @@ export default function CityPage() {
             content:
                 climate && city ? (
                     <ClimatePanel
-                        city={
-                            city.geocoded_city
-                        }
-                        stateProvince={
-                            city.state_province
-                        }
-                        country={
-                            city.country
-                        }
-                        climate={
-                            climate
-                        }
-                        monthly={
-                            data.climate
-                                .monthly
-                        }
+                        city={city.geocoded_city}
+                        stateProvince={city.state_province}
+                        country={city.country}
+                        climate={climate}
+                        monthly={data.climate.monthly}
                     />
                 ) : null,
         },
@@ -591,21 +492,11 @@ export default function CityPage() {
             content:
                 cost && city ? (
                     <CostOfLivingPanel
-                        city={
-                            city.geocoded_city
-                        }
-                        stateProvince={
-                            city.state_province
-                        }
-                        country={
-                            city.country
-                        }
-                        cost={
-                            cost
-                        }
-                        detail={
-                            costDetail
-                        }
+                        city={city.geocoded_city}
+                        stateProvince={city.state_province}
+                        country={city.country}
+                        cost={cost}
+                        detail={costDetail}
                     />
                 ) : null,
         },
@@ -629,21 +520,11 @@ export default function CityPage() {
             content:
                 tax && city ? (
                     <IncomeTaxPanel
-                        city={
-                            city.geocoded_city
-                        }
-                        stateProvince={
-                            city.state_province
-                        }
-                        country={
-                            city.country
-                        }
-                        tax={
-                            tax
-                        }
-                        distribution={
-                            incomeTaxDistribution
-                        }
+                        city={city.geocoded_city}
+                        stateProvince={city.state_province}
+                        country={city.country}
+                        tax={tax}
+                        distribution={incomeTaxDistribution}
                     />
                 ) : null,
         },
@@ -667,21 +548,11 @@ export default function CityPage() {
             content:
                 tax && city ? (
                     <SalesTaxPanel
-                        city={
-                            city.geocoded_city
-                        }
-                        stateProvince={
-                            city.state_province
-                        }
-                        country={
-                            city.country
-                        }
-                        tax={
-                            tax
-                        }
-                        distribution={
-                            salesTaxDistribution
-                        }
+                        city={city.geocoded_city}
+                        stateProvince={city.state_province}
+                        country={city.country}
+                        tax={tax}
+                        distribution={salesTaxDistribution}
                     />
                 ) : null,
         },
@@ -690,9 +561,7 @@ export default function CityPage() {
             id: "overview",
             title: "City Overview",
 
-            value:
-                data.team
-                    .venueLocation,
+            value: data.team.venueLocation,
 
             detail: truncate(
                 data.overview.summary,
@@ -704,104 +573,79 @@ export default function CityPage() {
                 "City profile and local amenities",
 
             content: (
-                <div className="space-y-10">
+                <div className="w-full min-w-0 max-w-full space-y-10">
+                    <div className="w-full min-w-0 max-w-full overflow-hidden">
+                        <CityOverviewMap
+                            cityLatitude={
+                                city?.latitude ?? 0
+                            }
+                            cityLongitude={
+                                city?.longitude ?? 0
+                            }
+                            arena={
+                                data.overview.geo.arena
+                            }
+                            practiceFacility={
+                                data.overview.geo.practiceFacility
+                            }
+                            residentialAreas={
+                                data.overview.geo.residentialAreas
+                            }
+                            airports={
+                                data.overview.geo.airports
+                            }
+                            hospitals={
+                                data.overview.geo.hospitals
+                            }
+                            schools={
+                                data.overview.geo.schools
+                            }
+                            restaurants={
+                                data.overview.geo.restaurants
+                            }
+                            shopping={
+                                data.overview.geo.shopping
+                            }
+                            golfClubs={
+                                data.overview.geo.golfClubs
+                            }
+                            countryClubs={
+                                data.overview.geo.countryClubs
+                            }
+                            ski={
+                                data.overview.geo.ski
+                            }
+                            beaches={
+                                data.overview.geo.beaches
+                            }
+                            marinas={
+                                data.overview.geo.marinas
+                            }
+                        />
+                    </div>
 
-                    <CityOverviewMap
-                        cityLatitude={
-                            city?.latitude ??
-                            0
-                        }
-                        cityLongitude={
-                            city?.longitude ??
-                            0
-                        }
-                        arena={
-                            data.overview.geo
-                                .arena
-                        }
-                        practiceFacility={
-                            data.overview.geo
-                                .practiceFacility
-                        }
-                        residentialAreas={
-                            data.overview.geo
-                                .residentialAreas
-                        }
-                        airports={
-                            data.overview.geo
-                                .airports
-                        }
-                        hospitals={
-                            data.overview.geo
-                                .hospitals
-                        }
-                        schools={
-                            data.overview.geo
-                                .schools
-                        }
-                        restaurants={
-                            data.overview.geo
-                                .restaurants
-                        }
-                        shopping={
-                            data.overview.geo
-                                .shopping
-                        }
-                        golfClubs={
-                            data.overview.geo
-                                .golfClubs
-                        }
-                        countryClubs={
-                            data.overview.geo
-                                .countryClubs
-                        }
-                        ski={
-                            data.overview.geo
-                                .ski
-                        }
-                        beaches={
-                            data.overview.geo
-                                .beaches
-                        }
-                        marinas={
-                            data.overview.geo
-                                .marinas
-                        }
-                    />
-
-                    <div>
+                    <div className="w-full min-w-0">
                         <div className="mb-4">
-
                             <p className="text-sm font-medium uppercase tracking-wide text-slate-500">
-                                Recommended Player
-                                Areas
+                                Recommended Player Areas
                             </p>
 
                             <p className="mt-1 text-sm text-slate-400">
-                                Residential areas
-                                commonly suited to
-                                NHL players and
-                                their families.
+                                Residential areas commonly suited to NHL
+                                players and their families.
                             </p>
-
                         </div>
 
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             {data.overview.geo.residentialAreas.map(
-                                (
-                                    area
-                                ) => (
+                                (area) => (
                                     <Neighbourhood
                                         key={`${area.rank}-${area.name}`}
                                         name={`${area.rank}. ${area.name}`}
-                                        detail={
-                                            area.reason
-                                        }
+                                        detail={area.reason}
                                     />
                                 )
                             )}
-
                         </div>
                     </div>
                 </div>
@@ -814,8 +658,7 @@ export default function CityPage() {
 
             value: selectedTaxTeam
                 ? formatCompactUSD(
-                      selectedTaxTeam
-                          .estimated_take_home_usd
+                      selectedTaxTeam.estimated_take_home_usd
                   )
                 : taxLoading
                 ? "..."
@@ -823,8 +666,7 @@ export default function CityPage() {
 
             detail: selectedTaxTeam
                 ? `#${selectedTaxTeam.take_home_rank} NHL · ${(
-                      selectedTaxTeam.effective_tax_rate *
-                      100
+                      selectedTaxTeam.effective_tax_rate * 100
                   ).toFixed(
                       2
                   )}% effective tax · ${formatCompactUSD(
@@ -834,110 +676,90 @@ export default function CityPage() {
                   "Estimated NHL take-home pay",
 
             content: (
-                <TaxComparisonPanel
-                    teams={
-                        taxComparison?.teams ??
-                        []
-                    }
-                    selectedTeamCode={
-                        selectedTeam
-                    }
-                    salaryInput={
-                        taxSalaryInput
-                    }
-                    loading={
-                        taxLoading
-                    }
-                    error={
-                        taxError
-                    }
-                    includeLocalTax={
-                        includeLocalTax
-                    }
-                    onSalaryInputChange={
-                        setTaxSalaryInput
-                    }
-                    onCalculate={
-                        calculateTaxSalary
-                    }
-                    onQuickSalary={
-                        selectQuickTaxSalary
-                    }
-                    onIncludeLocalTaxChange={
-                        setIncludeLocalTax
-                    }
-                />
+                <div className="w-full min-w-0 max-w-full">
+                    <TaxComparisonPanel
+                        teams={
+                            taxComparison?.teams ?? []
+                        }
+                        selectedTeamCode={
+                            selectedTeam
+                        }
+                        salaryInput={
+                            taxSalaryInput
+                        }
+                        loading={
+                            taxLoading
+                        }
+                        error={
+                            taxError
+                        }
+                        includeLocalTax={
+                            includeLocalTax
+                        }
+                        onSalaryInputChange={
+                            setTaxSalaryInput
+                        }
+                        onCalculate={
+                            calculateTaxSalary
+                        }
+                        onQuickSalary={
+                            selectQuickTaxSalary
+                        }
+                        onIncludeLocalTaxChange={
+                            setIncludeLocalTax
+                        }
+                    />
+                </div>
             ),
         },
     ];
 
-    const selectedCard =
-        cards.find(
-            (card) =>
-                card.id ===
-                openCard
-        );
+    const selectedCard = cards.find(
+        (card) =>
+            card.id === openCard
+    );
 
     return (
-        <main className="min-h-screen bg-slate-950 px-8 py-10">
+        <main className="min-h-screen overflow-x-hidden bg-slate-950 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+            <div className="mx-auto w-full min-w-0 max-w-7xl">
 
-            <div className="mx-auto max-w-7xl">
-
-                <div className="mb-8 flex items-center gap-5">
-
+                {/* CITY HEADER */}
+                <div className="mb-6 flex min-w-0 items-center gap-4 sm:mb-8 sm:gap-5">
                     <img
-                        src={
-                            data.team.logo
-                        }
-                        alt={
-                            data.team.name
-                        }
-                        className="h-16 w-16 object-contain"
+                        src={data.team.logo}
+                        alt={data.team.name}
+                        className="h-14 w-14 shrink-0 object-contain sm:h-16 sm:w-16"
                     />
 
-                    <div>
-
+                    <div className="min-w-0">
                         <p className="text-sm font-medium text-slate-500">
                             CITY
                         </p>
 
-                        <h1 className="text-4xl font-bold">
+                        <h1 className="break-words text-3xl font-bold text-white sm:text-4xl">
                             {city?.geocoded_city ??
-                                data.team
-                                    .venueLocation}
+                                data.team.venueLocation}
                         </h1>
 
-                        <p className="mt-1 text-slate-400">
+                        <p className="mt-1 break-words text-sm text-slate-400 sm:text-base">
                             {city
                                 ? `${city.state_province}, ${city.country}`
                                 : data.team.name}
                         </p>
-
                     </div>
                 </div>
 
-
+                {/* CLOSED CARD GRID */}
                 {!openCard && (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-
+                    <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {cards.map(
                             (card) => (
                                 <ExpandableCard
-                                    key={
-                                        card.id
-                                    }
-                                    title={
-                                        card.title
-                                    }
-                                    value={
-                                        card.value
-                                    }
-                                    detail={
-                                        card.detail
-                                    }
-                                    open={
-                                        false
-                                    }
+                                    key={card.id}
+                                    title={card.title}
+                                    value={card.value}
+                                    detail={card.detail}
+                                    open={false}
                                     onClick={() =>
                                         toggleCard(
                                             card.id
@@ -946,59 +768,46 @@ export default function CityPage() {
                                 />
                             )
                         )}
-
                     </div>
                 )}
 
-
+                {/* OPEN CARD LAYOUT */}
                 {openCard && (
-                    <>
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+                    <div className="w-full min-w-0 max-w-full">
 
+                        {/* COMPACT CARDS */}
+                        <div className="grid w-full min-w-0 grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                             {cards
                                 .filter(
-                                    (
-                                        card
-                                    ) =>
-                                        card.id !==
-                                        openCard
+                                    (card) =>
+                                        card.id !== openCard
                                 )
                                 .map(
-                                    (
-                                        card
-                                    ) => (
-                                        <ExpandableCard
-                                            key={
-                                                card.id
-                                            }
-                                            title={
-                                                card.title
-                                            }
-                                            value={
-                                                card.value
-                                            }
-                                            detail={
-                                                card.detail
-                                            }
-                                            compact
-                                            open={
-                                                false
-                                            }
-                                            onClick={() =>
-                                                toggleCard(
-                                                    card.id
-                                                )
-                                            }
-                                        />
+                                    (card) => (
+                                        <div
+                                            key={card.id}
+                                            className="min-w-0"
+                                        >
+                                            <ExpandableCard
+                                                title={card.title}
+                                                value={card.value}
+                                                detail={card.detail}
+                                                compact
+                                                open={false}
+                                                onClick={() =>
+                                                    toggleCard(
+                                                        card.id
+                                                    )
+                                                }
+                                            />
+                                        </div>
                                     )
                                 )}
-
                         </div>
 
-
+                        {/* EXPANDED CARD */}
                         {selectedCard && (
-                            <div className="mt-4">
-
+                            <div className="mt-4 w-full min-w-0 max-w-full overflow-hidden">
                                 <ExpandableCard
                                     title={
                                         selectedCard.title
@@ -1019,18 +828,16 @@ export default function CityPage() {
                                         )
                                     }
                                 >
-                                    {
-                                        selectedCard.content
-                                    }
+                                    <div className="w-full min-w-0 max-w-full">
+                                        {selectedCard.content}
+                                    </div>
                                 </ExpandableCard>
-
                             </div>
                         )}
-                    </>
+                    </div>
                 )}
 
             </div>
-
         </main>
     );
 }
@@ -1043,16 +850,14 @@ function Neighbourhood({
     detail: string;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
-
-            <p className="font-semibold">
+        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+            <p className="break-words font-semibold">
                 {name}
             </p>
 
-            <p className="mt-2 text-sm leading-5 text-slate-500">
+            <p className="mt-2 break-words text-sm leading-5 text-slate-500">
                 {detail}
             </p>
-
         </div>
     );
 }
@@ -1068,10 +873,9 @@ function formatSigned(
 function formatPoints(
     value: number
 ) {
-    const abs =
-        Math.abs(
-            value
-        ).toFixed(1);
+    const abs = Math.abs(
+        value
+    ).toFixed(1);
 
     if (value < 0) {
         return `${abs} pts below`;
@@ -1106,8 +910,7 @@ function truncate(
         return "City profile and local amenities";
     }
 
-    return value.length >
-        length
+    return value.length > length
         ? `${value.slice(
               0,
               length

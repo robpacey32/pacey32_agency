@@ -141,10 +141,10 @@ export default function TaxComparisonPanel({
         selectedTeam.local_tax_usd > 0;
 
     return (
-        <div className="space-y-8">
+        <div className="w-full min-w-0 max-w-full space-y-8">
 
             {/* SALARY */}
-            <div>
+            <div className="min-w-0">
                 <p className="text-sm font-medium uppercase tracking-wide text-slate-500">
                     NHL Salary
                 </p>
@@ -154,9 +154,9 @@ export default function TaxComparisonPanel({
                     across all 32 NHL teams.
                 </p>
 
-                <div className="mt-4 flex flex-wrap items-center gap-3">
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
 
-                    <div className="relative">
+                    <div className="relative w-full sm:w-auto">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
                             $
                         </span>
@@ -177,19 +177,19 @@ export default function TaxComparisonPanel({
                                     onCalculate();
                                 }
                             }}
-                            className="w-56 rounded-xl border border-slate-700 bg-slate-950 py-3 pl-8 pr-4 text-white outline-none focus:border-slate-500"
+                            className="w-full rounded-xl border border-slate-700 bg-slate-950 py-3 pl-8 pr-4 text-white outline-none focus:border-slate-500 sm:w-56"
                         />
                     </div>
 
                     <button
                         onClick={onCalculate}
-                        className="rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
+                        className="w-full rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-200 sm:w-auto"
                     >
                         Calculate
                     </button>
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                     {quickSalaries.map(
                         (salary) => (
                             <button
@@ -212,7 +212,7 @@ export default function TaxComparisonPanel({
 
 
             {loading && (
-                <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-6 text-slate-400">
+                <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-slate-400 sm:p-6">
                     Calculating tax comparison...
                 </div>
             )}
@@ -230,16 +230,16 @@ export default function TaxComparisonPanel({
                 selectedTeam && (
                     <>
                         {/* SELECTED TEAM */}
-                        <div>
+                        <div className="min-w-0">
                             <p className="mb-4 text-sm font-medium uppercase tracking-wide text-slate-500">
                                 Selected Team
                             </p>
 
-                            <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-6">
+                            <div className="w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-950/50 p-4 sm:p-6">
 
-                                <div className="flex items-start justify-between gap-6">
+                                <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
 
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex min-w-0 items-center gap-4">
 
                                         {selectedTeam.team_logo && (
                                             <img
@@ -247,18 +247,18 @@ export default function TaxComparisonPanel({
                                                     selectedTeam.team_logo
                                                 }
                                                 alt=""
-                                                className="h-16 w-16 object-contain"
+                                                className="h-14 w-14 shrink-0 object-contain sm:h-16 sm:w-16"
                                             />
                                         )}
 
-                                        <div>
+                                        <div className="min-w-0">
                                             <p className="text-sm text-slate-500">
                                                 {
                                                     selectedTeam.city_name
                                                 }
                                             </p>
 
-                                            <h3 className="text-2xl font-semibold text-white">
+                                            <h3 className="break-words text-xl font-semibold text-white sm:text-2xl">
                                                 {
                                                     selectedTeam.team_name
                                                 }
@@ -272,12 +272,12 @@ export default function TaxComparisonPanel({
                                         </div>
                                     </div>
 
-                                    <div className="text-right">
+                                    <div className="text-left sm:text-right">
                                         <p className="text-xs uppercase tracking-wide text-slate-500">
                                             NHL Take-Home Rank
                                         </p>
 
-                                        <p className="text-4xl font-bold text-white">
+                                        <p className="text-3xl font-bold text-white sm:text-4xl">
                                             #
                                             {
                                                 selectedTeam.take_home_rank
@@ -287,7 +287,7 @@ export default function TaxComparisonPanel({
                                 </div>
 
 
-                                <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
                                     <TaxMetric
                                         label="Gross Salary"
@@ -320,11 +320,11 @@ export default function TaxComparisonPanel({
 
 
                                 {/* RESIDENCY ASSUMPTION */}
-                                <div className="mt-7 rounded-xl border border-slate-800 bg-slate-950/60 p-5">
+                                <div className="mt-7 rounded-xl border border-slate-800 bg-slate-950/60 p-4 sm:p-5">
 
                                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
-                                        <div>
+                                        <div className="min-w-0">
                                             <p className="text-sm font-medium text-white">
                                                 Live within team city
                                             </p>
@@ -385,9 +385,9 @@ export default function TaxComparisonPanel({
                                 </div>
 
 
-                                <div className="mt-7 grid gap-6 lg:grid-cols-2">
+                                <div className="mt-7 grid grid-cols-1 gap-6 lg:grid-cols-2">
 
-                                    <div>
+                                    <div className="min-w-0">
                                         <p className="mb-4 text-sm font-medium text-slate-400">
                                             Tax Breakdown
                                         </p>
@@ -448,14 +448,14 @@ export default function TaxComparisonPanel({
                                     </div>
 
 
-                                    <div className="rounded-xl border border-slate-800 p-5">
+                                    <div className="min-w-0 rounded-xl border border-slate-800 p-4 sm:p-5">
 
                                         <p className="text-sm text-slate-500">
                                             Take-home vs NHL average
                                         </p>
 
                                         <p
-                                            className={`mt-2 text-3xl font-bold ${
+                                            className={`mt-2 break-words text-2xl font-bold sm:text-3xl ${
                                                 selectedTeam.vs_nhl_average_usd >=
                                                 0
                                                     ? "text-emerald-400"
@@ -476,7 +476,7 @@ export default function TaxComparisonPanel({
                                             NHL average take home
                                         </p>
 
-                                        <p className="mt-1 text-xl font-semibold">
+                                        <p className="mt-1 break-words text-xl font-semibold">
                                             {formatMoney(
                                                 selectedTeam.nhl_average_take_home_usd
                                             )}
@@ -488,7 +488,7 @@ export default function TaxComparisonPanel({
 
 
                         {/* NHL COMPARISON */}
-                        <div>
+                        <div className="min-w-0">
                             <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
 
                                 <div>
@@ -503,7 +503,7 @@ export default function TaxComparisonPanel({
 
 
                                 {/* METRIC SELECTOR */}
-                                <div className="inline-flex w-fit rounded-xl border border-slate-800 bg-slate-950 p-1">
+                                <div className="grid w-full grid-cols-2 gap-1 rounded-xl border border-slate-800 bg-slate-950 p-1 sm:inline-flex sm:w-fit">
 
                                     {chartOptions.map(
                                         (
@@ -518,7 +518,7 @@ export default function TaxComparisonPanel({
                                                         option.id
                                                     )
                                                 }
-                                                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                                                className={`rounded-lg px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm ${
                                                     chartMetric ===
                                                     option.id
                                                         ? "bg-slate-700 text-white"
@@ -535,10 +535,28 @@ export default function TaxComparisonPanel({
                             </div>
 
 
-                            {/* COLUMN CHART */}
-                            <div className="rounded-2xl border border-slate-800 bg-slate-950/50">
+                            <div className="w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-950/50">
 
-                                <div className="px-4 pb-6 pt-8 sm:px-5">
+                                {/* MOBILE RANKING */}
+                                <div className="p-3 sm:hidden">
+
+                                    <MobileTeamRanking
+                                        teams={
+                                            sortedTeams
+                                        }
+                                        metric={
+                                            chartMetric
+                                        }
+                                        selectedTeamCode={
+                                            selectedTeamCode
+                                        }
+                                    />
+
+                                </div>
+
+
+                                {/* DESKTOP / TABLET CHART */}
+                                <div className="hidden px-4 pb-6 pt-8 sm:block sm:px-5">
 
                                     <ColumnChart
                                         teams={
@@ -584,6 +602,163 @@ export default function TaxComparisonPanel({
                         </div>
                     </>
                 )}
+        </div>
+    );
+}
+
+
+function MobileTeamRanking({
+    teams,
+    metric,
+    selectedTeamCode,
+}: {
+    teams: TaxTeam[];
+    metric: ChartMetric;
+    selectedTeamCode: string;
+}) {
+    const maxValue =
+        Math.max(
+            ...teams.map((team) =>
+                Math.abs(
+                    getMetricValue(
+                        team,
+                        metric
+                    )
+                )
+            ),
+            1
+        );
+
+    return (
+        <div className="space-y-1">
+
+            {teams.map(
+                (team, index) => {
+                    const value =
+                        getMetricValue(
+                            team,
+                            metric
+                        );
+
+                    const selected =
+                        team.team_code ===
+                        selectedTeamCode;
+
+                    const width =
+                        Math.max(
+                            4,
+                            (
+                                Math.abs(
+                                    value
+                                ) /
+                                maxValue
+                            ) *
+                                100
+                        );
+
+                    return (
+                        <div
+                            key={
+                                team.team_code
+                            }
+                            className={`rounded-xl border p-3 ${
+                                selected
+                                    ? "border-slate-500 bg-slate-800/80"
+                                    : "border-transparent bg-slate-950/30"
+                            }`}
+                        >
+                            <div className="flex min-w-0 items-center gap-3">
+
+                                <span className="w-5 shrink-0 text-center text-xs text-slate-600">
+                                    {index + 1}
+                                </span>
+
+                                {team.team_logo && (
+                                    <img
+                                        src={
+                                            team.team_logo
+                                        }
+                                        alt={
+                                            team.team_name
+                                        }
+                                        className="h-8 w-8 shrink-0 object-contain"
+                                    />
+                                )}
+
+                                <div className="min-w-0 flex-1">
+
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <p
+                                                className={`truncate text-sm font-semibold ${
+                                                    selected
+                                                        ? "text-white"
+                                                        : "text-slate-300"
+                                                }`}
+                                            >
+                                                {
+                                                    team.team_code
+                                                }
+                                            </p>
+
+                                            <p className="truncate text-xs text-slate-600">
+                                                {
+                                                    team.city_name
+                                                }
+                                            </p>
+                                        </div>
+
+                                        <p
+                                            className={`shrink-0 text-sm font-semibold ${
+                                                metric ===
+                                                    "vs-average" &&
+                                                value > 0
+                                                    ? "text-emerald-400"
+                                                    : metric ===
+                                                          "vs-average" &&
+                                                      value < 0
+                                                    ? "text-red-400"
+                                                    : selected
+                                                    ? "text-white"
+                                                    : "text-slate-300"
+                                            }`}
+                                        >
+                                            {formatChartValue(
+                                                value,
+                                                metric
+                                            )}
+                                        </p>
+                                    </div>
+
+                                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800">
+                                        <div
+                                            className={`h-full rounded-full ${
+                                                selected
+                                                    ? "bg-slate-200"
+                                                    : metric ===
+                                                          "vs-average" &&
+                                                      value >=
+                                                          0
+                                                    ? "bg-emerald-700"
+                                                    : metric ===
+                                                          "vs-average" &&
+                                                      value <
+                                                          0
+                                                    ? "bg-red-800"
+                                                    : "bg-slate-600"
+                                            }`}
+                                            style={{
+                                                width: `${width}%`,
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+            )}
+
         </div>
     );
 }
@@ -637,7 +812,7 @@ function ColumnChart({
 
     if (isVsAverage) {
         return (
-            <div className="w-full">
+            <div className="w-full min-w-0">
 
                 {/* POSITIVE HALF */}
                 <div className="relative h-48">
@@ -707,7 +882,7 @@ function ColumnChart({
                                         {value >
                                             0 && (
                                             <div
-                                                className={`w-[70%] min-w-[8px] max-w-[32px] rounded-t-md transition-all duration-300 ${
+                                                className={`w-[70%] min-w-[4px] max-w-[32px] rounded-t-md transition-all duration-300 ${
                                                     selected
                                                         ? "bg-slate-200"
                                                         : "bg-emerald-700 hover:bg-emerald-600"
@@ -787,7 +962,7 @@ function ColumnChart({
                                         {value <
                                             0 && (
                                             <div
-                                                className={`w-[70%] min-w-[8px] max-w-[32px] rounded-b-md transition-all duration-300 ${
+                                                className={`w-[70%] min-w-[4px] max-w-[32px] rounded-b-md transition-all duration-300 ${
                                                     selected
                                                         ? "bg-slate-200"
                                                         : "bg-red-800 hover:bg-red-700"
@@ -852,7 +1027,7 @@ function ColumnChart({
 
 
     return (
-        <div className="w-full">
+        <div className="w-full min-w-0">
 
             {/* MAIN CHART */}
             <div className="relative h-80">
@@ -916,7 +1091,7 @@ function ColumnChart({
                                     )}
 
                                     <div
-                                        className={`w-[70%] min-w-[8px] max-w-[32px] rounded-t-md transition-all duration-300 ${
+                                        className={`w-[70%] min-w-[4px] max-w-[32px] rounded-t-md transition-all duration-300 ${
                                             selected
                                                 ? "bg-slate-200"
                                                 : "bg-slate-700 hover:bg-slate-600"
@@ -1122,7 +1297,7 @@ function SelectedChartSummary({
     return (
         <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800 pt-4">
 
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
 
                 {team.team_logo && (
                     <img
@@ -1132,16 +1307,16 @@ function SelectedChartSummary({
                         alt={
                             team.team_name
                         }
-                        className="h-9 w-9 object-contain"
+                        className="h-9 w-9 shrink-0 object-contain"
                     />
                 )}
 
-                <div>
+                <div className="min-w-0">
                     <p className="text-xs uppercase tracking-wide text-slate-500">
                         Selected Team
                     </p>
 
-                    <p className="font-semibold text-white">
+                    <p className="break-words font-semibold text-white">
                         {
                             team.team_name
                         }
@@ -1251,13 +1426,13 @@ function TaxMetric({
     value: string;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 p-4">
+        <div className="min-w-0 rounded-xl border border-slate-800 p-4">
 
             <p className="text-xs uppercase tracking-wide text-slate-500">
                 {label}
             </p>
 
-            <p className="mt-2 text-2xl font-semibold">
+            <p className="mt-2 break-words text-xl font-semibold sm:text-2xl">
                 {value}
             </p>
 
@@ -1277,17 +1452,17 @@ function TaxRow({
 }) {
     return (
         <div
-            className={`flex justify-between gap-4 ${
+            className={`flex min-w-0 justify-between gap-4 ${
                 strong
                     ? "font-semibold text-white"
                     : "text-slate-400"
             }`}
         >
-            <span>
+            <span className="min-w-0 break-words">
                 {label}
             </span>
 
-            <span>
+            <span className="shrink-0">
                 {value < 0
                     ? "-"
                     : ""}

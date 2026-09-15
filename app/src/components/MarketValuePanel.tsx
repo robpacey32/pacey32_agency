@@ -15,7 +15,12 @@ export interface MarketValueComparable {
 export interface MarketValueDriver {
     label: string;
     detail: string;
-    impact: "increase" | "slight_increase" | "neutral" | "slight_decrease" | "decrease";
+    impact:
+        | "increase"
+        | "slight_increase"
+        | "neutral"
+        | "slight_decrease"
+        | "decrease";
 }
 
 export interface MarketValueData {
@@ -50,53 +55,60 @@ export default function MarketValuePanel({
     data: MarketValueData;
 }) {
     return (
-        <div className="space-y-5">
+        <div className="w-full min-w-0 max-w-full space-y-5">
 
             {/* Intro */}
-            <div className="flex flex-col gap-3 border-b border-slate-800 pb-5 lg:flex-row lg:items-end lg:justify-between">
 
-                <div>
+            <div className="flex min-w-0 flex-col gap-3 border-b border-slate-800 pb-5 lg:flex-row lg:items-end lg:justify-between">
+
+                <div className="min-w-0">
+
                     <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">
                         Market Value
                     </div>
 
-                    <div className="mt-1 text-sm text-slate-400">
+                    <div className="mt-1 max-w-4xl text-sm leading-6 text-slate-400">
                         Estimated fair market value using comparable contracts,
                         player profile, performance, trajectory and the cap environment.
                     </div>
+
                 </div>
 
-                <div className="text-xs text-slate-500">
+                <div className="shrink-0 text-xs text-slate-500">
                     Predictive valuation
                 </div>
 
             </div>
 
+
             {/* Player */}
-            <div className="rounded-xl border border-slate-800 bg-slate-950/30 p-5">
 
-                <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
+            <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-950/30 p-4 sm:p-5">
 
-                    <div className="flex items-center gap-4">
+                <div className="flex min-w-0 flex-col justify-between gap-5 lg:flex-row lg:items-center">
+
+                    <div className="flex min-w-0 items-center gap-3 sm:gap-4">
 
                         <PlayerHeadshot
                             name={data.player}
                             url={data.headshot_url}
                         />
 
-                        <div>
-                            <div className="text-2xl font-bold text-white">
+                        <div className="min-w-0">
+
+                            <div className="break-words text-xl font-bold text-white sm:text-2xl">
                                 {data.player}
                             </div>
 
                             <div className="mt-1 text-sm text-slate-400">
                                 {data.position}
                             </div>
+
                         </div>
 
                     </div>
 
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-3">
+                    <div className="grid w-full min-w-0 grid-cols-2 gap-x-5 gap-y-4 text-sm sm:grid-cols-4 lg:w-auto lg:grid-cols-2 lg:gap-x-8 xl:grid-cols-4">
 
                         <Info
                             label="Age"
@@ -139,14 +151,16 @@ export default function MarketValuePanel({
 
             </div>
 
+
             {/* Main valuation */}
-            <div className="rounded-xl border border-emerald-900/60 bg-emerald-950/10 p-5">
+
+            <div className="w-full min-w-0 rounded-xl border border-emerald-900/60 bg-emerald-950/10 p-4 sm:p-5">
 
                 <div className="text-sm font-semibold text-slate-300">
                     Estimated Market Value
                 </div>
 
-                <div className="mt-5 grid gap-5 md:grid-cols-3">
+                <div className="mt-5 grid grid-cols-1 gap-0 sm:grid-cols-3">
 
                     <ValuationMetric
                         value={rangeMoney(
@@ -176,36 +190,48 @@ export default function MarketValuePanel({
 
             </div>
 
+
             {/* Comparable evidence */}
-            <div className="rounded-xl border border-slate-800 bg-slate-950/30 p-5">
 
-                <div className="mb-4 flex items-center justify-between">
+            <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-950/30 p-4 sm:p-5">
 
-                    <div>
+                <div className="mb-4 flex min-w-0 items-center justify-between">
+
+                    <div className="min-w-0">
+
                         <div className="text-sm font-semibold text-white">
                             Comparable Contract Evidence
                         </div>
 
-                        <div className="mt-1 text-xs text-slate-500">
+                        <div className="mt-1 text-xs leading-5 text-slate-500">
                             Highest-ranked statistical comparables with current contract data.
                         </div>
+
                     </div>
 
                 </div>
 
                 <div className="space-y-2">
-                    {data.comparables.slice(0, 5).map((player) => (
-                        <ComparableContractRow
-                            key={player.playerId}
-                            player={player}
-                        />
-                    ))}
+
+                    {data.comparables
+                        .slice(0, 5)
+                        .map(
+                            (player) => (
+                                <ComparableContractRow
+                                    key={player.playerId}
+                                    player={player}
+                                />
+                            )
+                        )}
+
                 </div>
 
             </div>
 
+
             {/* Valuation drivers */}
-            <div className="rounded-xl border border-slate-800 bg-slate-950/30 p-5">
+
+            <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-950/30 p-4 sm:p-5">
 
                 <div className="text-sm font-semibold text-white">
                     Valuation Drivers
@@ -213,19 +239,23 @@ export default function MarketValuePanel({
 
                 <div className="mt-4 divide-y divide-slate-800">
 
-                    {data.drivers.map((driver) => (
-                        <DriverRow
-                            key={driver.label}
-                            driver={driver}
-                        />
-                    ))}
+                    {data.drivers.map(
+                        (driver) => (
+                            <DriverRow
+                                key={driver.label}
+                                driver={driver}
+                            />
+                        )
+                    )}
 
                 </div>
 
             </div>
 
+
             {/* Disclaimer */}
-            <div className="rounded-lg border border-emerald-900/50 bg-emerald-950/10 px-4 py-3 text-xs leading-relaxed text-slate-400">
+
+            <div className="w-full min-w-0 rounded-lg border border-emerald-900/50 bg-emerald-950/10 px-4 py-3 text-xs leading-relaxed text-slate-400">
                 Market Value estimates a fair contract range from statistical
                 comparables and contextual factors. It is a modelling estimate,
                 not a prediction of the exact contract a player will sign.
@@ -234,6 +264,7 @@ export default function MarketValuePanel({
         </div>
     );
 }
+
 
 // ---------------------------------------------------------
 // COMPARABLE CONTRACT
@@ -245,9 +276,9 @@ function ComparableContractRow({
     player: MarketValueComparable;
 }) {
     return (
-        <div className="grid gap-4 rounded-lg border border-slate-800 bg-slate-900/20 px-4 py-3 md:grid-cols-[1.6fr_1fr_1fr_1fr] md:items-center">
+        <div className="grid min-w-0 grid-cols-2 gap-x-4 gap-y-4 rounded-lg border border-slate-800 bg-slate-900/20 px-3 py-3 sm:px-4 md:grid-cols-[1.6fr_1fr_1fr_1fr] md:items-center md:gap-4">
 
-            <div className="flex items-center gap-3">
+            <div className="col-span-2 flex min-w-0 items-center gap-3 md:col-span-1">
 
                 <PlayerHeadshot
                     name={player.player}
@@ -269,27 +300,29 @@ function ComparableContractRow({
 
             </div>
 
-            <div>
+
+            <div className="col-span-2 min-w-0 md:col-span-1">
 
                 <div className="text-xs text-slate-500">
                     Similarity
                 </div>
 
-                <div className="mt-1 flex items-center gap-3">
+                <div className="mt-1 flex min-w-0 items-center gap-3">
 
-                    <div className="w-20">
+                    <div className="min-w-0 flex-1 md:w-20 md:flex-none">
                         <SimilarityBar
                             value={player.similarity}
                         />
                     </div>
 
-                    <span className="text-sm font-semibold text-white">
+                    <span className="shrink-0 text-sm font-semibold text-white">
                         {player.similarity.toFixed(1)}%
                     </span>
 
                 </div>
 
             </div>
+
 
             <Info
                 label="AAV"
@@ -313,6 +346,7 @@ function ComparableContractRow({
     );
 }
 
+
 // ---------------------------------------------------------
 // VALUATION DRIVER
 // ---------------------------------------------------------
@@ -323,13 +357,13 @@ function DriverRow({
     driver: MarketValueDriver;
 }) {
     return (
-        <div className="grid gap-2 py-3 md:grid-cols-[180px_1fr_140px] md:items-center">
+        <div className="grid min-w-0 grid-cols-1 gap-2 py-4 md:grid-cols-[180px_minmax(0,1fr)_140px] md:items-center md:gap-4 md:py-3">
 
-            <div className="text-sm font-medium text-slate-300">
+            <div className="min-w-0 text-sm font-medium text-slate-300">
                 {driver.label}
             </div>
 
-            <div className="text-sm text-slate-500">
+            <div className="min-w-0 break-words text-sm leading-5 text-slate-500">
                 {driver.detail}
             </div>
 
@@ -345,6 +379,7 @@ function DriverRow({
     );
 }
 
+
 // ---------------------------------------------------------
 // VALUATION KPI
 // ---------------------------------------------------------
@@ -357,9 +392,9 @@ function ValuationMetric({
     label: string;
 }) {
     return (
-        <div className="border-slate-800 md:border-r md:last:border-r-0">
+        <div className="min-w-0 border-b border-slate-800 py-4 first:pt-0 last:border-b-0 last:pb-0 sm:border-b-0 sm:border-r sm:px-5 sm:py-0 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0">
 
-            <div className="text-2xl font-bold text-emerald-400 lg:text-3xl">
+            <div className="break-words text-2xl font-bold text-emerald-400 lg:text-3xl">
                 {value}
             </div>
 
@@ -370,6 +405,7 @@ function ValuationMetric({
         </div>
     );
 }
+
 
 // ---------------------------------------------------------
 // HEADSHOT
@@ -387,7 +423,7 @@ function PlayerHeadshot({
     const size =
         small
             ? "h-10 w-10"
-            : "h-20 w-20";
+            : "h-16 w-16 sm:h-20 sm:w-20";
 
     return (
         <div
@@ -415,6 +451,7 @@ function PlayerHeadshot({
     );
 }
 
+
 // ---------------------------------------------------------
 // INFO
 // ---------------------------------------------------------
@@ -427,19 +464,20 @@ function Info({
     value: string;
 }) {
     return (
-        <div>
+        <div className="min-w-0">
 
             <div className="text-xs text-slate-500">
                 {label}
             </div>
 
-            <div className="mt-0.5 text-sm font-medium text-slate-300">
+            <div className="mt-0.5 break-words text-sm font-medium text-slate-300">
                 {value}
             </div>
 
         </div>
     );
 }
+
 
 // ---------------------------------------------------------
 // SIMILARITY BAR
@@ -460,7 +498,7 @@ function SimilarityBar({
         );
 
     return (
-        <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+        <div className="h-2 w-full min-w-0 overflow-hidden rounded-full bg-slate-800">
 
             <div
                 className={`h-full rounded-full ${similarityColour(
@@ -496,6 +534,7 @@ function similarityColour(
 
     return "bg-rose-500";
 }
+
 
 // ---------------------------------------------------------
 // IMPACT
@@ -542,6 +581,7 @@ function impactLabel(
             return "Decreases value";
     }
 }
+
 
 // ---------------------------------------------------------
 // FORMATTERS

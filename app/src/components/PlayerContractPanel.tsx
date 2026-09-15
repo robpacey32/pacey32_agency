@@ -214,12 +214,12 @@ function Detail({
     value: React.ReactNode;
 }) {
     return (
-        <div>
+        <div className="min-w-0">
             <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-500">
                 {label}
             </p>
 
-            <div className="text-sm font-semibold text-slate-100">
+            <div className="break-words text-sm font-semibold text-slate-100">
                 {value}
             </div>
         </div>
@@ -239,7 +239,7 @@ function HeadlineMetric({
     detail?: React.ReactNode;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/50 p-4">
             <div className="mb-3 text-slate-400">
                 {icon}
             </div>
@@ -248,7 +248,7 @@ function HeadlineMetric({
                 {label}
             </p>
 
-            <div className="mt-1 text-xl font-semibold text-white">
+            <div className="mt-1 break-words text-xl font-semibold text-white">
                 {value}
             </div>
 
@@ -489,7 +489,7 @@ export default function PlayerContractPanel({
 
     if (!current) {
         return (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 text-sm text-slate-400">
+            <div className="w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-400 sm:p-6">
                 No contract information available.
             </div>
         );
@@ -681,20 +681,20 @@ export default function PlayerContractPanel({
         ];
 
     return (
-        <div className="space-y-5">
+        <div className="w-full min-w-0 max-w-full space-y-5">
 
             {/* CURRENT CONTRACT */}
 
-            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+            <section className="w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
 
-                <div className="mb-5 flex items-start justify-between gap-5">
+                <div className="mb-5 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-5">
 
-                    <div>
+                    <div className="min-w-0">
                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                             Current Contract
                         </p>
 
-                        <h2 className="mt-1 text-xl font-semibold text-white">
+                        <h2 className="mt-1 break-words text-lg font-semibold text-white sm:text-xl">
                             {
                                 current.season_from
                                 ?? "—"
@@ -708,7 +708,7 @@ export default function PlayerContractPanel({
                     </div>
 
                     {current.expiry_status && (
-                        <div className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-200">
+                        <div className="w-fit shrink-0 rounded-full border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-200">
                             {
                                 current.expiry_status
                             }
@@ -722,7 +722,7 @@ export default function PlayerContractPanel({
                 </div>
 
 
-                <div className="grid min-w-[1200px] grid-cols-6 gap-3 overflow-x-auto">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
 
                     <HeadlineMetric
                         icon={
@@ -813,15 +813,15 @@ export default function PlayerContractPanel({
 
             {/* SIGNING + CONTRACT STATUS */}
 
-            <section className="grid min-w-[1050px] grid-cols-[1.5fr_1fr] gap-5 overflow-x-auto">
+            <section className="grid w-full min-w-0 grid-cols-1 gap-5 lg:grid-cols-[1.5fr_1fr]">
 
-                <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+                <div className="min-w-0 rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
 
                     <div className="mb-5 flex items-center gap-2">
 
                         <FileSignature
                             size={18}
-                            className="text-slate-400"
+                            className="shrink-0 text-slate-400"
                         />
 
                         <h3 className="font-semibold text-white">
@@ -831,7 +831,7 @@ export default function PlayerContractPanel({
                     </div>
 
 
-                    <div className="grid grid-cols-4 gap-x-6 gap-y-5">
+                    <div className="grid grid-cols-1 gap-x-6 gap-y-5 min-[420px]:grid-cols-2 xl:grid-cols-4">
 
                         <Detail
                             label="Signed"
@@ -843,7 +843,7 @@ export default function PlayerContractPanel({
                         <Detail
                             label="Signing Team"
                             value={
-                                <div className="flex items-center gap-2">
+                                <div className="flex min-w-0 items-center gap-2">
 
                                     {current
                                         .signing_team_logo && (
@@ -853,11 +853,11 @@ export default function PlayerContractPanel({
                                                     .signing_team_logo
                                             }
                                             alt=""
-                                            className="h-6 w-6 object-contain"
+                                            className="h-6 w-6 shrink-0 object-contain"
                                         />
                                     )}
 
-                                    <span>
+                                    <span className="min-w-0 break-words">
                                         {
                                             current
                                                 .signing_team
@@ -915,13 +915,13 @@ export default function PlayerContractPanel({
                 </div>
 
 
-                <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+                <div className="min-w-0 rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
 
                     <div className="mb-5 flex items-center gap-2">
 
                         <UserRound
                             size={18}
-                            className="text-slate-400"
+                            className="shrink-0 text-slate-400"
                         />
 
                         <h3 className="font-semibold text-white">
@@ -931,7 +931,7 @@ export default function PlayerContractPanel({
                     </div>
 
 
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="grid grid-cols-1 gap-x-6 gap-y-5 min-[420px]:grid-cols-2">
 
                         <Detail
                             label="Expiry"
@@ -974,11 +974,11 @@ export default function PlayerContractPanel({
 
             {/* CONTRACT HISTORY */}
 
-            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+            <section className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
 
-                <div className="mb-6 flex items-start justify-between gap-5">
+                <div className="mb-6 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-5">
 
-                    <div>
+                    <div className="min-w-0">
                         <h3 className="font-semibold text-white">
                             Contract History
                         </h3>
@@ -989,7 +989,7 @@ export default function PlayerContractPanel({
                     </div>
 
 
-                    <div className="flex rounded-lg border border-slate-800 bg-slate-950 p-1">
+                    <div className="grid w-full grid-cols-3 rounded-lg border border-slate-800 bg-slate-950 p-1 sm:w-auto">
 
                         {contractMetrics.map(
                             metric => (
@@ -1003,7 +1003,7 @@ export default function PlayerContractPanel({
                                             metric.key
                                         )
                                     }
-                                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                                    className={`min-w-0 rounded-md px-2 py-1.5 text-[11px] font-medium transition sm:px-3 sm:text-xs ${
                                         contractMetric ===
                                         metric.key
                                             ? "bg-slate-700 text-white"
@@ -1022,7 +1022,7 @@ export default function PlayerContractPanel({
                 </div>
 
 
-                <div className="h-[380px] min-w-[900px]">
+                <div className="h-[300px] w-full min-w-0 sm:h-[340px] lg:h-[380px]">
 
                     <ResponsiveContainer
                         width="100%"
@@ -1035,8 +1035,8 @@ export default function PlayerContractPanel({
                             }
                             margin={{
                                 top: 30,
-                                right: 30,
-                                left: 15,
+                                right: 8,
+                                left: -18,
                                 bottom: 10,
                             }}
                         >
@@ -1089,7 +1089,7 @@ export default function PlayerContractPanel({
                                     fill:
                                         "#94a3b8",
                                     fontSize:
-                                        12,
+                                        10,
                                 }}
                                 tickLine={
                                     false
@@ -1098,6 +1098,7 @@ export default function PlayerContractPanel({
                                     stroke:
                                         "#334155",
                                 }}
+                                minTickGap={18}
                             />
 
                             <YAxis
@@ -1106,7 +1107,7 @@ export default function PlayerContractPanel({
                                     fill:
                                         "#94a3b8",
                                     fontSize:
-                                        12,
+                                        10,
                                 }}
                                 tickLine={
                                     false
@@ -1123,10 +1124,11 @@ export default function PlayerContractPanel({
                                         : money(
                                               Number(
                                                   value
-                                              )
+                                              ),
+                                              1
                                           )
                                 }
-                                width={80}
+                                width={68}
                             />
 
                             <Tooltip
@@ -1139,6 +1141,8 @@ export default function PlayerContractPanel({
                                         "10px",
                                     color:
                                         "#e2e8f0",
+                                    fontSize:
+                                        "12px",
                                 }}
                                 labelStyle={{
                                     color:
@@ -1177,7 +1181,7 @@ export default function PlayerContractPanel({
                             <Legend
                                 wrapperStyle={{
                                     fontSize:
-                                        "12px",
+                                        "11px",
                                     color:
                                         "#94a3b8",
                                 }}

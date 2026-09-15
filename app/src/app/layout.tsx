@@ -14,11 +14,17 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
-            <body className="bg-slate-950 text-white">
+        <html
+            lang="en"
+            className="w-full min-w-0 bg-slate-950"
+        >
+            <body className="w-full min-w-0 max-w-full overflow-x-hidden bg-slate-950 text-white">
                 <AppProvider>
                     <Header />
-                    {children}
+
+                    <div className="w-full min-w-0 max-w-full">
+                        {children}
+                    </div>
                 </AppProvider>
             </body>
         </html>

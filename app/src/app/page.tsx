@@ -46,17 +46,17 @@ export default function HomePage() {
     const router = useRouter();
 
     return (
-        <main className="min-h-screen bg-slate-950 px-8 py-12">
-            <div className="mx-auto max-w-7xl">
+        <main className="min-h-screen overflow-x-hidden bg-slate-950 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
+            <div className="mx-auto w-full min-w-0 max-w-7xl">
 
                 {/* HERO */}
-                <section className="py-16">
+                <section className="py-10 sm:py-12 lg:py-16">
 
-                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-sm sm:tracking-[0.2em]">
                         Pacey32 Analytics
                     </p>
 
-                    <div className="mt-4 flex items-center gap-8">
+                    <div className="mt-4 flex min-w-0 items-center gap-6 md:gap-8">
 
                         <Image
                             src="/32Logo.png"
@@ -67,13 +67,13 @@ export default function HomePage() {
                             className="hidden h-auto w-28 shrink-0 object-contain sm:block md:w-36"
                         />
 
-                        <h1 className="max-w-4xl text-5xl font-bold tracking-tight text-white md:text-6xl">
+                        <h1 className="min-w-0 max-w-4xl text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
                             Decision support for hockey agents.
                         </h1>
 
                     </div>
 
-                    <p className="mt-6 max-w-3xl text-xl leading-8 text-slate-400">
+                    <p className="mt-5 max-w-3xl text-lg leading-7 text-slate-400 sm:mt-6 sm:text-xl sm:leading-8">
                         Understand the financial,
                         lifestyle and performance
                         implications of where a
@@ -82,7 +82,7 @@ export default function HomePage() {
                         worth.
                     </p>
 
-                    <div className="mt-8 flex flex-wrap gap-3">
+                    <div className="mt-7 grid w-full grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:mt-8 sm:flex sm:w-auto sm:flex-wrap">
 
                         <button
                             onClick={() =>
@@ -106,7 +106,7 @@ export default function HomePage() {
                             onClick={() =>
                                 router.push("/city")
                             }
-                            className="rounded-lg border border-slate-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-slate-500 hover:bg-slate-900"
+                            className="rounded-lg border border-slate-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-slate-500 hover:bg-slate-900 min-[420px]:col-span-2 sm:col-span-1"
                         >
                             Explore a City
                         </button>
@@ -117,22 +117,22 @@ export default function HomePage() {
 
 
                 {/* QUESTIONS */}
-                <section className="border-t border-slate-800 py-14">
+                <section className="border-t border-slate-800 py-10 sm:py-12 lg:py-14">
 
-                    <div className="mb-8">
+                    <div className="mb-6 sm:mb-8">
 
-                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 sm:text-sm">
                             Questions this can answer
                         </p>
 
-                        <h2 className="mt-2 text-3xl font-bold text-white">
+                        <h2 className="mt-2 max-w-3xl text-2xl font-bold text-white sm:text-3xl">
                             Start with the question,
                             not the data.
                         </h2>
 
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid w-full min-w-0 grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
 
                         {questions.map((item) => (
                             <button
@@ -140,20 +140,20 @@ export default function HomePage() {
                                 onClick={() =>
                                     router.push(item.route)
                                 }
-                                className="group flex min-h-[150px] flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/40 p-5 text-left transition hover:border-slate-600 hover:bg-slate-900"
+                                className="group flex min-h-[130px] min-w-0 flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-left transition hover:border-slate-600 hover:bg-slate-900 sm:min-h-[150px] sm:p-5"
                             >
 
-                                <p className="text-sm font-normal leading-6 text-slate-200">
+                                <p className="break-words text-sm font-normal leading-6 text-slate-200">
                                     “{item.question}”
                                 </p>
 
-                                <div className="mt-5 flex items-center justify-between">
+                                <div className="mt-4 flex min-w-0 items-center justify-between gap-3 sm:mt-5">
 
-                                    <span className="text-xs font-normal text-slate-500">
+                                    <span className="min-w-0 text-xs font-normal text-slate-500">
                                         {item.area}
                                     </span>
 
-                                    <span className="text-sm text-slate-600 transition group-hover:translate-x-1 group-hover:text-white">
+                                    <span className="shrink-0 text-sm text-slate-600 transition group-hover:translate-x-1 group-hover:text-white">
                                         →
                                     </span>
 
@@ -168,15 +168,15 @@ export default function HomePage() {
 
 
                 {/* HOW IT WORKS */}
-                <section className="border-t border-slate-800 py-14">
+                <section className="border-t border-slate-800 py-10 sm:py-12 lg:py-14">
 
-                    <div className="mb-10">
+                    <div className="mb-7 sm:mb-10">
 
-                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 sm:text-sm">
                             How it works
                         </p>
 
-                        <h2 className="mt-2 text-3xl font-bold text-white">
+                        <h2 className="mt-2 max-w-3xl text-2xl font-bold text-white sm:text-3xl">
                             We provide the data.
                             You make the decisions.
                         </h2>
@@ -185,7 +185,7 @@ export default function HomePage() {
 
 
                     {/* DESKTOP PROCESS FLOW */}
-                    <div className="hidden items-stretch lg:flex">
+                    <div className="hidden min-w-0 items-stretch lg:flex">
 
                         <ProcessStep
                             number="01"
@@ -213,7 +213,7 @@ export default function HomePage() {
 
 
                     {/* MOBILE PROCESS FLOW */}
-                    <div className="space-y-3 lg:hidden">
+                    <div className="w-full min-w-0 space-y-2 lg:hidden">
 
                         <ProcessStep
                             number="01"
@@ -221,7 +221,7 @@ export default function HomePage() {
                             detail="Choose the player, team or city you want to evaluate."
                         />
 
-                        <div className="text-center text-2xl text-slate-600">
+                        <div className="py-1 text-center text-2xl text-slate-600">
                             ↓
                         </div>
 
@@ -231,7 +231,7 @@ export default function HomePage() {
                             detail="Performance, contracts, schedules, tax, cost of living, organisation and location data are brought together."
                         />
 
-                        <div className="text-center text-2xl text-slate-600">
+                        <div className="py-1 text-center text-2xl text-slate-600">
                             ↓
                         </div>
 
@@ -247,9 +247,9 @@ export default function HomePage() {
 
 
                 {/* CAPABILITIES */}
-                <section className="border-t border-slate-800 py-14">
+                <section className="border-t border-slate-800 py-10 sm:py-12 lg:py-14">
 
-                    <div className="grid gap-4 lg:grid-cols-3">
+                    <div className="grid w-full min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 
                         <Capability
                             title="City"
@@ -310,17 +310,17 @@ function ProcessStep({
     detail: string;
 }) {
     return (
-        <div className="flex-1 rounded-2xl border border-slate-800 bg-slate-900/30 p-6">
+        <div className="min-w-0 flex-1 rounded-2xl border border-slate-800 bg-slate-900/30 p-5 sm:p-6">
 
             <p className="text-sm font-semibold text-slate-600">
                 {number}
             </p>
 
-            <h3 className="mt-3 text-xl font-semibold text-white">
+            <h3 className="mt-3 break-words text-lg font-semibold text-white sm:text-xl">
                 {title}
             </h3>
 
-            <p className="mt-3 leading-6 text-slate-400">
+            <p className="mt-3 break-words text-sm leading-6 text-slate-400 sm:text-base">
                 {detail}
             </p>
 
@@ -358,32 +358,32 @@ function Capability({
             onClick={() =>
                 onNavigate(route)
             }
-            className="group rounded-2xl border border-slate-800 bg-slate-900/30 p-6 text-left transition hover:border-slate-600 hover:bg-slate-900"
+            className="group min-w-0 rounded-2xl border border-slate-800 bg-slate-900/30 p-5 text-left transition hover:border-slate-600 hover:bg-slate-900 sm:p-6"
         >
 
-            <div className="flex items-center justify-between">
+            <div className="flex min-w-0 items-center justify-between gap-3">
 
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="min-w-0 text-lg font-semibold text-white sm:text-xl">
                     {title}
                 </h3>
 
-                <span className="text-slate-600 transition group-hover:translate-x-1 group-hover:text-white">
+                <span className="shrink-0 text-slate-600 transition group-hover:translate-x-1 group-hover:text-white">
                     →
                 </span>
 
             </div>
 
-            <div className="mt-5 space-y-3">
+            <div className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3">
 
                 {items.map((item) => (
                     <div
                         key={item}
-                        className="flex items-center gap-3 text-slate-400"
+                        className="flex min-w-0 items-center gap-3 text-sm text-slate-400 sm:text-base"
                     >
 
-                        <div className="h-1.5 w-1.5 rounded-full bg-slate-600" />
+                        <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-slate-600" />
 
-                        <span>
+                        <span className="min-w-0 break-words">
                             {item}
                         </span>
 

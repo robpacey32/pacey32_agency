@@ -275,22 +275,22 @@ export default function PlayerPerformancePanel({
 
     if (!latest) {
         return (
-            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 text-sm text-slate-400">
+            <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-400 sm:p-6">
                 No regular-season performance data available.
             </div>
         );
     }
 
     return (
-        <div className="space-y-5">
+        <div className="w-full min-w-0 max-w-full space-y-5">
 
             {/* CURRENT SEASON */}
 
-            <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+            <section className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
 
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex min-w-0 items-center justify-between gap-4">
 
-                    <div>
+                    <div className="min-w-0">
                         <div className="text-sm font-semibold text-white">
                             Current Season
                         </div>
@@ -308,7 +308,7 @@ export default function PlayerPerformancePanel({
 
                 </div>
 
-                <div className="mt-5 grid grid-cols-6 gap-3">
+                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
 
                     <HeadlineMetric
                         label="GP"
@@ -366,13 +366,13 @@ export default function PlayerPerformancePanel({
 
             {/* RELATIVE PERFORMANCE */}
 
-            <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+            <section className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
 
                 <div className="text-sm font-semibold text-white">
                     Relative Performance
                 </div>
 
-                <div className="mt-5 grid grid-cols-3 gap-3">
+                <div className="mt-5 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-3">
 
                     <RankMetric
                         icon={
@@ -454,11 +454,11 @@ export default function PlayerPerformancePanel({
 
             {/* TRAJECTORY */}
 
-            <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+            <section className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
 
-                <div className="flex items-start justify-between gap-5">
+                <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-5">
 
-                    <div>
+                    <div className="min-w-0">
                         <div className="text-sm font-semibold text-white">
                             Career Trajectory
                         </div>
@@ -482,7 +482,7 @@ export default function PlayerPerformancePanel({
 
                 {/* CHART */}
 
-                <div className="mt-6 h-[300px] w-full">
+                <div className="mt-6 h-[250px] w-full min-w-0 overflow-hidden sm:h-[280px] lg:h-[300px]">
 
                     <ResponsiveContainer
                         width="100%"
@@ -494,9 +494,9 @@ export default function PlayerPerformancePanel({
                             }
                             margin={{
                                 top: 10,
-                                right: 10,
+                                right: 5,
                                 bottom: 0,
-                                left: -10,
+                                left: -20,
                             }}
                         >
 
@@ -515,7 +515,7 @@ export default function PlayerPerformancePanel({
                                     fill:
                                         "#94a3b8",
                                     fontSize:
-                                        11,
+                                        10,
                                 }}
                                 tickLine={
                                     false
@@ -524,6 +524,9 @@ export default function PlayerPerformancePanel({
                                     stroke:
                                         "#334155",
                                 }}
+                                minTickGap={
+                                    16
+                                }
                             />
 
                             <YAxis
@@ -532,7 +535,7 @@ export default function PlayerPerformancePanel({
                                     fill:
                                         "#94a3b8",
                                     fontSize:
-                                        11,
+                                        10,
                                 }}
                                 tickLine={
                                     false
@@ -540,7 +543,7 @@ export default function PlayerPerformancePanel({
                                 axisLine={
                                     false
                                 }
-                                width={48}
+                                width={42}
                             />
 
                             <Tooltip
@@ -585,13 +588,13 @@ export default function PlayerPerformancePanel({
 
                 {/* SEASON HISTORY */}
 
-                <div className="mt-5 border-t border-slate-800 pt-5">
+                <div className="mt-5 min-w-0 border-t border-slate-800 pt-5">
 
                     <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                         Season History
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
 
                         {[...seasons]
                             .reverse()
@@ -634,8 +637,8 @@ function HeadlineMetric({
         <div
             className={
                 highlight
-                    ? "rounded-xl border border-slate-600 bg-slate-800/80 p-4"
-                    : "rounded-xl border border-slate-800 bg-slate-950/40 p-4"
+                    ? "min-w-0 rounded-xl border border-slate-600 bg-slate-800/80 p-3 sm:p-4"
+                    : "min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-3 sm:p-4"
             }
         >
             <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
@@ -645,8 +648,8 @@ function HeadlineMetric({
             <div
                 className={
                     highlight
-                        ? "mt-2 text-2xl font-bold text-white"
-                        : "mt-2 text-xl font-semibold text-white"
+                        ? "mt-2 break-words text-xl font-bold text-white sm:text-2xl"
+                        : "mt-2 break-words text-lg font-semibold text-white sm:text-xl"
                 }
             >
                 {value}
@@ -668,13 +671,15 @@ function RankMetric({
         | null;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-3 sm:p-4">
 
-            <div className="flex items-center gap-2 text-slate-500">
+            <div className="flex min-w-0 items-center gap-2 text-slate-500">
 
-                {icon}
+                <div className="shrink-0">
+                    {icon}
+                </div>
 
-                <div className="text-[10px] font-semibold uppercase tracking-wide">
+                <div className="min-w-0 text-[10px] font-semibold uppercase tracking-wide">
                     {label}
                 </div>
 
@@ -702,7 +707,7 @@ function MetricSelector({
     ) => void;
 }) {
     return (
-        <div className="flex flex-wrap gap-1 rounded-lg border border-slate-800 bg-slate-950 p-1">
+        <div className="grid w-full min-w-0 grid-cols-2 gap-1 rounded-lg border border-slate-800 bg-slate-950 p-1 min-[420px]:grid-cols-3 sm:flex sm:w-auto sm:flex-wrap">
 
             {METRICS.map(
                 (metric) => (
@@ -716,7 +721,7 @@ function MetricSelector({
                                 metric.key
                             )
                         }
-                        className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+                        className={`min-w-0 rounded-md px-2 py-2 text-xs font-semibold transition sm:px-3 sm:py-1.5 ${
                             value ===
                             metric.key
                                 ? "bg-slate-700 text-white"
@@ -742,58 +747,62 @@ function SeasonRow({
         PlayerPerformanceSeason;
 }) {
     return (
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-800 bg-slate-950/40 px-4 py-3">
+        <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-3 sm:px-4">
 
-            <div>
-                <div className="text-sm font-semibold text-white">
-                    {formatSeason(
-                        season.season
-                    )}
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+
+                <div className="min-w-0">
+                    <div className="text-sm font-semibold text-white">
+                        {formatSeason(
+                            season.season
+                        )}
+                    </div>
+
+                    <div className="mt-0.5 text-xs text-slate-500">
+                        {season.team_code ??
+                            "—"}
+                        {" · "}
+                        {season.games_played ??
+                            0}{" "}
+                        GP
+                    </div>
                 </div>
 
-                <div className="mt-0.5 text-xs text-slate-500">
-                    {season.team_code ??
-                        "—"}
-                    {" · "}
-                    {season.games_played ??
-                        0}{" "}
-                    GP
+                <div className="grid min-w-0 grid-cols-4 gap-2 sm:flex sm:items-center sm:gap-5 sm:text-right">
+
+                    <SeasonStat
+                        label="P"
+                        value={
+                            season.points ??
+                            0
+                        }
+                    />
+
+                    <SeasonStat
+                        label="P/GP"
+                        value={formatDecimal(
+                            season.points_per_game,
+                            2
+                        )}
+                    />
+
+                    <SeasonStat
+                        label="P/60"
+                        value={formatDecimal(
+                            season.points_per_60,
+                            2
+                        )}
+                    />
+
+                    <SeasonStat
+                        label="TOI"
+                        value={formatDecimal(
+                            season.avg_toi_minutes,
+                            1
+                        )}
+                    />
+
                 </div>
-            </div>
-
-            <div className="flex items-center gap-5 text-right">
-
-                <SeasonStat
-                    label="P"
-                    value={
-                        season.points ??
-                        0
-                    }
-                />
-
-                <SeasonStat
-                    label="P/GP"
-                    value={formatDecimal(
-                        season.points_per_game,
-                        2
-                    )}
-                />
-
-                <SeasonStat
-                    label="P/60"
-                    value={formatDecimal(
-                        season.points_per_60,
-                        2
-                    )}
-                />
-
-                <SeasonStat
-                    label="TOI"
-                    value={formatDecimal(
-                        season.avg_toi_minutes,
-                        1
-                    )}
-                />
 
             </div>
 
@@ -812,13 +821,13 @@ function SeasonStat({
         | string;
 }) {
     return (
-        <div className="min-w-12">
+        <div className="min-w-0 sm:min-w-12">
 
             <div className="text-[9px] font-semibold uppercase tracking-wide text-slate-600">
                 {label}
             </div>
 
-            <div className="mt-1 text-sm font-semibold text-slate-200">
+            <div className="mt-1 break-words text-sm font-semibold text-slate-200">
                 {value}
             </div>
 

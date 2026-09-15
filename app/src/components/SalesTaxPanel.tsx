@@ -67,9 +67,9 @@ export default function SalesTaxPanel({
         }));
 
     return (
-        <div className="space-y-8">
-            <div>
-                <h3 className="text-2xl font-semibold text-white">
+        <div className="w-full min-w-0 max-w-full space-y-8">
+            <div className="min-w-0">
+                <h3 className="break-words text-xl font-semibold text-white sm:text-2xl">
                     {city}, {stateProvince}, {country}
                 </h3>
 
@@ -79,7 +79,8 @@ export default function SalesTaxPanel({
                 </p>
             </div>
 
-            <div className="grid grid-cols-5 gap-4">
+            {/* MAIN KPIs */}
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <TaxKpi
                     icon="%"
                     iconClass={
@@ -165,112 +166,118 @@ export default function SalesTaxPanel({
                 />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* CHART + BREAKDOWN */}
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
                 <ChartPanel title="NHL Sales Tax Distribution">
                     <p className="-mt-2 mb-3 text-xs text-slate-500">
                         Combined sales tax rate, ranked lowest to
                         highest
                     </p>
 
-                    <ResponsiveContainer
-                        width="100%"
-                        height={360}
-                    >
-                        <BarChart
-                            data={chartData}
-                            margin={{
-                                top: 20,
-                                right: 20,
-                                left: 0,
-                                bottom: 70,
-                            }}
+                    <div className="w-full min-w-0 overflow-hidden">
+                        <ResponsiveContainer
+                            width="100%"
+                            height={360}
                         >
-                            <CartesianGrid
-                                stroke="#1e293b"
-                                vertical={false}
-                            />
-
-                            <XAxis
-                                dataKey="city"
-                                tick={{
-                                    fill: "#94a3b8",
-                                    fontSize: 10,
+                            <BarChart
+                                data={chartData}
+                                margin={{
+                                    top: 20,
+                                    right: 5,
+                                    left: -20,
+                                    bottom: 70,
                                 }}
-                                axisLine={false}
-                                tickLine={false}
-                                interval={1}
-                                angle={-50}
-                                textAnchor="end"
-                                height={70}
-                            />
-
-                            <YAxis
-                                tick={{
-                                    fill: "#94a3b8",
-                                }}
-                                axisLine={false}
-                                tickLine={false}
-                                domain={[0, "auto"]}
-                                tickFormatter={(value) =>
-                                    `${Math.round(value)}%`
-                                }
-                            />
-
-                            <Tooltip
-                                content={
-                                    <DistributionTooltip />
-                                }
-                            />
-
-                            <ReferenceLine
-                                y={tax.nhl_avg_sales_tax_rate}
-                                stroke="#94a3b8"
-                                strokeWidth={1.5}
-                                strokeDasharray="5 5"
-                                label={{
-                                    value: `NHL Avg ${tax.nhl_avg_sales_tax_rate.toFixed(
-                                        2
-                                    )}%`,
-                                    position:
-                                        "insideTopRight",
-                                    fill: "#94a3b8",
-                                    fontSize: 11,
-                                }}
-                            />
-
-                            <Bar
-                                dataKey="rate"
-                                radius={[3, 3, 0, 0]}
                             >
-                                {chartData.map((row) => (
-                                    <Cell
-                                        key={
-                                            row.venueLocation
-                                        }
-                                        fill={
-                                            row.selected
-                                                ? "#38bdf8"
-                                                : getTaxColour(
-                                                      row.rate,
-                                                      tax.nhl_avg_sales_tax_rate
-                                                  )
-                                        }
-                                    />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                                <CartesianGrid
+                                    stroke="#1e293b"
+                                    vertical={false}
+                                />
 
-                    <div className="mt-2 flex justify-between text-xs">
+                                <XAxis
+                                    dataKey="city"
+                                    tick={{
+                                        fill: "#94a3b8",
+                                        fontSize: 9,
+                                    }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    interval={2}
+                                    angle={-50}
+                                    textAnchor="end"
+                                    height={70}
+                                />
+
+                                <YAxis
+                                    tick={{
+                                        fill: "#94a3b8",
+                                        fontSize: 10,
+                                    }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    domain={[0, "auto"]}
+                                    tickFormatter={(value) =>
+                                        `${Math.round(value)}%`
+                                    }
+                                />
+
+                                <Tooltip
+                                    content={
+                                        <DistributionTooltip />
+                                    }
+                                />
+
+                                <ReferenceLine
+                                    y={
+                                        tax.nhl_avg_sales_tax_rate
+                                    }
+                                    stroke="#94a3b8"
+                                    strokeWidth={1.5}
+                                    strokeDasharray="5 5"
+                                    label={{
+                                        value: `NHL Avg ${tax.nhl_avg_sales_tax_rate.toFixed(
+                                            2
+                                        )}%`,
+                                        position:
+                                            "insideTopRight",
+                                        fill: "#94a3b8",
+                                        fontSize: 10,
+                                    }}
+                                />
+
+                                <Bar
+                                    dataKey="rate"
+                                    radius={[3, 3, 0, 0]}
+                                >
+                                    {chartData.map((row) => (
+                                        <Cell
+                                            key={
+                                                row.venueLocation
+                                            }
+                                            fill={
+                                                row.selected
+                                                    ? "#38bdf8"
+                                                    : getTaxColour(
+                                                          row.rate,
+                                                          tax.nhl_avg_sales_tax_rate
+                                                      )
+                                            }
+                                        />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    <div className="mt-2 grid grid-cols-1 gap-1 text-center text-xs sm:grid-cols-3 sm:text-left">
                         <span className="text-emerald-400">
                             Lower tax
                         </span>
 
-                        <span className="text-slate-500">
+                        <span className="text-slate-500 sm:text-center">
                             NHL cities ranked · #1 lowest
                         </span>
 
-                        <span className="text-red-400">
+                        <span className="text-red-400 sm:text-right">
                             Higher tax
                         </span>
                     </div>
@@ -317,18 +324,18 @@ export default function SalesTaxPanel({
                         )}
 
                         <div className="border-t border-slate-800 pt-5">
-                            <div className="flex items-end justify-between">
-                                <div>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                                <div className="min-w-0">
                                     <p className="text-sm text-slate-400">
                                         Combined Sales Tax
                                     </p>
 
-                                    <p className="mt-1 text-xs text-slate-500">
+                                    <p className="mt-1 break-words text-xs text-slate-500">
                                         {tax.sales_tax_basis}
                                     </p>
                                 </div>
 
-                                <p className="text-3xl font-semibold text-white">
+                                <p className="shrink-0 text-2xl font-semibold text-white sm:text-3xl">
                                     {tax.combined_sales_tax_rate.toFixed(
                                         2
                                     )}
@@ -372,7 +379,8 @@ export default function SalesTaxPanel({
                 </ChartPanel>
             </div>
 
-            <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+            {/* NHL POSITION */}
+            <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4 sm:p-5">
                 <div className="mb-5">
                     <p className="font-semibold text-white">
                         NHL Position
@@ -383,7 +391,7 @@ export default function SalesTaxPanel({
                     </p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
                     <PositionMetric
                         label="Tax Difference"
                         value={formatPointsShort(
@@ -423,8 +431,9 @@ export default function SalesTaxPanel({
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+            {/* TAKEAWAY + METHODOLOGY */}
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
+                <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4 sm:p-5">
                     <p className="text-sm font-semibold text-white">
                         Key Takeaway
                     </p>
@@ -440,7 +449,7 @@ export default function SalesTaxPanel({
                     </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+                <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4 sm:p-5">
                     <p className="text-sm font-semibold text-white">
                         Basis & Methodology
                     </p>
@@ -490,8 +499,8 @@ function TaxKpi({
     detail: string;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
-            <div className="flex items-start gap-4">
+        <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4 sm:p-5">
+            <div className="flex min-w-0 items-start gap-4">
                 <div
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xl font-semibold ${iconClass}`}
                 >
@@ -499,19 +508,19 @@ function TaxKpi({
                 </div>
 
                 <div className="min-w-0">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                    <p className="break-words text-xs font-medium uppercase tracking-wide text-slate-400">
                         {label}
                     </p>
 
                     <p
-                        className={`mt-2 text-3xl font-semibold ${iconClass}`}
+                        className={`mt-2 break-words text-2xl font-semibold sm:text-3xl ${iconClass}`}
                     >
                         {value}
                     </p>
                 </div>
             </div>
 
-            <p className="mt-4 text-sm text-slate-400">
+            <p className="mt-4 break-words text-sm text-slate-400">
                 {detail}
             </p>
         </div>
@@ -526,7 +535,7 @@ function ChartPanel({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+        <div className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-950/40 p-4 sm:p-5">
             <p className="mb-5 font-semibold text-white">
                 {title}
             </p>
@@ -548,13 +557,13 @@ function BreakdownRow({
     const safeValue = value ?? 0;
 
     return (
-        <div>
-            <div className="mb-2 flex items-center justify-between">
-                <p className="text-sm text-slate-300">
+        <div className="min-w-0">
+            <div className="mb-2 flex items-center justify-between gap-4">
+                <p className="min-w-0 text-sm text-slate-300">
                     {label}
                 </p>
 
-                <p className="text-xl font-semibold text-white">
+                <p className="shrink-0 text-xl font-semibold text-white">
                     {formatNullablePercent(value)}
                 </p>
             </div>
@@ -584,13 +593,13 @@ function BreakdownMetric({
     valueClass?: string;
 }) {
     return (
-        <div className="flex items-center justify-between p-4">
-            <span className="text-sm text-slate-400">
+        <div className="flex min-w-0 flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <span className="min-w-0 text-sm text-slate-400">
                 {label}
             </span>
 
             <span
-                className={`text-lg font-semibold ${valueClass}`}
+                className={`shrink-0 text-lg font-semibold ${valueClass}`}
             >
                 {value}
             </span>
@@ -610,13 +619,13 @@ function PositionMetric({
     valueClass: string;
 }) {
     return (
-        <div>
+        <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                 {label}
             </p>
 
             <p
-                className={`mt-2 text-3xl font-semibold ${valueClass}`}
+                className={`mt-2 break-words text-2xl font-semibold sm:text-3xl ${valueClass}`}
             >
                 {value}
             </p>
@@ -636,12 +645,12 @@ function MethodRow({
     value: string;
 }) {
     return (
-        <div className="grid grid-cols-[140px_1fr] gap-4">
+        <div className="grid min-w-0 grid-cols-1 gap-1 sm:grid-cols-[140px_1fr] sm:gap-4">
             <span className="text-slate-500">
                 {label}
             </span>
 
-            <span className="text-slate-300">
+            <span className="min-w-0 break-words text-slate-300">
                 {value}
             </span>
         </div>

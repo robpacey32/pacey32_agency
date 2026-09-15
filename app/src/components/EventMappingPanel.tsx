@@ -21,17 +21,17 @@ type Props = {
 export default function EventMappingPanel({
     data,
 }: Props) {
-    if (data.playerType === "goalie") {
-        return (
-            <GoalieEventMapping
-                data={data}
-            />
-        );
-    }
-
     return (
-        <SkaterEventMapping
-            data={data}
-        />
+        <div className="w-full min-w-0 max-w-full">
+            {data.playerType === "goalie" ? (
+                <GoalieEventMapping
+                    data={data}
+                />
+            ) : (
+                <SkaterEventMapping
+                    data={data}
+                />
+            )}
+        </div>
     );
 }

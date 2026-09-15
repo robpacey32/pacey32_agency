@@ -211,14 +211,14 @@ function PlayerCard({
 
     return (
         <div
-            className={`overflow-hidden rounded-xl border bg-slate-950/65 ${
+            className={`w-full min-w-0 overflow-hidden rounded-xl border bg-slate-950/65 ${
                 player.is_depth_chart
                     ? "border-slate-700"
                     : "border-slate-800"
             }`}
         >
             <div className="p-3">
-                <div className="flex items-start gap-3">
+                <div className="flex min-w-0 items-start gap-3">
                     {player.headshot_url ? (
                         <img
                             src={player.headshot_url}
@@ -232,9 +232,9 @@ function PlayerCard({
                     )}
 
                     <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex min-w-0 items-start justify-between gap-2">
                             <div className="min-w-0">
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex min-w-0 items-center gap-1.5">
                                     <p className="truncate text-sm font-semibold text-white">
                                         {player.player}
                                     </p>
@@ -242,7 +242,7 @@ function PlayerCard({
                                     {leadershipLabel(
                                         player.leadership_role
                                     ) && (
-                                        <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold text-slate-300">
+                                        <span className="shrink-0 rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold text-slate-300">
                                             {leadershipLabel(
                                                 player.leadership_role
                                             )}
@@ -267,7 +267,7 @@ function PlayerCard({
                         </div>
 
                         <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-800 pt-2 text-xs">
-                            <div>
+                            <div className="min-w-0">
                                 <p className="text-slate-500">
                                     Cap
                                 </p>
@@ -285,7 +285,7 @@ function PlayerCard({
                                 </p>
                             </div>
 
-                            <div>
+                            <div className="min-w-0">
                                 <p className="text-slate-500">
                                     Expiry
                                 </p>
@@ -339,7 +339,7 @@ function PositionColumn({
             : 0);
 
     return (
-        <section className="min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+        <section className="w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-3 sm:p-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 className="text-lg font-bold text-white">
                     {position}
@@ -438,9 +438,9 @@ function DefenceArea({
         depthD.length > 0;
 
     return (
-        <section className="col-span-2 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-            <div className="grid grid-cols-2 gap-4 border-b border-slate-800 pb-3">
-                <div className="flex items-center justify-between">
+        <section className="w-full min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-3 sm:p-4 lg:col-span-2">
+            <div className="grid grid-cols-2 gap-2 border-b border-slate-800 pb-3 sm:gap-4">
+                <div className="flex min-w-0 items-center justify-between gap-2">
                     <h3 className="text-lg font-bold text-white">
                         LD
                     </h3>
@@ -453,7 +453,7 @@ function DefenceArea({
                     </span>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex min-w-0 items-center justify-between gap-2">
                     <h3 className="text-lg font-bold text-white">
                         RD
                     </h3>
@@ -473,9 +473,9 @@ function DefenceArea({
                 }).map((_, index) => (
                     <div
                         key={`roster-row-${index}`}
-                        className="grid grid-cols-2 gap-4"
+                        className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4"
                     >
-                        <div>
+                        <div className="min-w-0">
                             {rosterLD[index] && (
                                 <PlayerCard
                                     player={
@@ -493,7 +493,7 @@ function DefenceArea({
                             )}
                         </div>
 
-                        <div>
+                        <div className="min-w-0">
                             {rosterRD[index] && (
                                 <PlayerCard
                                     player={
@@ -514,7 +514,7 @@ function DefenceArea({
                 ))}
 
                 {rosterD.length > 0 && (
-                    <div className="space-y-3 px-[20%]">
+                    <div className="space-y-3 sm:px-[12%] lg:px-[20%]">
                         {rosterD.map(
                             (player) => (
                                 <PlayerCard
@@ -537,8 +537,7 @@ function DefenceArea({
                 {showDepth &&
                     hasRosterPlayers &&
                     hasDepthPlayers && (
-                        <div className="grid grid-cols-2 gap-4 py-1">
-                            <div className="border-t border-slate-600/70" />
+                        <div className="py-1">
                             <div className="border-t border-slate-600/70" />
                         </div>
                     )}
@@ -550,9 +549,9 @@ function DefenceArea({
                         (_, index) => (
                             <div
                                 key={`depth-row-${index}`}
-                                className="grid grid-cols-2 gap-4"
+                                className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4"
                             >
-                                <div>
+                                <div className="min-w-0">
                                     {depthLD[
                                         index
                                     ] && (
@@ -572,7 +571,7 @@ function DefenceArea({
                                     )}
                                 </div>
 
-                                <div>
+                                <div className="min-w-0">
                                     {depthRD[
                                         index
                                     ] && (
@@ -597,7 +596,7 @@ function DefenceArea({
 
                 {showDepth &&
                     depthD.length > 0 && (
-                        <div className="space-y-3 px-[20%]">
+                        <div className="space-y-3 sm:px-[12%] lg:px-[20%]">
                             {depthD.map(
                                 (player) => (
                                     <PlayerCard
@@ -704,10 +703,10 @@ export default function DepthChartPanel({
             );
 
     return (
-        <div className="space-y-4">
+        <div className="w-full min-w-0 max-w-full space-y-4">
             <div className="flex items-center justify-end">
                 <label className="flex cursor-pointer items-center gap-3">
-                    <span className="text-sm font-medium text-slate-400">
+                    <span className="text-right text-sm font-medium text-slate-400">
                         Show organisational depth
                     </span>
 
@@ -723,7 +722,7 @@ export default function DepthChartPanel({
                         className="peer sr-only"
                     />
 
-                    <div className="relative h-6 w-11 rounded-full bg-slate-700 transition-colors peer-checked:bg-blue-600 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-blue-500">
+                    <div className="relative h-6 w-11 shrink-0 rounded-full bg-slate-700 transition-colors peer-checked:bg-blue-600 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-blue-500">
                         <div
                             className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-all duration-200 ${
                                 showDepth
@@ -735,85 +734,83 @@ export default function DepthChartPanel({
                 </label>
             </div>
 
-            <div className="overflow-x-auto">
-                <div className="grid min-w-[1650px] grid-cols-6 gap-4">
-                    <PositionColumn
-                        position="G"
-                        rosterPlayers={rosterByPosition(
-                            "G"
-                        )}
-                        depthPlayers={depthByPosition(
-                            "G"
-                        )}
-                        showDepth={
-                            showDepth
-                        }
-                        minRosterCap={
-                            minRosterCap
-                        }
-                        maxRosterCap={
-                            maxRosterCap
-                        }
-                    />
-
-                    <DefenceArea
-                        rosterLD={rosterByPosition(
-                            "LD"
-                        )}
-                        rosterRD={rosterByPosition(
-                            "RD"
-                        )}
-                        rosterD={rosterByPosition(
-                            "D"
-                        )}
-                        depthLD={depthByPosition(
-                            "LD"
-                        )}
-                        depthRD={depthByPosition(
-                            "RD"
-                        )}
-                        depthD={depthByPosition(
-                            "D"
-                        )}
-                        showDepth={
-                            showDepth
-                        }
-                        minRosterCap={
-                            minRosterCap
-                        }
-                        maxRosterCap={
-                            maxRosterCap
-                        }
-                    />
-
-                    {forwardPositions.map(
-                        (position) => (
-                            <PositionColumn
-                                key={
-                                    position
-                                }
-                                position={
-                                    position
-                                }
-                                rosterPlayers={rosterByPosition(
-                                    position
-                                )}
-                                depthPlayers={depthByPosition(
-                                    position
-                                )}
-                                showDepth={
-                                    showDepth
-                                }
-                                minRosterCap={
-                                    minRosterCap
-                                }
-                                maxRosterCap={
-                                    maxRosterCap
-                                }
-                            />
-                        )
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-6">
+                <PositionColumn
+                    position="G"
+                    rosterPlayers={rosterByPosition(
+                        "G"
                     )}
-                </div>
+                    depthPlayers={depthByPosition(
+                        "G"
+                    )}
+                    showDepth={
+                        showDepth
+                    }
+                    minRosterCap={
+                        minRosterCap
+                    }
+                    maxRosterCap={
+                        maxRosterCap
+                    }
+                />
+
+                <DefenceArea
+                    rosterLD={rosterByPosition(
+                        "LD"
+                    )}
+                    rosterRD={rosterByPosition(
+                        "RD"
+                    )}
+                    rosterD={rosterByPosition(
+                        "D"
+                    )}
+                    depthLD={depthByPosition(
+                        "LD"
+                    )}
+                    depthRD={depthByPosition(
+                        "RD"
+                    )}
+                    depthD={depthByPosition(
+                        "D"
+                    )}
+                    showDepth={
+                        showDepth
+                    }
+                    minRosterCap={
+                        minRosterCap
+                    }
+                    maxRosterCap={
+                        maxRosterCap
+                    }
+                />
+
+                {forwardPositions.map(
+                    (position) => (
+                        <PositionColumn
+                            key={
+                                position
+                            }
+                            position={
+                                position
+                            }
+                            rosterPlayers={rosterByPosition(
+                                position
+                            )}
+                            depthPlayers={depthByPosition(
+                                position
+                            )}
+                            showDepth={
+                                showDepth
+                            }
+                            minRosterCap={
+                                minRosterCap
+                            }
+                            maxRosterCap={
+                                maxRosterCap
+                            }
+                        />
+                    )
+                )}
             </div>
         </div>
     );

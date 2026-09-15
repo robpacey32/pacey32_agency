@@ -467,7 +467,7 @@ export default function TravelPanel({
 
 
     return (
-        <div className="space-y-5">
+        <div className="w-full min-w-0 max-w-full space-y-5">
 
             {/* UNIT TOGGLE */}
 
@@ -511,7 +511,7 @@ export default function TravelPanel({
 
             {/* HEADLINE METRICS */}
 
-            <section className="grid min-w-[1000px] grid-cols-4 gap-4 overflow-x-auto">
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
                 <MetricCard
                     icon={
@@ -573,17 +573,17 @@ export default function TravelPanel({
             </section>
 
 
-            {/* MAIN TWO-COLUMN AREA */}
+            {/* MAIN AREA */}
 
-            <section className="grid min-w-[1100px] grid-cols-[0.82fr_1.55fr] items-start gap-5 overflow-x-auto">
+            <section className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[0.82fr_1.55fr]">
 
                 {/* LEFT COLUMN */}
 
-                <div className="space-y-5">
+                <div className="min-w-0 space-y-5">
 
                     {/* 5-YEAR HISTORY */}
 
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
+                    <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
 
                         <div>
                             <div className="text-sm font-semibold text-white">
@@ -606,17 +606,17 @@ export default function TravelPanel({
                                         key={
                                             row.season
                                         }
-                                        className={`grid grid-cols-[85px_1fr_70px] items-center gap-4 rounded-lg border px-4 py-3 ${rankHeatClass(
+                                        className={`grid grid-cols-[65px_minmax(0,1fr)_50px] items-center gap-2 rounded-lg border px-3 py-3 sm:grid-cols-[85px_1fr_70px] sm:gap-4 sm:px-4 ${rankHeatClass(
                                             row.distance_rank
                                         )}`}
                                     >
-                                        <div className="text-sm font-medium text-slate-300">
+                                        <div className="text-xs font-medium text-slate-300 sm:text-sm">
                                             {formatSeason(
                                                 row.season
                                             )}
                                         </div>
 
-                                        <div className="font-semibold text-white">
+                                        <div className="min-w-0 whitespace-nowrap text-sm font-semibold text-white sm:text-base">
                                             {formatNumber(
                                                 displaySummaryDistance(
                                                     row.total_distance_miles,
@@ -629,14 +629,14 @@ export default function TravelPanel({
                                         </div>
 
                                         <div className="text-right">
-                                            <div className="text-lg font-bold text-white">
+                                            <div className="text-base font-bold text-white sm:text-lg">
                                                 #
                                                 {
                                                     row.distance_rank
                                                 }
                                             </div>
 
-                                            <div className="text-[10px] uppercase tracking-wide text-slate-400">
+                                            <div className="text-[9px] uppercase tracking-wide text-slate-400 sm:text-[10px]">
                                                 NHL
                                             </div>
                                         </div>
@@ -647,23 +647,25 @@ export default function TravelPanel({
                         </div>
 
 
-                        <div className="mt-4 flex items-center justify-between text-[10px] uppercase tracking-wide text-slate-500">
+                        <div className="mt-4 space-y-2 text-[10px] uppercase tracking-wide text-slate-500">
 
-                            <span>
-                                More travel
-                            </span>
+                            <div className="flex items-center justify-between">
+                                <span>
+                                    More travel
+                                </span>
 
-                            <div className="flex items-center gap-1">
-                                <div className="h-2.5 w-8 rounded bg-red-500/40" />
-                                <div className="h-2.5 w-8 rounded bg-orange-500/30" />
-                                <div className="h-2.5 w-8 rounded bg-slate-700" />
-                                <div className="h-2.5 w-8 rounded bg-emerald-500/25" />
-                                <div className="h-2.5 w-8 rounded bg-green-500/40" />
+                                <span>
+                                    Less travel
+                                </span>
                             </div>
 
-                            <span>
-                                Less travel
-                            </span>
+                            <div className="grid grid-cols-5 gap-1">
+                                <div className="h-2.5 rounded bg-red-500/40" />
+                                <div className="h-2.5 rounded bg-orange-500/30" />
+                                <div className="h-2.5 rounded bg-slate-700" />
+                                <div className="h-2.5 rounded bg-emerald-500/25" />
+                                <div className="h-2.5 rounded bg-green-500/40" />
+                            </div>
 
                         </div>
 
@@ -672,7 +674,7 @@ export default function TravelPanel({
 
                     {/* TRAVEL PROFILE */}
 
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
+                    <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
 
                         <div>
                             <div className="text-sm font-semibold text-white">
@@ -816,13 +818,13 @@ export default function TravelPanel({
 
                 {/* RIGHT COLUMN */}
 
-                <div className="space-y-5">
+                <div className="min-w-0 space-y-5">
 
                     {/* MAP */}
 
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+                    <div className="min-w-0 overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
 
-                        <div className="flex items-center justify-between gap-5">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
 
                             <div>
                                 <div className="text-sm font-semibold text-white">
@@ -837,7 +839,7 @@ export default function TravelPanel({
                             </div>
 
 
-                            <div className="flex rounded-lg border border-slate-800 bg-slate-950 p-1">
+                            <div className="grid grid-cols-3 rounded-lg border border-slate-800 bg-slate-950 p-1 sm:flex">
 
                                 <MapToggle
                                     active={
@@ -888,7 +890,7 @@ export default function TravelPanel({
                         </div>
 
 
-                        <div className="mt-5">
+                        <div className="mt-5 min-w-0 overflow-hidden">
 
                             <TravelMap
                                 legs={
@@ -905,7 +907,7 @@ export default function TravelPanel({
                         </div>
 
 
-                        <div className="mt-4 text-xs text-slate-500">
+                        <div className="mt-4 break-words text-xs leading-5 text-slate-500">
 
                             {mapMode ===
                                 "routes" &&
@@ -933,9 +935,9 @@ export default function TravelPanel({
 
                     {/* ROAD TRIPS */}
 
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
+                    <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
 
-                        <div className="flex items-end justify-between">
+                        <div className="flex items-end justify-between gap-4">
 
                             <div>
                                 <div className="text-sm font-semibold text-white">
@@ -950,7 +952,7 @@ export default function TravelPanel({
                             </div>
 
 
-                            <div className="text-xs text-slate-500">
+                            <div className="shrink-0 text-xs text-slate-500">
                                 {
                                     roadTrips.length
                                 }{" "}
@@ -960,7 +962,138 @@ export default function TravelPanel({
                         </div>
 
 
-                        <div className="mt-5 overflow-x-auto">
+                        {/* MOBILE SORT */}
+
+                        <div className="mt-5 grid grid-cols-3 gap-2 md:hidden">
+
+                            <MobileSortButton
+                                label="Date"
+                                sortKey="date"
+                                activeKey={
+                                    sortKey
+                                }
+                                direction={
+                                    sortDirection
+                                }
+                                onClick={
+                                    changeSort
+                                }
+                            />
+
+                            <MobileSortButton
+                                label="Games"
+                                sortKey="games"
+                                activeKey={
+                                    sortKey
+                                }
+                                direction={
+                                    sortDirection
+                                }
+                                onClick={
+                                    changeSort
+                                }
+                            />
+
+                            <MobileSortButton
+                                label={
+                                    distanceUnit ===
+                                    "miles"
+                                        ? "Miles"
+                                        : "KM"
+                                }
+                                sortKey="miles"
+                                activeKey={
+                                    sortKey
+                                }
+                                direction={
+                                    sortDirection
+                                }
+                                onClick={
+                                    changeSort
+                                }
+                            />
+
+                        </div>
+
+
+                        {/* MOBILE ROAD TRIP CARDS */}
+
+                        <div className="mt-4 space-y-3 md:hidden">
+
+                            {pagedRoadTrips.map(
+                                (
+                                    trip
+                                ) => (
+                                    <div
+                                        key={
+                                            trip.id
+                                        }
+                                        className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4"
+                                    >
+
+                                        <div className="flex items-start justify-between gap-3">
+
+                                            <div className="flex min-w-0 items-center gap-3">
+
+                                                <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-xs font-semibold text-blue-400">
+                                                    {
+                                                        trip.id
+                                                    }
+                                                </span>
+
+                                                <div className="min-w-0">
+                                                    <div className="text-sm font-semibold text-white">
+                                                        {formatTripDates(
+                                                            trip
+                                                        )}
+                                                    </div>
+
+                                                    <div className="mt-0.5 text-xs text-slate-500">
+                                                        {
+                                                            trip.games
+                                                        }{" "}
+                                                        {trip.games ===
+                                                        1
+                                                            ? "game"
+                                                            : "games"}
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+
+                                            <div className="shrink-0 text-right">
+                                                <div className="text-sm font-semibold text-white">
+                                                    {formatNumber(
+                                                        displayTripDistance(
+                                                            trip
+                                                        )
+                                                    )}{" "}
+                                                    {
+                                                        distanceSuffix
+                                                    }
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+
+                                        <div className="mt-3 border-t border-slate-800 pt-3 text-sm leading-6 text-slate-300">
+                                            {trip.cities.join(
+                                                " → "
+                                            )}
+                                        </div>
+
+                                    </div>
+                                )
+                            )}
+
+                        </div>
+
+
+                        {/* DESKTOP ROAD TRIP TABLE */}
+
+                        <div className="mt-5 hidden overflow-x-auto md:block">
 
                             <div className="min-w-[780px]">
 
@@ -1100,9 +1233,9 @@ export default function TravelPanel({
 
                         {totalPages >
                             1 && (
-                            <div className="mt-5 flex items-center justify-between border-t border-slate-800 pt-4">
+                            <div className="mt-5 flex flex-col gap-4 border-t border-slate-800 pt-4 sm:flex-row sm:items-center sm:justify-between">
 
-                                <div className="text-xs text-slate-500">
+                                <div className="text-center text-xs text-slate-500 sm:text-left">
                                     Showing{" "}
                                     {(currentPage -
                                         1) *
@@ -1122,7 +1255,7 @@ export default function TravelPanel({
                                 </div>
 
 
-                                <div className="flex items-center gap-2">
+                                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:flex">
 
                                     <button
                                         type="button"
@@ -1148,7 +1281,7 @@ export default function TravelPanel({
                                     </button>
 
 
-                                    <div className="min-w-[85px] text-center text-xs text-slate-400">
+                                    <div className="min-w-[75px] text-center text-xs text-slate-400 sm:min-w-[85px]">
                                         Page{" "}
                                         {
                                             currentPage
@@ -1213,17 +1346,19 @@ function MetricCard({
     detail: string;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
 
             <div className="flex items-center gap-3 text-blue-400">
-                {icon}
+                <div className="shrink-0">
+                    {icon}
+                </div>
 
                 <div className="text-xs font-semibold uppercase tracking-wide">
                     {label}
                 </div>
             </div>
 
-            <div className="mt-5 text-2xl font-bold text-white">
+            <div className="mt-5 break-words text-xl font-bold text-white sm:text-2xl">
                 {value}
             </div>
 
@@ -1274,16 +1409,16 @@ function ProfileComparisonRow({
 
 
     return (
-        <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-4 py-3">
+        <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-3 sm:px-4">
 
-            <div className="flex items-center justify-between gap-5">
+            <div className="flex items-center justify-between gap-3 sm:gap-5">
 
-                <div className="text-sm text-slate-400">
+                <div className="min-w-0 text-sm text-slate-400">
                     {label}
                 </div>
 
 
-                <div className="text-right">
+                <div className="shrink-0 text-right">
 
                     <div className="font-semibold text-white">
                         {formatNumber(
@@ -1373,13 +1508,77 @@ function MapToggle({
             onClick={
                 onClick
             }
-            className={`rounded-md px-3 py-2 text-xs font-medium transition ${
+            className={`min-w-0 rounded-md px-2 py-2 text-[11px] font-medium transition sm:px-3 sm:text-xs ${
                 active
                     ? "bg-slate-800 text-white"
                     : "text-slate-500 hover:text-slate-300"
             }`}
         >
             {children}
+        </button>
+    );
+}
+
+
+function MobileSortButton({
+    label,
+    sortKey,
+    activeKey,
+    direction,
+    onClick,
+}: {
+    label: string;
+    sortKey: SortKey;
+    activeKey: SortKey;
+    direction: SortDirection;
+    onClick: (key: SortKey) => void;
+}) {
+    const active =
+        sortKey ===
+        activeKey;
+
+    return (
+        <button
+            type="button"
+            onClick={() =>
+                onClick(
+                    sortKey
+                )
+            }
+            className={`flex min-w-0 items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs font-medium transition ${
+                active
+                    ? "border-blue-500/40 bg-blue-500/10 text-white"
+                    : "border-slate-800 bg-slate-950/40 text-slate-500"
+            }`}
+        >
+            <span className="truncate">
+                {label}
+            </span>
+
+            {!active && (
+                <ArrowUpDown
+                    size={12}
+                    className="shrink-0"
+                />
+            )}
+
+            {active &&
+                direction ===
+                    "asc" && (
+                    <ArrowUp
+                        size={12}
+                        className="shrink-0"
+                    />
+                )}
+
+            {active &&
+                direction ===
+                    "desc" && (
+                    <ArrowDown
+                        size={12}
+                        className="shrink-0"
+                    />
+                )}
         </button>
     );
 }

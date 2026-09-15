@@ -7,7 +7,7 @@ const CityOverviewMap = dynamic(
     {
         ssr: false,
         loading: () => (
-            <div className="h-[560px] w-full animate-pulse rounded-xl border border-slate-800 bg-slate-900" />
+            <div className="h-[400px] w-full min-w-0 max-w-full animate-pulse rounded-xl border border-slate-800 bg-slate-900 sm:h-[480px] lg:h-[560px]" />
         ),
     }
 );

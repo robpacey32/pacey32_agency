@@ -161,12 +161,12 @@ export default function PlayerProfilePanel({
         );
 
     return (
-        <div className="space-y-5">
+        <div className="w-full min-w-0 max-w-full space-y-5">
 
             {/* HERO */}
 
-            <div className="flex justify-start">
-                <section className="relative h-[500px] w-full max-w-[1050px] overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+            <div className="flex w-full min-w-0 justify-start">
+                <section className="relative h-[400px] w-full min-w-0 max-w-[1050px] overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 sm:h-[440px] lg:h-[500px]">
 
                     {data.hero_image && (
                         <img
@@ -176,48 +176,48 @@ export default function PlayerProfilePanel({
                         />
                     )}
 
-                    <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/55 to-slate-950/10" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/65 to-slate-950/20 sm:via-slate-950/55 sm:to-slate-950/10" />
 
-                    <div className="relative flex h-full items-end gap-8 px-8 pt-8">
+                    <div className="relative flex h-full min-w-0 items-end gap-3 px-4 pt-4 sm:gap-6 sm:px-6 sm:pt-6 lg:gap-8 lg:px-8 lg:pt-8">
 
-                        <div className="shrink-0">
+                        <div className="flex h-full shrink-0 items-end">
 
                             {data.headshot ? (
                                 <img
                                     src={data.headshot}
                                     alt={data.player_name}
-                                    className="h-[88%] max-h-72 w-52 object-contain object-bottom"
+                                    className="h-auto max-h-[58%] w-28 object-contain object-bottom sm:max-h-[68%] sm:w-40 lg:max-h-72 lg:w-52"
                                 />
                             ) : (
-                                <div className="h-64 w-52" />
+                                <div className="h-48 w-28 sm:h-56 sm:w-40 lg:h-64 lg:w-52" />
                             )}
 
                         </div>
 
-                        <div className="flex-1 pb-8">
+                        <div className="min-w-0 flex-1 pb-5 sm:pb-6 lg:pb-8">
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
 
                                 {data.team_logo && (
                                     <img
                                         src={data.team_logo}
                                         alt=""
-                                        className="h-11 w-11 object-contain"
+                                        className="h-8 w-8 shrink-0 object-contain sm:h-10 sm:w-10 lg:h-11 lg:w-11"
                                     />
                                 )}
 
-                                <div className="text-sm font-semibold uppercase tracking-wide text-slate-200">
+                                <div className="min-w-0 break-words text-xs font-semibold uppercase tracking-wide text-slate-200 sm:text-sm">
                                     {data.team_name ??
                                         "No current team"}
                                 </div>
 
                             </div>
 
-                            <h2 className="mt-4 text-4xl font-bold text-white">
+                            <h2 className="mt-3 break-words text-2xl font-bold leading-tight text-white sm:mt-4 sm:text-3xl lg:text-4xl">
                                 {data.player_name}
                             </h2>
 
-                            <div className="mt-4 flex flex-wrap items-center gap-3">
+                            <div className="mt-3 flex flex-wrap items-center gap-2 sm:mt-4 sm:gap-3">
 
                                 {data.sweater_number != null && (
                                     <HeroBadge>
@@ -257,7 +257,7 @@ export default function PlayerProfilePanel({
 
             {/* MAIN GRID */}
 
-            <section className="grid min-w-[1180px] grid-cols-[1.1fr_1fr] gap-5 overflow-x-auto">
+            <section className="grid w-full min-w-0 grid-cols-1 gap-5 xl:grid-cols-[1.1fr_1fr]">
 
                 {/* PERSONAL */}
 
@@ -271,7 +271,7 @@ export default function PlayerProfilePanel({
                     }
                 >
 
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:grid-cols-3">
 
                         <ProfileMetric
                             icon={
@@ -335,17 +335,17 @@ export default function PlayerProfilePanel({
                             }
                             label="Nationality"
                             value={
-                                <div className="flex items-center gap-2">
+                                <div className="flex min-w-0 items-center gap-2">
 
                                     {nationalityFlag && (
                                         <img
                                             src={`https://flagcdn.com/24x18/${nationalityFlag}.png`}
                                             alt=""
-                                            className="h-[18px] w-6 rounded-sm object-cover"
+                                            className="h-[18px] w-6 shrink-0 rounded-sm object-cover"
                                         />
                                     )}
 
-                                    <span>
+                                    <span className="min-w-0 break-words">
                                         {data.nationality ??
                                             "—"}
                                     </span>
@@ -441,7 +441,7 @@ export default function PlayerProfilePanel({
 
                     {/* BIRTHPLACE MAP */}
 
-                    <div className="mt-3">
+                    <div className="mt-3 w-full min-w-0 overflow-hidden">
 
                         {data.birth_latitude !=
                             null &&
@@ -461,7 +461,7 @@ export default function PlayerProfilePanel({
                         ) : (
                             <div className="flex h-44 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/40">
 
-                                <div className="text-center">
+                                <div className="px-4 text-center">
 
                                     <div className="text-sm font-semibold text-white">
                                         {[
@@ -496,16 +496,16 @@ export default function PlayerProfilePanel({
 
                 {/* RIGHT COLUMN */}
 
-                <div className="space-y-5">
+                <div className="min-w-0 space-y-5">
 
                     {/* DRAFT */}
 
                     <ProfileSection title="Draft">
 
                         {data.draft_year ? (
-                            <div className="grid grid-cols-[76px_repeat(4,1fr)] gap-3">
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
 
-                                <div className="flex min-h-24 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                                <div className="col-span-2 flex min-h-24 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/40 p-3 sm:col-span-1">
 
                                     {draftLogo ? (
                                         <img
@@ -841,13 +841,13 @@ function CareerSection({
     }
 
     return (
-        <div>
+        <div className="min-w-0">
 
             <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 {title}
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 
                 {metrics.map(
                     (
@@ -862,8 +862,8 @@ function CareerSection({
                                 key={`${title}-${item.label}-${index}`}
                                 className={
                                     primary
-                                        ? "rounded-lg border border-slate-600 bg-slate-800/70 p-3"
-                                        : "rounded-lg border border-slate-800 bg-slate-950/40 p-3"
+                                        ? "min-w-0 rounded-lg border border-slate-600 bg-slate-800/70 p-3"
+                                        : "min-w-0 rounded-lg border border-slate-800 bg-slate-950/40 p-3"
                                 }
                             >
 
@@ -880,8 +880,8 @@ function CareerSection({
                                 <div
                                     className={
                                         primary
-                                            ? "mt-1 text-xl font-bold text-white"
-                                            : "mt-1 text-lg font-semibold text-white"
+                                            ? "mt-1 break-words text-lg font-bold text-white sm:text-xl"
+                                            : "mt-1 break-words text-base font-semibold text-white sm:text-lg"
                                     }
                                 >
                                     {item.value}
@@ -908,14 +908,14 @@ function UnitToggle({
     ) => void;
 }) {
     return (
-        <div className="flex rounded-lg border border-slate-800 bg-slate-950 p-1">
+        <div className="flex shrink-0 rounded-lg border border-slate-800 bg-slate-950 p-1">
 
             <button
                 type="button"
                 onClick={() =>
                     onChange("imperial")
                 }
-                className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
+                className={`rounded-md px-2.5 py-1.5 text-xs font-semibold sm:px-3 ${
                     value === "imperial"
                         ? "bg-slate-700 text-white"
                         : "text-slate-500"
@@ -929,7 +929,7 @@ function UnitToggle({
                 onClick={() =>
                     onChange("metric")
                 }
-                className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
+                className={`rounded-md px-2.5 py-1.5 text-xs font-semibold sm:px-3 ${
                     value === "metric"
                         ? "bg-slate-700 text-white"
                         : "text-slate-500"
@@ -948,7 +948,7 @@ function HeroBadge({
     children: React.ReactNode;
 }) {
     return (
-        <span className="rounded-lg border border-slate-700 bg-slate-950/75 px-3 py-2 text-sm font-semibold text-slate-200">
+        <span className="rounded-lg border border-slate-700 bg-slate-950/75 px-2.5 py-1.5 text-xs font-semibold text-slate-200 sm:px-3 sm:py-2 sm:text-sm">
             {children}
         </span>
     );
@@ -964,9 +964,9 @@ function ProfileSection({
     children: React.ReactNode;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="w-full min-w-0 max-w-full rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
 
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 sm:gap-4">
 
                 <div className="text-sm font-semibold text-white">
                     {title}
@@ -976,7 +976,7 @@ function ProfileSection({
 
             </div>
 
-            <div className="mt-5 space-y-5">
+            <div className="mt-5 min-w-0 space-y-5">
                 {children}
             </div>
 
@@ -994,19 +994,21 @@ function ProfileMetric({
     value: React.ReactNode;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-3 sm:p-4">
 
-            <div className="flex items-center gap-2 text-slate-500">
+            <div className="flex min-w-0 items-center gap-2 text-slate-500">
 
-                {icon}
+                <div className="shrink-0">
+                    {icon}
+                </div>
 
-                <div className="text-xs font-semibold uppercase tracking-wide">
+                <div className="min-w-0 text-[10px] font-semibold uppercase tracking-wide sm:text-xs">
                     {label}
                 </div>
 
             </div>
 
-            <div className="mt-3 text-lg font-semibold text-white">
+            <div className="mt-3 min-w-0 break-words text-base font-semibold text-white sm:text-lg">
                 {value}
             </div>
 
@@ -1022,13 +1024,13 @@ function DraftMetric({
     value: string | number;
 }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4 text-center">
+        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-3 text-center sm:p-4">
 
             <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                 {label}
             </div>
 
-            <div className="mt-2 text-xl font-bold text-white">
+            <div className="mt-2 break-words text-lg font-bold text-white sm:text-xl">
                 {value}
             </div>
 
