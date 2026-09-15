@@ -9,6 +9,7 @@ const tabs = [
     { name: "City", href: "/city" },
     { name: "Team", href: "/team" },
     { name: "Player", href: "/player" },
+    { name: "About", href: "/about" },
 ];
 
 export default function Header() {

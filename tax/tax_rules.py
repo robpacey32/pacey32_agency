@@ -62,6 +62,37 @@ REVENU_QUEBEC_2026_URL = (
     "employers-principal-changes-for-2026/"
 )
 
+NYC_TAX_URL = (
+    "https://www.tax.ny.gov/forms/current-forms/it/it201i.htm"
+)
+
+PHILADELPHIA_TAX_URL = (
+    "https://www.phila.gov/services/business-self-employment/"
+    "business-taxes/wage-tax-employers/"
+)
+
+COLUMBUS_TAX_URL = (
+    "https://www.columbus.gov/Government/"
+    "City-Auditor/Income-Tax-Division/"
+    "General-Income-Tax-Information"
+)
+
+ST_LOUIS_TAX_URL = (
+    "https://www.stlouis-mo.gov/government/departments/"
+    "collector/earnings-tax/individual-earnings-tax-info.cfm"
+)
+
+DETROIT_TAX_URL = (
+    "https://detroitmi.gov/departments/"
+    "office-chief-financial-officer/ocfo-divisions/"
+    "office-treasury/income-tax/income-tax-information"
+)
+
+PITTSBURGH_TAX_URL = (
+    "https://www.pittsburghpa.gov/"
+    "City-Government/Finance-Budget/Taxes"
+)
+
 
 # =========================================================
 # HELPERS
@@ -112,15 +143,8 @@ def add_rule(
 
 
 # =========================================================
-# UNITED STATES
+# UNITED STATES — FEDERAL
 # =========================================================
-
-# ---------------------------------------------------------
-# Federal standard deduction
-#
-# Assumption for V1:
-# Generic player is treated as a single individual.
-# ---------------------------------------------------------
 
 add_rule(
     country_code="US",
@@ -145,22 +169,6 @@ add_rule(
 # CANADA — FEDERAL
 # =========================================================
 
-# Federal Basic Personal Amount.
-#
-# For NHL-level income the player is well above the income
-# threshold at which the minimum BPA applies.
-#
-# 2026:
-# maximum = 16,452
-# minimum = 14,829
-#
-# For V1 we therefore use the high-income/minimum amount.
-#
-# IMPORTANT:
-# This is a NON-REFUNDABLE TAX CREDIT base, not a deduction
-# from taxable income.
-# ---------------------------------------------------------
-
 add_rule(
     country_code="CA",
     country="Canada",
@@ -179,13 +187,6 @@ add_rule(
         "the minimum BPA applies."
     ),
 )
-
-
-# Canada Employment Amount.
-#
-# Employment income receives a federal non-refundable
-# employment credit.
-# ---------------------------------------------------------
 
 add_rule(
     country_code="CA",
@@ -251,16 +252,6 @@ add_rule(
 # Winnipeg Jets
 # =========================================================
 
-# Manitoba BPA phases out at higher income.
-#
-# Maximum 2026 BPA = 15,780
-# Phase-out begins = 200,000
-# BPA reaches zero = 400,000
-#
-# Every NHL salary is well above this in CAD.
-# V1 therefore uses zero for NHL-player comparisons.
-# ---------------------------------------------------------
-
 add_rule(
     country_code="CA",
     country="Canada",
@@ -298,18 +289,6 @@ add_rule(
     calculation_base="provincial_tax_before_credits",
     source_url=CRA_ON_2026_URL,
 )
-
-
-# ---------------------------------------------------------
-# Ontario surtax
-#
-# Applied to Ontario BASIC PROVINCIAL TAX PAYABLE,
-# not taxable income.
-#
-# 20% on tax above $5,818
-# PLUS
-# 36% on tax above $7,446
-# ---------------------------------------------------------
 
 add_rule(
     country_code="CA",
@@ -363,14 +342,6 @@ add_rule(
     source_url=REVENU_QUEBEC_2026_URL,
 )
 
-
-# ---------------------------------------------------------
-# Quebec federal tax abatement
-#
-# Quebec residents receive a 16.5% abatement of basic
-# federal tax.
-# ---------------------------------------------------------
-
 add_rule(
     country_code="CA",
     country="Canada",
@@ -385,6 +356,221 @@ add_rule(
     source_url=CRA_2026_URL,
     notes=(
         "Federal tax abatement applicable to Quebec residents."
+    ),
+)
+
+
+# =========================================================
+# SWEDEN — NHL GLOBAL SERIES
+# =========================================================
+
+add_rule(
+    country_code="SE",
+    country="Sweden",
+    jurisdiction="Sweden",
+    jurisdiction_id="SE",
+    currency_code="USD",
+    rule_key="athlete_nonresident_tax",
+    rule_type="flat_rate",
+    rule_name="Sweden non-resident athlete tax",
+    rate=0.15,
+    calculation_base="allocated_income",
+    applies_to="nonresident_athlete",
+    notes=(
+        "V1 treatment for NHL salary allocated to games "
+        "played in Sweden."
+    ),
+)
+
+
+# =========================================================
+# UNITED STATES — LOCAL TAXES
+# =========================================================
+
+
+# ---------------------------------------------------------
+# New York City
+# New York Rangers
+#
+# V1 residency assumption:
+# Rangers player treated as NYC resident.
+#
+# NYC resident income tax is progressive.
+#
+# For single filers:
+# 3.078%  $0 - $12,000
+# 3.762%  $12,000 - $25,000
+# 3.819%  $25,000 - $50,000
+# 3.876%  $50,000+
+# ---------------------------------------------------------
+
+NYC_BRACKETS = [
+    (0.00, 12000.00, 0.03078),
+    (12000.00, 25000.00, 0.03762),
+    (25000.00, 50000.00, 0.03819),
+    (50000.00, None, 0.03876),
+]
+
+for i, (lower, upper, rate) in enumerate(
+    NYC_BRACKETS,
+    start=1,
+):
+    add_rule(
+        country_code="US",
+        country="United States",
+        jurisdiction="New York City",
+        jurisdiction_id="US-New York City",
+        currency_code="USD",
+        rule_key=f"local_income_tax_bracket_{i}",
+        rule_type="local_tax_bracket",
+        rule_name=f"New York City income tax bracket {i}",
+        value=lower,
+        rate=rate,
+        threshold=upper,
+        rule_order=i,
+        calculation_base="local_taxable_income",
+        applies_to="resident",
+        source_url=NYC_TAX_URL,
+        notes=(
+            "NYC resident income tax. "
+            "V1 assumes a Rangers player is resident in New York City."
+        ),
+    )
+
+
+# ---------------------------------------------------------
+# Philadelphia
+# Philadelphia Flyers
+#
+# Resident Wage Tax.
+# V1 uses the resident rate effective July 1, 2026.
+# ---------------------------------------------------------
+
+add_rule(
+    country_code="US",
+    country="United States",
+    jurisdiction="Philadelphia",
+    jurisdiction_id="US-Philadelphia",
+    currency_code="USD",
+    rule_key="local_wage_tax",
+    rule_type="local_flat_tax",
+    rule_name="Philadelphia resident wage tax",
+    rate=0.03735,
+    calculation_base="gross_salary",
+    applies_to="resident",
+    source_url=PHILADELPHIA_TAX_URL,
+    notes=(
+        "Philadelphia resident Wage Tax. "
+        "V1 applies the resident rate to gross NHL salary."
+    ),
+)
+
+
+# ---------------------------------------------------------
+# Columbus
+# Columbus Blue Jackets
+#
+# Municipal income tax.
+# ---------------------------------------------------------
+
+add_rule(
+    country_code="US",
+    country="United States",
+    jurisdiction="Columbus",
+    jurisdiction_id="US-Columbus",
+    currency_code="USD",
+    rule_key="local_income_tax",
+    rule_type="local_flat_tax",
+    rule_name="Columbus municipal income tax",
+    rate=0.025,
+    calculation_base="gross_salary",
+    applies_to="resident",
+    source_url=COLUMBUS_TAX_URL,
+    notes=(
+        "Columbus municipal income tax. "
+        "V1 applies the resident rate to gross NHL salary."
+    ),
+)
+
+
+# ---------------------------------------------------------
+# St. Louis
+# St. Louis Blues
+#
+# Resident earnings tax.
+# ---------------------------------------------------------
+
+add_rule(
+    country_code="US",
+    country="United States",
+    jurisdiction="St. Louis",
+    jurisdiction_id="US-St Louis",
+    currency_code="USD",
+    rule_key="local_earnings_tax",
+    rule_type="local_flat_tax",
+    rule_name="St. Louis earnings tax",
+    rate=0.01,
+    calculation_base="gross_salary",
+    applies_to="resident",
+    source_url=ST_LOUIS_TAX_URL,
+    notes=(
+        "St. Louis resident earnings tax. "
+        "V1 applies the rate to gross NHL salary."
+    ),
+)
+
+# ---------------------------------------------------------
+# Detroit
+# Detroit Red Wings
+#
+# Resident city income tax.
+# ---------------------------------------------------------
+
+add_rule(
+    country_code="US",
+    country="United States",
+    jurisdiction="Detroit",
+    jurisdiction_id="US-Detroit",
+    currency_code="USD",
+    rule_key="local_income_tax",
+    rule_type="local_flat_tax",
+    rule_name="Detroit resident income tax",
+    rate=0.024,
+    calculation_base="gross_salary",
+    applies_to="resident",
+    source_url=DETROIT_TAX_URL,
+    notes=(
+        "Detroit resident income tax. "
+        "V1 applies the 2.4% resident rate to gross NHL salary."
+    ),
+)
+
+
+# ---------------------------------------------------------
+# Pittsburgh
+# Pittsburgh Penguins
+#
+# Resident Earned Income Tax:
+# 1% City + 2% School District = 3%.
+# ---------------------------------------------------------
+
+add_rule(
+    country_code="US",
+    country="United States",
+    jurisdiction="Pittsburgh",
+    jurisdiction_id="US-Pittsburgh",
+    currency_code="USD",
+    rule_key="local_earned_income_tax",
+    rule_type="local_flat_tax",
+    rule_name="Pittsburgh resident earned income tax",
+    rate=0.03,
+    calculation_base="gross_salary",
+    applies_to="resident",
+    source_url=PITTSBURGH_TAX_URL,
+    notes=(
+        "Pittsburgh resident Earned Income Tax. "
+        "Includes 1% City and 2% School District. "
+        "V1 applies the combined 3% resident rate to gross NHL salary."
     ),
 )
 
@@ -421,7 +607,6 @@ for column in required_columns:
         )
 
 
-# Each jurisdiction/rule should only occur once.
 duplicate_keys = df.duplicated(
     subset=[
         "tax_year",
@@ -448,7 +633,6 @@ if duplicate_keys.any():
     )
 
 
-# Rates should always be between 0 and 1.
 invalid_rates = (
     df["rate"].notna()
     & (

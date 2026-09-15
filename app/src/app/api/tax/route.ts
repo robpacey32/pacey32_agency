@@ -22,6 +22,10 @@ export async function GET(
             searchParams.get("season") ?? 20252026
         );
 
+        const includeLocalTax =
+            searchParams.get("includeLocalTax")
+                ?.toLowerCase() !== "false";
+
         if (
             !Number.isFinite(salary) ||
             salary <= 0
@@ -45,6 +49,8 @@ export async function GET(
                     salary,
                     tax_year: taxYear,
                     season,
+                    include_local_tax:
+                        includeLocalTax,
                 },
             });
 
@@ -52,6 +58,7 @@ export async function GET(
             salary,
             taxYear,
             season,
+            includeLocalTax,
             teams: rows,
         });
     } catch (error) {

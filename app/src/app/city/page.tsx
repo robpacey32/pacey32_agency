@@ -101,6 +101,7 @@ type NHLTaxTeam = {
 
     federal_tax_usd: number;
     home_jurisdiction_tax_usd: number;
+    local_tax_usd: number;
     incremental_away_tax_usd: number;
     quebec_federal_abatement_usd: number;
 
@@ -119,6 +120,7 @@ type NHLTaxResponse = {
     salary: number;
     taxYear: number;
     season: number;
+    includeLocalTax: boolean;
     teams: NHLTaxTeam[];
 };
 
@@ -267,6 +269,11 @@ export default function CityPage() {
         useState(5_000_000);
 
     const [
+        includeLocalTax,
+        setIncludeLocalTax,
+    ] = useState(true);
+
+    const [
         taxSalaryInput,
         setTaxSalaryInput,
     ] = useState("5000000");
@@ -369,7 +376,7 @@ export default function CityPage() {
 
                 const response =
                     await fetch(
-                        `/api/tax?salary=${taxSalary}`,
+                        `/api/tax?salary=${taxSalary}&includeLocalTax=${includeLocalTax}`,
                         {
                             cache: "no-store",
                         }
@@ -416,6 +423,7 @@ export default function CityPage() {
     }, [
         selectedTeam,
         taxSalary,
+        includeLocalTax,
     ]);
 
     const toggleCard = (
@@ -818,7 +826,7 @@ export default function CityPage() {
                       selectedTaxTeam.effective_tax_rate *
                       100
                   ).toFixed(
-                      1
+                      2
                   )}% effective tax · ${formatCompactUSD(
                       taxSalary
                   )} salary`
@@ -843,6 +851,9 @@ export default function CityPage() {
                     error={
                         taxError
                     }
+                    includeLocalTax={
+                        includeLocalTax
+                    }
                     onSalaryInputChange={
                         setTaxSalaryInput
                     }
@@ -851,6 +862,9 @@ export default function CityPage() {
                     }
                     onQuickSalary={
                         selectQuickTaxSalary
+                    }
+                    onIncludeLocalTaxChange={
+                        setIncludeLocalTax
                     }
                 />
             ),

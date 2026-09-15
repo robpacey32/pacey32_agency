@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 const questions = [
@@ -50,13 +51,27 @@ export default function HomePage() {
 
                 {/* HERO */}
                 <section className="py-16">
+
                     <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
                         Pacey32 Analytics
                     </p>
 
-                    <h1 className="mt-4 max-w-4xl text-5xl font-bold tracking-tight text-white md:text-6xl">
-                        Decision support for hockey agents.
-                    </h1>
+                    <div className="mt-4 flex items-center gap-8">
+
+                        <Image
+                            src="/32Logo.png"
+                            alt="Pacey32 Analytics"
+                            width={160}
+                            height={160}
+                            priority
+                            className="hidden h-auto w-28 shrink-0 object-contain sm:block md:w-36"
+                        />
+
+                        <h1 className="max-w-4xl text-5xl font-bold tracking-tight text-white md:text-6xl">
+                            Decision support for hockey agents.
+                        </h1>
+
+                    </div>
 
                     <p className="mt-6 max-w-3xl text-xl leading-8 text-slate-400">
                         Understand the financial,
@@ -68,28 +83,36 @@ export default function HomePage() {
                     </p>
 
                     <div className="mt-8 flex flex-wrap gap-3">
+
                         <button
                             onClick={() =>
-                                router.push(
-                                    "/team"
-                                )
+                                router.push("/team")
                             }
-                            className="rounded-xl bg-white px-6 py-3 font-semibold text-slate-950 transition hover:bg-slate-200"
+                            className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
                         >
                             Explore a Team
                         </button>
 
                         <button
                             onClick={() =>
-                                router.push(
-                                    "/player"
-                                )
+                                router.push("/player")
                             }
-                            className="rounded-xl border border-slate-700 px-6 py-3 font-semibold text-white transition hover:border-slate-500 hover:bg-slate-900"
+                            className="rounded-lg border border-slate-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-slate-500 hover:bg-slate-900"
                         >
                             Explore a Player
                         </button>
+
+                        <button
+                            onClick={() =>
+                                router.push("/city")
+                            }
+                            className="rounded-lg border border-slate-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-slate-500 hover:bg-slate-900"
+                        >
+                            Explore a City
+                        </button>
+
                     </div>
+
                 </section>
 
 
@@ -97,127 +120,154 @@ export default function HomePage() {
                 <section className="border-t border-slate-800 py-14">
 
                     <div className="mb-8">
+
                         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">
                             Questions this can answer
                         </p>
 
                         <h2 className="mt-2 text-3xl font-bold text-white">
-                            Start with the decision,
+                            Start with the question,
                             not the data.
                         </h2>
+
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 
-                        {questions.map(
-                            (item) => (
-                                <button
-                                    key={
-                                        item.question
-                                    }
-                                    onClick={() =>
-                                        router.push(
-                                            item.route
-                                        )
-                                    }
-                                    className="group rounded-2xl border border-slate-800 bg-slate-900/40 p-6 text-left transition hover:border-slate-600 hover:bg-slate-900"
-                                >
-                                    <p className="text-lg font-semibold leading-7 text-white">
-                                        “
-                                        {
-                                            item.question
-                                        }
-                                        ”
-                                    </p>
+                        {questions.map((item) => (
+                            <button
+                                key={item.question}
+                                onClick={() =>
+                                    router.push(item.route)
+                                }
+                                className="group flex min-h-[150px] flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/40 p-5 text-left transition hover:border-slate-600 hover:bg-slate-900"
+                            >
 
-                                    <div className="mt-6 flex items-center justify-between">
+                                <p className="text-sm font-normal leading-6 text-slate-200">
+                                    “{item.question}”
+                                </p>
 
-                                        <span className="text-sm font-medium text-slate-500">
-                                            {
-                                                item.area
-                                            }
-                                        </span>
+                                <div className="mt-5 flex items-center justify-between">
 
-                                        <span className="text-slate-600 transition group-hover:translate-x-1 group-hover:text-white">
-                                            →
-                                        </span>
+                                    <span className="text-xs font-normal text-slate-500">
+                                        {item.area}
+                                    </span>
 
-                                    </div>
-                                </button>
-                            )
-                        )}
+                                    <span className="text-sm text-slate-600 transition group-hover:translate-x-1 group-hover:text-white">
+                                        →
+                                    </span>
+
+                                </div>
+
+                            </button>
+                        ))}
 
                     </div>
+
                 </section>
 
 
                 {/* HOW IT WORKS */}
                 <section className="border-t border-slate-800 py-14">
 
-                    <div className="mb-8">
+                    <div className="mb-10">
+
                         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">
                             How it works
                         </p>
 
                         <h2 className="mt-2 text-3xl font-bold text-white">
-                            From raw data to a
-                            player decision.
+                            We provide the data.
+                            You make the decisions.
                         </h2>
+
                     </div>
 
-                    <div className="grid gap-4 lg:grid-cols-3">
 
-                        <Step
+                    {/* DESKTOP PROCESS FLOW */}
+                    <div className="hidden items-stretch lg:flex">
+
+                        <ProcessStep
                             number="01"
                             title="Select the situation"
                             detail="Choose the player, team or city you want to evaluate."
                         />
 
-                        <Step
+                        <ProcessArrow />
+
+                        <ProcessStep
                             number="02"
                             title="Combine the data"
                             detail="Performance, contracts, schedules, tax, cost of living, organisation and location data are brought together."
                         />
 
-                        <Step
+                        <ProcessArrow />
+
+                        <ProcessStep
                             number="03"
                             title="Compare the outcome"
                             detail="See the financial, sporting and lifestyle implications in a form designed to support an agent conversation."
                         />
 
                     </div>
+
+
+                    {/* MOBILE PROCESS FLOW */}
+                    <div className="space-y-3 lg:hidden">
+
+                        <ProcessStep
+                            number="01"
+                            title="Select the situation"
+                            detail="Choose the player, team or city you want to evaluate."
+                        />
+
+                        <div className="text-center text-2xl text-slate-600">
+                            ↓
+                        </div>
+
+                        <ProcessStep
+                            number="02"
+                            title="Combine the data"
+                            detail="Performance, contracts, schedules, tax, cost of living, organisation and location data are brought together."
+                        />
+
+                        <div className="text-center text-2xl text-slate-600">
+                            ↓
+                        </div>
+
+                        <ProcessStep
+                            number="03"
+                            title="Compare the outcome"
+                            detail="See the financial, sporting and lifestyle implications in a form designed to support an agent conversation."
+                        />
+
+                    </div>
+
                 </section>
 
 
                 {/* CAPABILITIES */}
                 <section className="border-t border-slate-800 py-14">
 
-                    <div className="mb-8">
-                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">
-                            Decision areas
-                        </p>
-
-                        <h2 className="mt-2 text-3xl font-bold text-white">
-                            Built around the decisions
-                            agents actually make.
-                        </h2>
-                    </div>
-
                     <div className="grid gap-4 lg:grid-cols-3">
 
                         <Capability
-                            title="Player"
+                            title="City"
+                            route="/city"
+                            onNavigate={router.push}
                             items={[
-                                "Performance",
-                                "Comparables",
-                                "Trajectory",
-                                "Contracts",
-                                "Market positioning",
+                                "Tax",
+                                "Cost of living",
+                                "Climate",
+                                "Neighbourhoods",
+                                "Lifestyle",
                             ]}
                         />
 
                         <Capability
                             title="Team"
+                            route="/team"
+                            onNavigate={router.push}
                             items={[
                                 "Organisation",
                                 "Travel",
@@ -228,17 +278,20 @@ export default function HomePage() {
                         />
 
                         <Capability
-                            title="City"
+                            title="Player"
+                            route="/player"
+                            onNavigate={router.push}
                             items={[
-                                "Tax",
-                                "Cost of living",
-                                "Climate",
-                                "Neighbourhoods",
-                                "Lifestyle",
+                                "Performance",
+                                "Comparables",
+                                "Trajectory",
+                                "Contracts",
+                                "Market positioning",
                             ]}
                         />
 
                     </div>
+
                 </section>
 
             </div>
@@ -247,7 +300,7 @@ export default function HomePage() {
 }
 
 
-function Step({
+function ProcessStep({
     number,
     title,
     detail,
@@ -257,13 +310,13 @@ function Step({
     detail: string;
 }) {
     return (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/30 p-6">
+        <div className="flex-1 rounded-2xl border border-slate-800 bg-slate-900/30 p-6">
 
             <p className="text-sm font-semibold text-slate-600">
                 {number}
             </p>
 
-            <h3 className="mt-4 text-xl font-semibold text-white">
+            <h3 className="mt-3 text-xl font-semibold text-white">
                 {title}
             </h3>
 
@@ -276,39 +329,69 @@ function Step({
 }
 
 
+function ProcessArrow() {
+    return (
+        <div className="flex w-16 shrink-0 items-center justify-center">
+
+            <span className="text-3xl font-light text-slate-600">
+                →
+            </span>
+
+        </div>
+    );
+}
+
+
 function Capability({
     title,
     items,
+    route,
+    onNavigate,
 }: {
     title: string;
     items: string[];
+    route: string;
+    onNavigate: (route: string) => void;
 }) {
     return (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/30 p-6">
+        <button
+            onClick={() =>
+                onNavigate(route)
+            }
+            className="group rounded-2xl border border-slate-800 bg-slate-900/30 p-6 text-left transition hover:border-slate-600 hover:bg-slate-900"
+        >
 
-            <h3 className="text-xl font-semibold text-white">
-                {title}
-            </h3>
+            <div className="flex items-center justify-between">
 
-            <div className="mt-5 space-y-3">
+                <h3 className="text-xl font-semibold text-white">
+                    {title}
+                </h3>
 
-                {items.map(
-                    (item) => (
-                        <div
-                            key={item}
-                            className="flex items-center gap-3 text-slate-400"
-                        >
-                            <div className="h-1.5 w-1.5 rounded-full bg-slate-600" />
-
-                            <span>
-                                {item}
-                            </span>
-                        </div>
-                    )
-                )}
+                <span className="text-slate-600 transition group-hover:translate-x-1 group-hover:text-white">
+                    →
+                </span>
 
             </div>
 
-        </div>
+            <div className="mt-5 space-y-3">
+
+                {items.map((item) => (
+                    <div
+                        key={item}
+                        className="flex items-center gap-3 text-slate-400"
+                    >
+
+                        <div className="h-1.5 w-1.5 rounded-full bg-slate-600" />
+
+                        <span>
+                            {item}
+                        </span>
+
+                    </div>
+                ))}
+
+            </div>
+
+        </button>
     );
 }

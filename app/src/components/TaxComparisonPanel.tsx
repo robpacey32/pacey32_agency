@@ -16,6 +16,7 @@ type TaxTeam = {
 
     federal_tax_usd: number;
     home_jurisdiction_tax_usd: number;
+    local_tax_usd: number;
     incremental_away_tax_usd: number;
     quebec_federal_abatement_usd: number;
 
@@ -37,6 +38,8 @@ type Props = {
     loading: boolean;
     error: string | null;
 
+    includeLocalTax: boolean;
+
     onSalaryInputChange: (
         value: string
     ) => void;
@@ -45,6 +48,10 @@ type Props = {
 
     onQuickSalary: (
         salary: number
+    ) => void;
+
+    onIncludeLocalTaxChange: (
+        value: boolean
     ) => void;
 };
 
@@ -90,9 +97,11 @@ export default function TaxComparisonPanel({
     salaryInput,
     loading,
     error,
+    includeLocalTax,
     onSalaryInputChange,
     onCalculate,
     onQuickSalary,
+    onIncludeLocalTaxChange,
 }: Props) {
     const [
         chartMetric,
@@ -126,6 +135,10 @@ export default function TaxComparisonPanel({
             teams,
             chartMetric,
         ]);
+
+    const localTaxApplies =
+        selectedTeam !== null &&
+        selectedTeam.local_tax_usd > 0;
 
     return (
         <div className="space-y-8">
@@ -306,6 +319,72 @@ export default function TaxComparisonPanel({
                                 </div>
 
 
+                                {/* RESIDENCY ASSUMPTION */}
+                                <div className="mt-7 rounded-xl border border-slate-800 bg-slate-950/60 p-5">
+
+                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                                        <div>
+                                            <p className="text-sm font-medium text-white">
+                                                Live within team city
+                                            </p>
+
+                                            <p className="mt-1 text-sm text-slate-500">
+                                                Include applicable resident
+                                                city/local income taxes.
+                                            </p>
+
+                                            {includeLocalTax &&
+                                                localTaxApplies && (
+                                                <p className="mt-2 text-sm text-slate-400">
+                                                    Current local tax estimate:{" "}
+                                                    <span className="font-medium text-white">
+                                                        {formatMoney(
+                                                            selectedTeam.local_tax_usd
+                                                        )}
+                                                    </span>
+                                                </p>
+                                            )}
+
+                                            {!includeLocalTax && (
+                                                <p className="mt-2 text-sm text-slate-500">
+                                                    Local resident tax excluded
+                                                    from this comparison.
+                                                </p>
+                                            )}
+                                        </div>
+
+
+                                        <button
+                                            type="button"
+                                            role="switch"
+                                            aria-checked={
+                                                includeLocalTax
+                                            }
+                                            onClick={() =>
+                                                onIncludeLocalTaxChange(
+                                                    !includeLocalTax
+                                                )
+                                            }
+                                            className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+                                                includeLocalTax
+                                                    ? "bg-slate-200"
+                                                    : "bg-slate-700"
+                                            }`}
+                                        >
+                                            <span
+                                                className={`absolute top-1 h-5 w-5 rounded-full bg-slate-950 transition-all ${
+                                                    includeLocalTax
+                                                        ? "left-6"
+                                                        : "left-1"
+                                                }`}
+                                            />
+                                        </button>
+
+                                    </div>
+                                </div>
+
+
                                 <div className="mt-7 grid gap-6 lg:grid-cols-2">
 
                                     <div>
@@ -328,6 +407,16 @@ export default function TaxComparisonPanel({
                                                     selectedTeam.home_jurisdiction_tax_usd
                                                 }
                                             />
+
+                                            {selectedTeam.local_tax_usd >
+                                                0 && (
+                                                <TaxRow
+                                                    label={`${selectedTeam.city_name} local`}
+                                                    value={
+                                                        selectedTeam.local_tax_usd
+                                                    }
+                                                />
+                                            )}
 
                                             <TaxRow
                                                 label="Away / jock tax"
@@ -447,9 +536,9 @@ export default function TaxComparisonPanel({
 
 
                             {/* COLUMN CHART */}
-                            <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/50">
+                            <div className="rounded-2xl border border-slate-800 bg-slate-950/50">
 
-                                <div className="min-w-[1450px] px-7 pb-6 pt-8">
+                                <div className="px-4 pb-6 pt-8 sm:px-5">
 
                                     <ColumnChart
                                         teams={
@@ -471,20 +560,26 @@ export default function TaxComparisonPanel({
                         {/* METHODOLOGY */}
                         <div className="border-t border-slate-800 pt-5 text-xs leading-5 text-slate-500">
                             Estimate based on 2026
-                            federal and
-                            state/provincial tax
+                            federal,
+                            state/provincial and,
+                            where applicable,
+                            resident city/local tax
                             rules and the 2025-26
                             NHL regular-season
                             schedule. Away-game
                             taxation is approximated
                             using game-location
                             salary allocation.
-                            Excludes local and
-                            payroll taxes,
-                            individual deductions,
-                            residency strategies,
-                            contract structuring and
-                            other player-specific
+                            Local resident taxes can
+                            be excluded using the
+                            residency assumption
+                            above. Excludes payroll
+                            taxes, individual
+                            deductions, detailed
+                            residency and tax-credit
+                            strategies, contract
+                            structuring and other
+                            player-specific
                             circumstances.
                         </div>
                     </>
@@ -542,14 +637,14 @@ function ColumnChart({
 
     if (isVsAverage) {
         return (
-            <div>
+            <div className="w-full">
 
                 {/* POSITIVE HALF */}
                 <div className="relative h-48">
 
                     <ChartGridLines />
 
-                    <div className="absolute inset-0 grid grid-cols-[repeat(32,minmax(42px,1fr))] gap-2">
+                    <div className="absolute inset-0 grid grid-cols-[repeat(32,minmax(0,1fr))] gap-1">
 
                         {teams.map(
                             (team) => {
@@ -584,7 +679,7 @@ function ColumnChart({
                                         key={
                                             team.team_code
                                         }
-                                        className="relative flex h-full items-end justify-center"
+                                        className="relative flex h-full min-w-0 items-end justify-center"
                                         onMouseEnter={() =>
                                             setHoveredTeam(
                                                 team.team_code
@@ -612,7 +707,7 @@ function ColumnChart({
                                         {value >
                                             0 && (
                                             <div
-                                                className={`w-[32px] rounded-t-md transition-all duration-300 ${
+                                                className={`w-[70%] min-w-[8px] max-w-[32px] rounded-t-md transition-all duration-300 ${
                                                     selected
                                                         ? "bg-slate-200"
                                                         : "bg-emerald-700 hover:bg-emerald-600"
@@ -640,7 +735,7 @@ function ColumnChart({
 
                     <ChartGridLines />
 
-                    <div className="absolute inset-0 grid grid-cols-[repeat(32,minmax(42px,1fr))] gap-2">
+                    <div className="absolute inset-0 grid grid-cols-[repeat(32,minmax(0,1fr))] gap-1">
 
                         {teams.map(
                             (team) => {
@@ -677,7 +772,7 @@ function ColumnChart({
                                         key={
                                             team.team_code
                                         }
-                                        className="relative flex h-full items-start justify-center"
+                                        className="relative flex h-full min-w-0 items-start justify-center"
                                         onMouseEnter={() =>
                                             setHoveredTeam(
                                                 team.team_code
@@ -692,7 +787,7 @@ function ColumnChart({
                                         {value <
                                             0 && (
                                             <div
-                                                className={`w-[32px] rounded-b-md transition-all duration-300 ${
+                                                className={`w-[70%] min-w-[8px] max-w-[32px] rounded-b-md transition-all duration-300 ${
                                                     selected
                                                         ? "bg-slate-200"
                                                         : "bg-red-800 hover:bg-red-700"
@@ -757,14 +852,14 @@ function ColumnChart({
 
 
     return (
-        <div>
+        <div className="w-full">
 
             {/* MAIN CHART */}
             <div className="relative h-80">
 
                 <ChartGridLines />
 
-                <div className="absolute inset-0 grid grid-cols-[repeat(32,minmax(42px,1fr))] items-end gap-2">
+                <div className="absolute inset-0 grid grid-cols-[repeat(32,minmax(0,1fr))] items-end gap-1">
 
                     {teams.map(
                         (team) => {
@@ -797,7 +892,7 @@ function ColumnChart({
                                     key={
                                         team.team_code
                                     }
-                                    className="relative flex h-full items-end justify-center"
+                                    className="relative flex h-full min-w-0 items-end justify-center"
                                     onMouseEnter={() =>
                                         setHoveredTeam(
                                             team.team_code
@@ -821,7 +916,7 @@ function ColumnChart({
                                     )}
 
                                     <div
-                                        className={`w-[32px] rounded-t-md transition-all duration-300 ${
+                                        className={`w-[70%] min-w-[8px] max-w-[32px] rounded-t-md transition-all duration-300 ${
                                             selected
                                                 ? "bg-slate-200"
                                                 : "bg-slate-700 hover:bg-slate-600"
@@ -889,7 +984,7 @@ function TeamLogoAxis({
     ) => void;
 }) {
     return (
-        <div className="mt-3 grid grid-cols-[repeat(32,minmax(42px,1fr))] gap-2">
+        <div className="mt-3 grid grid-cols-[repeat(32,minmax(0,1fr))] gap-1">
 
             {teams.map(
                 (team) => {
@@ -906,7 +1001,7 @@ function TeamLogoAxis({
                             key={
                                 team.team_code
                             }
-                            className={`flex cursor-default flex-col items-center gap-1 rounded-lg px-1 py-2 transition ${
+                            className={`flex min-w-0 cursor-default flex-col items-center gap-1 rounded-lg px-0.5 py-2 transition ${
                                 selected
                                     ? "bg-slate-800"
                                     : hovered
@@ -935,7 +1030,7 @@ function TeamLogoAxis({
                                     alt={
                                         team.team_name
                                     }
-                                    className={`h-8 w-8 object-contain transition ${
+                                    className={`h-7 w-7 max-w-full object-contain transition ${
                                         selected ||
                                         hovered
                                             ? "scale-110"
@@ -945,7 +1040,7 @@ function TeamLogoAxis({
                             )}
 
                             <span
-                                className={`text-[10px] font-semibold ${
+                                className={`text-[9px] font-semibold ${
                                     selected
                                         ? "text-white"
                                         : hovered
@@ -1127,7 +1222,7 @@ function formatChartValue(
 ) {
     if (metric === "rate") {
         return `${value.toFixed(
-            1
+            2
         )}%`;
     }
 
@@ -1240,5 +1335,5 @@ function formatPercent(
 ) {
     return `${(
         value * 100
-    ).toFixed(1)}%`;
+    ).toFixed(2)}%`;
 }
