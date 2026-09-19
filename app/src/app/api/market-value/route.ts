@@ -1,338 +1,54 @@
-import { NextRequest, NextResponse } from "next/server";
+// app/src/app/api/market-value/route.ts
+
+import {
+    NextRequest,
+    NextResponse,
+} from "next/server";
+
 import { bigquery } from "@/lib/bigquery";
 
-interface ComparableRow {
-    comparable_rank: number;
-    comparable_playerId: number;
-    comparable_player: string;
-    comparable_position: string;
-    overall_similarity: number;
+import {
+    getCachedComparables,
+} from "@/lib/comparison/v3/cache";
 
-    current_aav: number | null;
-    current_contract_term: number | null;
-    current_contract_to: string | null;
-    current_contract_cap_pct: number | null;
+import {
+    loadHistoricalContracts,
+    loadCurrentContractMarket,
+    loadTargetPosition,
+} from "@/lib/comparison/v3/loaders";
 
-    age: number | null;
-    latestSeasonPPG: number | null;
-    ppgGrowth: number | null;
+import {
+    attachHistoricalContracts,
+    ContractComparable,
+    ContractMarketType,
+} from "@/lib/comparison/v3/07_historicalcontracts";
 
-    headshot_url: string | null;
-}
+import {
+    weightHistoricalContracts,
+} from "@/lib/comparison/v3/08_contractweight";
 
-interface TargetRow {
-    playerId: number;
-    player: string;
-    position: string;
-
-    age: number | null;
-    latestSeasonPPG: number | null;
-    ppgGrowth: number | null;
-
-    current_aav: number | null;
-    current_contract_term: number | null;
-    current_contract_to: string | null;
-    current_contract_cap_pct: number | null;
-
-    headshot_url: string | null;
-}
+import {
+    calculateMarketValue,
+} from "@/lib/comparison/v3/09_marketvalue";
 
 // ---------------------------------------------------------
-// HELPERS
+// TYPES
 // ---------------------------------------------------------
 
-function clamp(
-    value: number,
-    min: number,
-    max: number
-) {
-    return Math.max(
-        min,
-        Math.min(max, value)
-    );
-}
-
-function weightedAverage(
-    values: {
-        value: number;
-        weight: number;
-    }[]
-): number | null {
-    if (!values.length) {
-        return null;
-    }
-
-    const totalWeight =
-        values.reduce(
-            (sum, item) =>
-                sum + item.weight,
-            0
-        );
-
-    if (totalWeight === 0) {
-        return null;
-    }
-
-    return (
-        values.reduce(
-            (sum, item) =>
-                sum +
-                item.value *
-                    item.weight,
-            0
-        ) / totalWeight
-    );
-}
-
-function similarityWeight(
-    similarity: number
-) {
-    const score =
-        clamp(
-            similarity / 100,
-            0,
-            1
-        );
-
-    return score * score;
-}
+const VALID_MARKET_TYPES:
+    ContractMarketType[] = [
+        "RFA_TO_RFA",
+        "RFA_TO_UFA",
+        "UFA_SIGNING",
+    ];
 
 // ---------------------------------------------------------
-// TARGET PLAYER
-// ---------------------------------------------------------
-
-async function getTargetPlayer(
-    playerId: number
-): Promise<TargetRow | null> {
-    const query = `
-        WITH player_snapshot AS (
-
-            SELECT
-                playerId,
-                age,
-                latestSeasonPPG,
-                ppgGrowth
-
-            FROM \`pacey32-agency.Comparison.09_PlayerCurrentSnapshot\`
-
-            WHERE playerId = @playerId
-
-            QUALIFY ROW_NUMBER() OVER (
-                PARTITION BY playerId
-                ORDER BY SnapshotDate DESC
-            ) = 1
-        ),
-
-        player_profile AS (
-
-            SELECT
-                playerID AS playerId,
-                player_name AS player,
-                CASE
-                    WHEN position = 'L' THEN 'LW'
-                    WHEN position = 'R' THEN 'RW'
-                    ELSE position
-                END AS position,
-                headshot_url
-
-            FROM \`pacey32-agency.Player.PlayerDetail_NHLAPI\`
-
-            WHERE playerID = @playerId
-              AND rn = 1
-
-            QUALIFY ROW_NUMBER() OVER (
-                PARTITION BY playerID
-                ORDER BY RunDate DESC
-            ) = 1
-        ),
-
-        current_contract AS (
-
-            SELECT
-                player,
-                CAST(cap_hit AS FLOAT64) AS current_aav,
-                CAST(term AS INT64) AS current_contract_term,
-                CAST(season_to AS STRING) AS current_contract_to,
-                CAST(
-                    pct_cap_contract_start AS FLOAT64
-                ) AS current_contract_cap_pct
-
-            FROM \`pacey32-agency.Cap.PlayerDetail\`
-
-            WHERE current_contract = TRUE
-
-            QUALIFY ROW_NUMBER() OVER (
-                PARTITION BY player
-                ORDER BY scrape_datetime DESC
-            ) = 1
-        )
-
-        SELECT
-            p.playerId,
-            p.player,
-            p.position,
-
-            s.age,
-            s.latestSeasonPPG,
-            s.ppgGrowth,
-
-            c.current_aav,
-            c.current_contract_term,
-            c.current_contract_to,
-            c.current_contract_cap_pct,
-
-            p.headshot_url
-
-        FROM player_profile p
-
-        LEFT JOIN player_snapshot s
-            USING (playerId)
-
-        LEFT JOIN current_contract c
-            ON LOWER(TRIM(c.player)) =
-               LOWER(TRIM(p.player))
-    `;
-
-    const [rows] =
-        await bigquery.query({
-            query,
-            params: {
-                playerId,
-            },
-            types: {
-                playerId: "INT64",
-            },
-            location:
-                "us-central1",
-        });
-
-    if (!rows.length) {
-        return null;
-    }
-
-    return rows[0] as TargetRow;
-}
-
-// ---------------------------------------------------------
-// COMPARABLES
-// ---------------------------------------------------------
-
-async function getComparablePlayers(
-    playerId: number
-): Promise<ComparableRow[]> {
-    const query = `
-        WITH latest_run AS (
-
-            SELECT MAX(RunDate) AS RunDate
-
-            FROM \`pacey32-agency.Comparison.10_ComparablePlayers\`
-
-            WHERE target_playerId =
-                @playerId
-        ),
-
-        comparables AS (
-
-            SELECT
-                c.comparable_rank,
-                c.comparable_playerId,
-                c.comparable_player,
-                c.comparable_position,
-                c.overall_similarity,
-
-                c.current_aav,
-                c.current_contract_term,
-                c.current_contract_to,
-                c.current_contract_cap_pct
-
-            FROM \`pacey32-agency.Comparison.10_ComparablePlayers\` c
-
-            CROSS JOIN latest_run r
-
-            WHERE c.target_playerId =
-                @playerId
-
-              AND c.RunDate =
-                r.RunDate
-        ),
-
-        snapshots AS (
-
-            SELECT
-                playerId,
-                age,
-                latestSeasonPPG,
-                ppgGrowth
-
-            FROM \`pacey32-agency.Comparison.09_PlayerCurrentSnapshot\`
-
-            QUALIFY ROW_NUMBER() OVER (
-                PARTITION BY playerId
-                ORDER BY SnapshotDate DESC
-            ) = 1
-        ),
-
-        profiles AS (
-
-            SELECT
-                playerID AS playerId,
-                headshot_url
-
-            FROM \`pacey32-agency.Player.PlayerDetail_NHLAPI\`
-
-            WHERE rn = 1
-
-            QUALIFY ROW_NUMBER() OVER (
-                PARTITION BY playerID
-                ORDER BY RunDate DESC
-            ) = 1
-        )
-
-        SELECT
-            c.*,
-
-            s.age,
-            s.latestSeasonPPG,
-            s.ppgGrowth,
-
-            p.headshot_url
-
-        FROM comparables c
-
-        LEFT JOIN snapshots s
-            ON s.playerId =
-               c.comparable_playerId
-
-        LEFT JOIN profiles p
-            ON p.playerId =
-               c.comparable_playerId
-
-        ORDER BY
-            c.comparable_rank
-    `;
-
-    const [rows] =
-        await bigquery.query({
-            query,
-            params: {
-                playerId,
-            },
-            types: {
-                playerId: "INT64",
-            },
-            location:
-                "us-central1",
-        });
-
-    return rows as ComparableRow[];
-}
-
-// ---------------------------------------------------------
-// CURRENT CAP
+// CURRENT NHL CAP
 // ---------------------------------------------------------
 
 async function getCurrentCapCeiling():
 Promise<number | null> {
+
     const query = `
         SELECT
             APPROX_QUANTILES(
@@ -342,10 +58,12 @@ Promise<number | null> {
                 2
             )[OFFSET(1)] AS cap_ceiling
 
-        FROM \`pacey32-agency.Cap.Team\`
+        FROM
+            \`pacey32-agency.Cap.Team\`
 
-        WHERE projected_cap_hit IS NOT NULL
-          AND projected_cap_space IS NOT NULL
+        WHERE
+            projected_cap_hit IS NOT NULL
+            AND projected_cap_space IS NOT NULL
     `;
 
     const [rows] =
@@ -370,431 +88,63 @@ Promise<number | null> {
 }
 
 // ---------------------------------------------------------
-// MARKET VALUE MODEL
+// PARSE TOP N
 // ---------------------------------------------------------
 
-function calculateMarketValue(
-    target: TargetRow,
-    comparables: ComparableRow[],
-    capCeiling: number
-) {
-    const contractedComparables =
-        comparables.filter(
-            (row) =>
-                row.current_contract_cap_pct != null &&
-                row.current_contract_cap_pct > 0
-        );
+const MIN_TOP_N = 3;
+const MAX_TOP_N = 20;
+const DEFAULT_TOP_N = 20;
+
+function parseTopN(
+    value: string | null
+): number | null {
+
+    if (value == null) {
+        return DEFAULT_TOP_N;
+    }
+
+    const parsed =
+        Number(value);
 
     if (
-        contractedComparables.length ===
-        0
+        !Number.isInteger(parsed) ||
+        parsed < MIN_TOP_N ||
+        parsed > MAX_TOP_N
     ) {
         return null;
     }
 
-    // -----------------------------------------------------
-    // BASE VALUE
-    //
-    // Similar players carry more weight.
-    // Weight is similarity².
-    // -----------------------------------------------------
+    return parsed;
+}
 
-    const baseCapPct =
-        weightedAverage(
-            contractedComparables.map(
-                (row) => ({
-                    value:
-                        Number(
-                            row.current_contract_cap_pct
-                        ),
+// ---------------------------------------------------------
+// PARSE MARKET TYPE
+// ---------------------------------------------------------
 
-                    weight:
-                        similarityWeight(
-                            row.overall_similarity
-                        ),
-                })
-            )
-        );
+function parseMarketType(
+    value: string | null
+): ContractMarketType | null {
 
-    if (baseCapPct == null) {
+    if (!value) {
         return null;
     }
 
-    // -----------------------------------------------------
-    // COMPARABLE AVERAGES
-    // -----------------------------------------------------
-
-    const comparableAge =
-        weightedAverage(
-            contractedComparables
-                .filter(
-                    (row) =>
-                        row.age != null
-                )
-                .map((row) => ({
-                    value:
-                        Number(row.age),
-
-                    weight:
-                        similarityWeight(
-                            row.overall_similarity
-                        ),
-                }))
-        );
-
-    const comparablePPG =
-        weightedAverage(
-            contractedComparables
-                .filter(
-                    (row) =>
-                        row.latestSeasonPPG !=
-                        null
-                )
-                .map((row) => ({
-                    value:
-                        Number(
-                            row.latestSeasonPPG
-                        ),
-
-                    weight:
-                        similarityWeight(
-                            row.overall_similarity
-                        ),
-                }))
-        );
-
-    // -----------------------------------------------------
-    // PERFORMANCE ADJUSTMENT
-    //
-    // Production difference is deliberately dampened.
-    // Maximum adjustment +/-10%.
-    // -----------------------------------------------------
-
-    let performanceAdjustment = 1;
+    const normalised =
+        value
+            .trim()
+            .toUpperCase();
 
     if (
-        target.latestSeasonPPG != null &&
-        comparablePPG != null &&
-        comparablePPG > 0
-    ) {
-        const productionRatio =
-            target.latestSeasonPPG /
-            comparablePPG;
-
-        const rawAdjustment =
-            1 +
-            (
-                productionRatio -
-                1
-            ) *
-                0.25;
-
-        performanceAdjustment =
-            clamp(
-                rawAdjustment,
-                0.90,
-                1.10
-            );
-    }
-
-    // -----------------------------------------------------
-    // AGE ADJUSTMENT
-    //
-    // 1% per year relative to comparable group.
-    // Maximum +/-5%.
-    // -----------------------------------------------------
-
-    let ageAdjustment = 1;
-
-    if (
-        target.age != null &&
-        comparableAge != null
-    ) {
-        const ageDifference =
-            comparableAge -
-            target.age;
-
-        ageAdjustment =
-            1 +
-            clamp(
-                ageDifference *
-                    0.01,
-                -0.05,
-                0.05
-            );
-    }
-
-    // -----------------------------------------------------
-    // TRAJECTORY ADJUSTMENT
-    //
-    // Small adjustment only.
-    // Maximum +/-5%.
-    // -----------------------------------------------------
-
-    let trajectoryAdjustment = 1;
-
-    if (
-        target.ppgGrowth != null &&
-        Number.isFinite(
-            target.ppgGrowth
+        VALID_MARKET_TYPES.includes(
+            normalised as
+                ContractMarketType
         )
     ) {
-        trajectoryAdjustment =
-            1 +
-            clamp(
-                target.ppgGrowth *
-                    0.05,
-                -0.05,
-                0.05
-            );
+        return normalised as
+            ContractMarketType;
     }
 
-    // -----------------------------------------------------
-    // FINAL CAP %
-    // -----------------------------------------------------
-
-    const estimatedCapPct =
-        baseCapPct *
-        performanceAdjustment *
-        ageAdjustment *
-        trajectoryAdjustment;
-
-    // +/- 7.5% valuation range
-    const capPctLow =
-        estimatedCapPct *
-        0.925;
-
-    const capPctHigh =
-        estimatedCapPct *
-        1.075;
-
-    const aavLow =
-        capCeiling *
-        (
-            capPctLow /
-            100
-        );
-
-    const aavHigh =
-        capCeiling *
-        (
-            capPctHigh /
-            100
-        );
-
-    // -----------------------------------------------------
-    // TERM
-    // -----------------------------------------------------
-
-    const weightedTerm =
-        weightedAverage(
-            contractedComparables
-                .filter(
-                    (row) =>
-                        row.current_contract_term !=
-                        null
-                )
-                .map((row) => ({
-                    value:
-                        Number(
-                            row.current_contract_term
-                        ),
-
-                    weight:
-                        similarityWeight(
-                            row.overall_similarity
-                        ),
-                }))
-        );
-
-    let centreTerm =
-        weightedTerm != null
-            ? Math.round(weightedTerm)
-            : 4;
-
-    // Reduce expected term for older players.
-    if (
-        target.age != null
-    ) {
-        if (target.age >= 35) {
-            centreTerm =
-                Math.min(
-                    centreTerm,
-                    3
-                );
-        } else if (
-            target.age >= 32
-        ) {
-            centreTerm =
-                Math.min(
-                    centreTerm,
-                    5
-                );
-        }
-    }
-
-    centreTerm =
-        clamp(
-            centreTerm,
-            1,
-            8
-        );
-
-    const termLow =
-        clamp(
-            centreTerm - 1,
-            1,
-            8
-        );
-
-    const termHigh =
-        clamp(
-            centreTerm + 1,
-            1,
-            8
-        );
-
-    // -----------------------------------------------------
-    // DRIVERS
-    // -----------------------------------------------------
-
-    const drivers = [
-        {
-            label:
-                "Comparable Contracts",
-
-            detail:
-                `${contractedComparables.length} comparable players with current contract data; similarity-weighted base value ${baseCapPct.toFixed(
-                    2
-                )}% of cap.`,
-
-            impact:
-                "neutral" as const,
-        },
-
-        {
-            label:
-                "Age",
-
-            detail:
-                comparableAge != null &&
-                target.age != null
-                    ? `Age ${target.age} vs weighted comparable average ${comparableAge.toFixed(
-                          1
-                      )}.`
-                    : "Insufficient age data.",
-
-            impact:
-                ageAdjustment >
-                1.01
-                    ? "increase" as const
-                    : ageAdjustment <
-                      0.99
-                    ? "decrease" as const
-                    : "neutral" as const,
-        },
-
-        {
-            label:
-                "Performance",
-
-            detail:
-                comparablePPG != null &&
-                target.latestSeasonPPG !=
-                    null
-                    ? `${target.latestSeasonPPG.toFixed(
-                          2
-                      )} PPG vs ${comparablePPG.toFixed(
-                          2
-                      )} weighted comparable average.`
-                    : "Insufficient current production data.",
-
-            impact:
-                performanceAdjustment >
-                1.02
-                    ? "increase" as const
-                    : performanceAdjustment <
-                      0.98
-                    ? "decrease" as const
-                    : "neutral" as const,
-        },
-
-        {
-            label:
-                "Trajectory",
-
-            detail:
-                target.ppgGrowth != null
-                    ? `Recent PPG growth: ${target.ppgGrowth.toFixed(
-                          2
-                      )}.`
-                    : "Insufficient trajectory history.",
-
-            impact:
-                trajectoryAdjustment >
-                1.01
-                    ? "increase" as const
-                    : trajectoryAdjustment <
-                      0.99
-                    ? "decrease" as const
-                    : "neutral" as const,
-        },
-
-        {
-            label:
-                "Cap Environment",
-
-            detail:
-                `Current modelled cap ceiling: $${(
-                    capCeiling /
-                    1_000_000
-                ).toFixed(
-                    1
-                )}m.`,
-
-            impact:
-                "neutral" as const,
-        },
-    ];
-
-    return {
-        estimated_aav_low:
-            aavLow,
-
-        estimated_aav_high:
-            aavHigh,
-
-        estimated_cap_pct_low:
-            capPctLow,
-
-        estimated_cap_pct_high:
-            capPctHigh,
-
-        estimated_term_low:
-            termLow,
-
-        estimated_term_high:
-            termHigh,
-
-        base_cap_pct:
-            baseCapPct,
-
-        estimated_cap_pct:
-            estimatedCapPct,
-
-        adjustments: {
-            performance:
-                performanceAdjustment,
-
-            age:
-                ageAdjustment,
-
-            trajectory:
-                trajectoryAdjustment,
-        },
-
-        drivers,
-    };
+    return null;
 }
 
 // ---------------------------------------------------------
@@ -805,6 +155,11 @@ export async function GET(
     request: NextRequest
 ) {
     try {
+
+        // -------------------------------------------------
+        // REQUEST PARAMETERS
+        // -------------------------------------------------
+
         const playerIdValue =
             request.nextUrl.searchParams.get(
                 "playerId"
@@ -823,7 +178,9 @@ export async function GET(
         }
 
         const playerId =
-            Number(playerIdValue);
+            Number(
+                playerIdValue
+            );
 
         if (
             !Number.isInteger(
@@ -842,16 +199,86 @@ export async function GET(
             );
         }
 
+        // -------------------------------------------------
+        // TOP N
+        //
+        // Default = 20.
+        // Supported presets = 5 / 10 / 20.
+        // -------------------------------------------------
+
+        const topNValue =
+            request.nextUrl.searchParams.get(
+                "topN"
+            );
+
+        const topN =
+            parseTopN(
+                topNValue
+            );
+
+        if (topN == null) {
+            return NextResponse.json(
+                {
+                    error:
+                        "topN must be an integer between 3 and 20",
+                },
+                {
+                    status: 400,
+                }
+            );
+        }
+
+        // -------------------------------------------------
+        // OPTIONAL MARKET OVERRIDE
+        //
+        // If absent, the player's current contract
+        // determines the default market.
+        // -------------------------------------------------
+
+        const marketTypeValue =
+            request.nextUrl.searchParams.get(
+                "marketType"
+            );
+
+        const marketTypeOverride =
+            parseMarketType(
+                marketTypeValue
+            );
+
+        if (
+            marketTypeValue &&
+            marketTypeOverride == null
+        ) {
+            return NextResponse.json(
+                {
+                    error:
+                        "marketType must be RFA_TO_RFA, RFA_TO_UFA, or UFA_SIGNING",
+                },
+                {
+                    status: 400,
+                }
+            );
+        }
+
+        // -------------------------------------------------
+        // LOAD TARGET / CACHE / MARKET / CAP
+        // -------------------------------------------------
+
         const [
             target,
-            comparables,
+            cachedComparables,
+            currentContractMarket,
             capCeiling,
         ] = await Promise.all([
-            getTargetPlayer(
+            loadTargetPosition(
                 playerId
             ),
 
-            getComparablePlayers(
+            getCachedComparables(
+                playerId
+            ),
+
+            loadCurrentContractMarket(
                 playerId
             ),
 
@@ -870,7 +297,10 @@ export async function GET(
             );
         }
 
-        if (!comparables.length) {
+        if (
+            !cachedComparables ||
+            cachedComparables.length === 0
+        ) {
             return NextResponse.json(
                 {
                     error:
@@ -896,18 +326,104 @@ export async function GET(
             );
         }
 
-        const valuation =
-            calculateMarketValue(
-                target,
-                comparables,
-                capCeiling
-            );
+        // -------------------------------------------------
+        // DETERMINE TARGET MARKET
+        // -------------------------------------------------
 
-        if (!valuation) {
+        const targetMarketType =
+            marketTypeOverride ??
+            currentContractMarket
+                ?.default_market_type ??
+            null;
+
+        if (!targetMarketType) {
             return NextResponse.json(
                 {
                     error:
-                        "Insufficient comparable contract data",
+                        "Unable to determine target contract market. Supply marketType explicitly.",
+                },
+                {
+                    status: 400,
+                }
+            );
+        }
+
+        // -------------------------------------------------
+        // SELECT COMPARABLE PLAYERS
+        //
+        // Similarity ranking remains untouched.
+        // We simply choose how many ranked players
+        // feed the valuation model.
+        // -------------------------------------------------
+
+        const selectedComparables =
+            [...cachedComparables]
+                .sort(
+                    (a, b) =>
+                        a.rank -
+                        b.rank
+                )
+                .slice(
+                    0,
+                    topN
+                );
+
+        const contractComparables:
+            ContractComparable[] =
+            selectedComparables.map(
+                comparable => ({
+                    rank:
+                        comparable.rank,
+
+                    playerId:
+                        comparable.playerId,
+
+                    player:
+                        comparable.player ??
+                        null,
+
+                    position:
+                        comparable.position ??
+                        null,
+
+                    overall_similarity:
+                        comparable
+                            .overall_similarity,
+
+                    models_available:
+                        comparable
+                            .models_available,
+                })
+            );
+
+        const comparablePlayerIds =
+            contractComparables.map(
+                comparable =>
+                    comparable.playerId
+            );
+
+        // -------------------------------------------------
+        // 07 — HISTORICAL CONTRACT EVIDENCE
+        // -------------------------------------------------
+
+        const historicalContracts =
+            await loadHistoricalContracts(
+                comparablePlayerIds
+            );
+
+        const contractEvidence =
+            attachHistoricalContracts(
+                contractComparables,
+                historicalContracts
+            );
+
+        if (
+            contractEvidence.length === 0
+        ) {
+            return NextResponse.json(
+                {
+                    error:
+                        "No historical contract evidence found for selected comparable players",
                 },
                 {
                     status: 404,
@@ -915,7 +431,58 @@ export async function GET(
             );
         }
 
+        // -------------------------------------------------
+        // 08 — SIMILARITY × RECENCY
+        // -------------------------------------------------
+
+        const weightedContracts =
+            weightHistoricalContracts(
+                contractEvidence
+            );
+
+        if (
+            weightedContracts.length === 0
+        ) {
+            return NextResponse.json(
+                {
+                    error:
+                        "No usable weighted contract evidence found",
+                },
+                {
+                    status: 404,
+                }
+            );
+        }
+
+        // -------------------------------------------------
+        // 09 — MARKET RELEVANCE + VALUATION
+        // -------------------------------------------------
+
+        const valuation =
+            calculateMarketValue(
+                weightedContracts,
+                targetMarketType,
+                capCeiling
+            );
+
+        if (!valuation) {
+            return NextResponse.json(
+                {
+                    error:
+                        "Insufficient historical contract evidence to calculate market value",
+                },
+                {
+                    status: 404,
+                }
+            );
+        }
+
+        // -------------------------------------------------
+        // RESPONSE
+        // -------------------------------------------------
+
         return NextResponse.json({
+
             playerId:
                 target.playerId,
 
@@ -925,97 +492,368 @@ export async function GET(
             position:
                 target.position,
 
-            headshot_url:
-                target.headshot_url,
+            // ---------------------------------------------
+            // USER / MODEL SETTINGS
+            // ---------------------------------------------
 
-            age:
-                target.age,
+            settings: {
+                top_n:
+                    topN,
 
-            contract_status:
-                null,
+                market_type:
+                    targetMarketType,
 
-            current_aav:
-                target.current_aav,
+                market_type_source:
+                    marketTypeOverride
+                        ? "user"
+                        : "current_contract",
 
-            current_cap_pct:
-                target.current_contract_cap_pct,
+                recency_half_life_months:
+                    4,
+            },
 
-            estimated_aav_low:
-                valuation.estimated_aav_low,
+            // ---------------------------------------------
+            // CURRENT CONTRACT CONTEXT
+            // ---------------------------------------------
 
-            estimated_aav_high:
-                valuation.estimated_aav_high,
+            current_contract: {
+                contract_id:
+                    currentContractMarket
+                        ?.contract_id ??
+                    null,
 
-            estimated_cap_pct_low:
-                valuation.estimated_cap_pct_low,
+                season_from:
+                    currentContractMarket
+                        ?.season_from ??
+                    null,
 
-            estimated_cap_pct_high:
-                valuation.estimated_cap_pct_high,
+                season_to:
+                    currentContractMarket
+                        ?.season_to ??
+                    null,
 
-            estimated_term_low:
-                valuation.estimated_term_low,
+                signing_status:
+                    currentContractMarket
+                        ?.signing_status ??
+                    null,
 
-            estimated_term_high:
-                valuation.estimated_term_high,
+                expiry_status:
+                    currentContractMarket
+                        ?.expiry_status ??
+                    null,
+
+                default_market_type:
+                    currentContractMarket
+                        ?.default_market_type ??
+                    null,
+            },
+
+            // ---------------------------------------------
+            // VALUATION
+            // ---------------------------------------------
+
+            valuation: {
+
+                // -----------------------------------------
+                // NEGOTIATION BENCHMARK
+                //
+                // Higher median of Peer Value vs
+                // Recent Market.
+                // -----------------------------------------
+
+                negotiation_benchmark: {
+                    source:
+                        valuation
+                            .negotiation_benchmark
+                            .source,
+
+                    cap_pct:
+                        valuation
+                            .negotiation_benchmark
+                            .cap_pct,
+
+                    aav:
+                        valuation
+                            .negotiation_benchmark
+                            .aav,
+
+                    term:
+                        valuation
+                            .negotiation_benchmark
+                            .term,
+                },
+
+
+                // -----------------------------------------
+                // PEER VALUE
+                //
+                // Similarity × market relevance.
+                // No recency decay.
+                // -----------------------------------------
+
+                peer_value: {
+                    contracts_used:
+                        valuation
+                            .peer_value
+                            .contracts_used,
+
+                    players_used:
+                        valuation
+                            .peer_value
+                            .players_used,
+
+                    cap_pct_low:
+                        valuation
+                            .peer_value
+                            .cap_pct_low,
+
+                    cap_pct_median:
+                        valuation
+                            .peer_value
+                            .cap_pct_median,
+
+                    cap_pct_high:
+                        valuation
+                            .peer_value
+                            .cap_pct_high,
+
+                    aav_low:
+                        valuation
+                            .peer_value
+                            .aav_low,
+
+                    aav_median:
+                        valuation
+                            .peer_value
+                            .aav_median,
+
+                    aav_high:
+                        valuation
+                            .peer_value
+                            .aav_high,
+
+                    term_low:
+                        valuation
+                            .peer_value
+                            .term_low,
+
+                    term_median:
+                        valuation
+                            .peer_value
+                            .term_median,
+
+                    term_high:
+                        valuation
+                            .peer_value
+                            .term_high,
+                },
+
+
+                // -----------------------------------------
+                // RECENT MARKET
+                //
+                // Similarity × recency × market relevance.
+                // -----------------------------------------
+
+                recent_market: {
+                    contracts_used:
+                        valuation
+                            .recent_market
+                            .contracts_used,
+
+                    players_used:
+                        valuation
+                            .recent_market
+                            .players_used,
+
+                    cap_pct_low:
+                        valuation
+                            .recent_market
+                            .cap_pct_low,
+
+                    cap_pct_median:
+                        valuation
+                            .recent_market
+                            .cap_pct_median,
+
+                    cap_pct_high:
+                        valuation
+                            .recent_market
+                            .cap_pct_high,
+
+                    aav_low:
+                        valuation
+                            .recent_market
+                            .aav_low,
+
+                    aav_median:
+                        valuation
+                            .recent_market
+                            .aav_median,
+
+                    aav_high:
+                        valuation
+                            .recent_market
+                            .aav_high,
+
+                    term_low:
+                        valuation
+                            .recent_market
+                            .term_low,
+
+                    term_median:
+                        valuation
+                            .recent_market
+                            .term_median,
+
+                    term_high:
+                        valuation
+                            .recent_market
+                            .term_high,
+                },
+
+
+                // -----------------------------------------
+                // COMPATIBILITY FIELDS
+                //
+                // Keep these temporarily because the
+                // existing UI still reads them.
+                // They represent whichever valuation lens
+                // produced the negotiation benchmark.
+                // -----------------------------------------
+
+                cap_pct_low:
+                    valuation.cap_pct_low,
+
+                cap_pct_median:
+                    valuation.cap_pct_median,
+
+                cap_pct_high:
+                    valuation.cap_pct_high,
+
+                aav_low:
+                    valuation.aav_low,
+
+                aav_median:
+                    valuation.aav_median,
+
+                aav_high:
+                    valuation.aav_high,
+
+                term_low:
+                    valuation.term_low,
+
+                term_median:
+                    valuation.term_median,
+
+                term_high:
+                    valuation.term_high,
+            },
+
+            // ---------------------------------------------
+            // EVIDENCE SUMMARY
+            // ---------------------------------------------
+
+            evidence_summary: {
+                comparable_players_selected:
+                    contractComparables.length,
+
+                contracts_found:
+                    contractEvidence.length,
+
+                contracts_used:
+                    valuation.contracts_used,
+
+                players_used:
+                    valuation.players_used,
+            },
+
+            // ---------------------------------------------
+            // SELECTED COMPARABLES
+            // ---------------------------------------------
 
             comparables:
-                comparables
-                    .filter(
-                        (row) =>
-                            row.current_contract_cap_pct !=
-                            null
-                    )
-                    .slice(0, 10)
-                    .map(
-                        (row) => ({
-                            playerId:
-                                row.comparable_playerId,
+                contractComparables.map(
+                    comparable => ({
+                        rank:
+                            comparable.rank,
 
-                            player:
-                                row.comparable_player,
+                        playerId:
+                            comparable.playerId,
 
-                            position:
-                                row.comparable_position,
+                        player:
+                            comparable.player,
 
-                            headshot_url:
-                                row.headshot_url,
+                        position:
+                            comparable.position,
 
-                            similarity:
-                                row.overall_similarity,
+                        similarity:
+                            comparable
+                                .overall_similarity,
 
-                            aav:
-                                row.current_aav,
+                        models_available:
+                            comparable
+                                .models_available,
 
-                            cap_pct:
-                                row.current_contract_cap_pct,
+                        contracts_found:
+                            contractEvidence.filter(
+                                contract =>
+                                    contract.playerId ===
+                                    comparable.playerId
+                            ).length,
+                    })
+                ),
 
-                            contract_term:
-                                row.current_contract_term,
+            // ---------------------------------------------
+            // CONTRACT EVIDENCE
+            //
+            // Kept in response so UI can explain exactly
+            // which historical contracts drove valuation.
+            // ---------------------------------------------
 
-                            contract_to:
-                                row.current_contract_to,
-                        })
-                    ),
+            evidence:
+                valuation.evidence.map(
+                    contract => {
 
-            drivers:
-                valuation.drivers,
+                        const isPeerValueContract =
+                            valuation.peer_evidence.some(
+                                peerContract =>
+                                    peerContract.playerId ===
+                                        contract.playerId &&
+                                    peerContract.contract_id ===
+                                        contract.contract_id
+                            );
+
+                        return {
+                            ...contract,
+
+                            is_peer_value_contract:
+                                isPeerValueContract,
+                        };
+                    }
+                ),
+
+            // ---------------------------------------------
+            // MODEL METADATA
+            // ---------------------------------------------
 
             model: {
-                cap_ceiling:
+                current_salary_cap:
                     capCeiling,
 
-                base_cap_pct:
-                    valuation.base_cap_pct,
+                target_market_type:
+                    targetMarketType,
 
-                estimated_cap_pct:
-                    valuation.estimated_cap_pct,
+                contracts_used:
+                    valuation.contracts_used,
 
-                adjustments:
-                    valuation.adjustments,
+                players_used:
+                    valuation.players_used,
             },
         });
 
     } catch (error) {
+
         console.error(
             "Market value API error:",
             error

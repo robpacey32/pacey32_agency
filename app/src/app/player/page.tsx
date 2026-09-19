@@ -487,12 +487,8 @@ export default function PlayerPage() {
         // -----------------------------------------------------
 
         async function initialiseValuation() {
-            const comparableResult =
-                await loadComparables();
-
-            if (comparableResult) {
-                await loadMarketValue();
-            }
+            await loadComparables();
+            await loadMarketValue();
         }
 
         initialisePlayer();
@@ -821,8 +817,8 @@ export default function PlayerPage() {
                     ? "Calculating..."
                     : marketValue
                       ? formatMarketValueRange(
-                            marketValue.estimated_aav_low,
-                            marketValue.estimated_aav_high
+                            marketValue.valuation.aav_low,
+                            marketValue.valuation.aav_high
                         )
                       : "—",
 
@@ -831,22 +827,22 @@ export default function PlayerPage() {
                     ? "Analysing comparable contracts"
                     : marketValue
                       ? [
-                            marketValue.estimated_cap_pct_low !=
+                            marketValue.valuation.cap_pct_low !=
                                 null &&
-                            marketValue.estimated_cap_pct_high !=
+                            marketValue.valuation.cap_pct_high !=
                                 null
-                                ? `${marketValue.estimated_cap_pct_low.toFixed(
+                                ? `${marketValue.valuation.cap_pct_low.toFixed(
                                       1
-                                  )}%–${marketValue.estimated_cap_pct_high.toFixed(
+                                  )}%–${marketValue.valuation.cap_pct_high.toFixed(
                                       1
                                   )}% of cap`
                                 : null,
 
-                            marketValue.estimated_term_low !=
+                            marketValue.valuation.term_low !=
                                 null &&
-                            marketValue.estimated_term_high !=
+                            marketValue.valuation.term_high !=
                                 null
-                                ? `${marketValue.estimated_term_low}–${marketValue.estimated_term_high} year term`
+                                ? `${marketValue.valuation.term_low}–${marketValue.valuation.term_high} year term`
                                 : null,
                         ]
                             .filter(
@@ -895,7 +891,7 @@ export default function PlayerPage() {
                           "goalie"
                         ? "Shots & save profile"
                         : eventMapping
-                          ? "Shooting, faceoffs & possession"
+                          ? "Explore Map"
                           : "—",
 
             detail:

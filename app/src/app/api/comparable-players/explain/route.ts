@@ -1,21 +1,49 @@
-import { NextRequest, NextResponse } from "next/server";
+// app/src/app/api/comparable-players/explain/route.ts
 
 import {
-    loadComparisonFeatures,
-} from "@/lib/comparison/comparablePlayers";
+    NextRequest,
+    NextResponse,
+} from "next/server";
 
 import {
-    explainSimilarity,
-} from "@/lib/comparison/explainSimilarity";
+    getCachedComparables,
+} from "@/lib/comparison/v3/cache";
 
-import {
-    isComparisonModel,
-} from "@/lib/comparison/modelMetadata";
+// ---------------------------------------------------------
+// VALID MODELS
+// ---------------------------------------------------------
+
+const VALID_MODELS = [
+    "playing_style",
+    "production",
+    "effectiveness",
+    "usage",
+    "trajectory",
+] as const;
+
+type ComparisonModel =
+    typeof VALID_MODELS[number];
+
+function isComparisonModel(
+    value: string
+): value is ComparisonModel {
+    return (
+        VALID_MODELS as readonly string[]
+    ).includes(value);
+}
+
+// ---------------------------------------------------------
+// API
+// ---------------------------------------------------------
 
 export async function GET(
     request: NextRequest
 ) {
     try {
+        // -------------------------------------------------
+        // PARAMETERS
+        // -------------------------------------------------
+
         const playerIdValue =
             request.nextUrl.searchParams.get(
                 "playerId"
@@ -30,6 +58,10 @@ export async function GET(
             request.nextUrl.searchParams.get(
                 "model"
             );
+
+        // -------------------------------------------------
+        // VALIDATION
+        // -------------------------------------------------
 
         if (
             !playerIdValue ||
@@ -48,7 +80,9 @@ export async function GET(
         }
 
         const playerId =
-            Number(playerIdValue);
+            Number(
+                playerIdValue
+            );
 
         const comparablePlayerId =
             Number(
@@ -59,9 +93,11 @@ export async function GET(
             !Number.isInteger(
                 playerId
             ) ||
+            playerId <= 0 ||
             !Number.isInteger(
                 comparablePlayerId
-            )
+            ) ||
+            comparablePlayerId <= 0
         ) {
             return NextResponse.json(
                 {
@@ -90,19 +126,23 @@ export async function GET(
             );
         }
 
-        // -----------------------------------------------------
-        // LOAD THE EXACT SAME FEATURE POPULATION
-        // USED BY THE LIVE COMPARISON MODEL
-        // -----------------------------------------------------
+        // -------------------------------------------------
+        // LOAD V3 CACHE
+        // -------------------------------------------------
 
-        const features =
-            await loadComparisonFeatures();
+        const comparables =
+            await getCachedComparables(
+                playerId
+            );
 
-        if (!features.length) {
+        if (
+            !comparables ||
+            comparables.length === 0
+        ) {
             return NextResponse.json(
                 {
                     error:
-                        "No comparison model feature data available",
+                        "No cached v3 comparison available for this player",
                 },
                 {
                     status: 404,
@@ -110,24 +150,80 @@ export async function GET(
             );
         }
 
-        // -----------------------------------------------------
-        // EXPLAIN THE SELECTED MODEL SCORE
-        // -----------------------------------------------------
+        // -------------------------------------------------
+        // FIND COMPARABLE
+        // -------------------------------------------------
 
-        const explanation =
-            explainSimilarity(
-                features,
-                playerId,
-                comparablePlayerId,
-                modelValue
+        const comparable =
+            comparables.find(
+                item =>
+                    item.playerId ===
+                    comparablePlayerId
             );
 
-        return NextResponse.json(
-            explanation
-        );
+        if (!comparable) {
+            return NextResponse.json(
+                {
+                    error:
+                        "Comparable player not found in cached v3 result",
+                },
+                {
+                    status: 404,
+                }
+            );
+        }
+
+        // -------------------------------------------------
+        // SELECT MODEL DETAIL
+        // -------------------------------------------------
+
+        const explanation =
+            comparable[
+                modelValue
+            ];
+
+        if (!explanation) {
+            return NextResponse.json(
+                {
+                    playerId,
+                    comparablePlayerId,
+                    model:
+                        modelValue,
+                    similarity:
+                        null,
+                    available:
+                        false,
+                }
+            );
+        }
+
+        // -------------------------------------------------
+        // RETURN EXACT V3 MODEL DETAIL
+        // -------------------------------------------------
+
+        return NextResponse.json({
+            playerId,
+
+            comparablePlayerId,
+
+            comparablePlayer:
+                comparable.player,
+
+            model:
+                modelValue,
+
+            similarity:
+                explanation.similarity,
+
+            available:
+                true,
+
+            explanation,
+        });
+
     } catch (error) {
         console.error(
-            "Comparable explanation API error:",
+            "V3 comparable explanation API error:",
             error
         );
 
@@ -136,7 +232,7 @@ export async function GET(
                 error:
                     error instanceof Error
                         ? error.message
-                        : "Failed to explain similarity",
+                        : "Failed to load comparable explanation",
             },
             {
                 status: 500,
