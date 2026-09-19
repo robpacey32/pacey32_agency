@@ -949,8 +949,8 @@ export default function PlayerPage() {
                           "goalie"
                         ? "Shot locations, save zones & shot types"
                         : eventMapping
-                          ? "Shot locations, faceoffs & possession events"
-                          : "On-ice event locations",
+                          ? "Explore Map"
+                          : "—",
 
             content:
                 eventMappingLoading ? (
