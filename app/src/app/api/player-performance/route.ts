@@ -26,7 +26,111 @@ export async function GET(
             );
         }
 
-        const query = `
+        // -------------------------------------------------
+        // PLAYER POSITION
+        // -------------------------------------------------
+
+        const positionQuery = `
+            SELECT
+                position
+
+            FROM
+                \`pacey32-agency.Player.PlayerProfile\`
+
+            WHERE
+                CAST(playerId AS STRING) = @playerId
+
+            LIMIT 1
+        `;
+
+        const [positionRows] =
+            await bigquery.query({
+                query:
+                    positionQuery,
+                params: {
+                    playerId,
+                },
+            });
+
+        if (
+            positionRows.length === 0
+        ) {
+            return NextResponse.json(
+                {
+                    error:
+                        "Player not found",
+                },
+                {
+                    status: 404,
+                }
+            );
+        }
+
+        const position =
+            String(
+                positionRows[0]
+                    .position ?? ""
+            ).toUpperCase();
+
+        // -------------------------------------------------
+        // GOALIE
+        // -------------------------------------------------
+
+        if (position === "G") {
+            const goalieQuery = `
+                SELECT
+                    season,
+                    seasonPart,
+                    playerId,
+                    player,
+
+                    games_played,
+                    toi_minutes,
+
+                    shots_against,
+                    saves,
+                    goals_against,
+
+                    save_pct,
+                    gaa
+
+                FROM
+                    \`pacey32-agency.Comparison.16_GoalieSeasonStats\`
+
+                WHERE
+                    CAST(playerId AS STRING) = @playerId
+                    AND seasonPart = 'RegularSeason'
+
+                ORDER BY
+                    season ASC
+            `;
+
+            const [rows] =
+                await bigquery.query({
+                    query:
+                        goalieQuery,
+                    params: {
+                        playerId,
+                    },
+                });
+
+            return NextResponse.json({
+                playerId:
+                    Number(
+                        playerId
+                    ),
+                position,
+                playerType:
+                    "goalie",
+                seasons: rows,
+            });
+        }
+
+        // -------------------------------------------------
+        // SKATER
+        // -------------------------------------------------
+
+        const skaterQuery = `
             SELECT
                 season,
                 seasonPart,
@@ -72,7 +176,7 @@ export async function GET(
                 \`pacey32-agency.Comparison.03_PlayerSeasonStats\`
 
             WHERE
-                playerId = @playerId
+                CAST(playerId AS STRING) = @playerId
                 AND seasonPart = 'RegularSeason'
 
             ORDER BY
@@ -81,18 +185,23 @@ export async function GET(
 
         const [rows] =
             await bigquery.query({
-                query,
+                query:
+                    skaterQuery,
                 params: {
                     playerId,
                 },
             });
 
-        return NextResponse.json(
-            {
-                playerId,
-                seasons: rows,
-            }
-        );
+        return NextResponse.json({
+            playerId:
+                Number(
+                    playerId
+                ),
+            position,
+            playerType:
+                "skater",
+            seasons: rows,
+        });
     } catch (error) {
         console.error(
             "Player performance API error:",

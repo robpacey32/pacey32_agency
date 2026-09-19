@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    useEffect,
     useMemo,
     useState,
 } from "react";
@@ -25,6 +26,10 @@ import {
 } from "recharts";
 
 
+// ---------------------------------------------------------
+// TYPES
+// ---------------------------------------------------------
+
 export type PlayerPerformanceSeason = {
     season:
         | number
@@ -33,7 +38,12 @@ export type PlayerPerformanceSeason = {
     seasonPart: string;
 
     playerId: number;
-    team_code:
+
+    team_code?:
+        | string
+        | null;
+
+    player?:
         | string
         | null;
 
@@ -41,103 +51,127 @@ export type PlayerPerformanceSeason = {
         | number
         | null;
 
-    goals:
-        | number
-        | null;
-
-    assists:
-        | number
-        | null;
-
-    points:
-        | number
-        | null;
-
     toi_minutes:
         | number
         | null;
 
-    avg_toi_minutes:
+    // SKATER
+
+    goals?:
         | number
         | null;
 
-    goals_per_game:
+    assists?:
         | number
         | null;
 
-    assists_per_game:
+    points?:
         | number
         | null;
 
-    points_per_game:
+    avg_toi_minutes?:
         | number
         | null;
 
-    goals_per_60:
+    goals_per_game?:
         | number
         | null;
 
-    assists_per_60:
+    assists_per_game?:
         | number
         | null;
 
-    points_per_60:
+    points_per_game?:
         | number
         | null;
 
-    team_points_rank:
+    goals_per_60?:
         | number
         | null;
 
-    team_goals_rank:
+    assists_per_60?:
         | number
         | null;
 
-    team_assists_rank:
+    points_per_60?:
         | number
         | null;
 
-    league_points_rank:
+    team_points_rank?:
         | number
         | null;
 
-    league_goals_rank:
+    team_goals_rank?:
         | number
         | null;
 
-    league_assists_rank:
+    team_assists_rank?:
         | number
         | null;
 
-    team_games_played_rank:
+    league_points_rank?:
         | number
         | null;
 
-    team_toi_rank:
+    league_goals_rank?:
         | number
         | null;
 
-    team_avg_toi_rank:
+    league_assists_rank?:
         | number
         | null;
 
-    team_goals_per_game_rank:
+    team_games_played_rank?:
         | number
         | null;
 
-    team_assists_per_game_rank:
+    team_toi_rank?:
         | number
         | null;
 
-    team_points_per_game_rank:
+    team_avg_toi_rank?:
         | number
         | null;
 
-    team_goals_per_60_rank:
+    team_goals_per_game_rank?:
         | number
         | null;
 
-    team_points_per_60_rank:
+    team_assists_per_game_rank?:
+        | number
+        | null;
+
+    team_points_per_game_rank?:
+        | number
+        | null;
+
+    team_goals_per_60_rank?:
+        | number
+        | null;
+
+    team_points_per_60_rank?:
+        | number
+        | null;
+
+    // GOALIE
+
+    shots_against?:
+        | number
+        | null;
+
+    saves?:
+        | number
+        | null;
+
+    goals_against?:
+        | number
+        | null;
+
+    save_pct?:
+        | number
+        | null;
+
+    gaa?:
         | number
         | null;
 };
@@ -145,6 +179,14 @@ export type PlayerPerformanceSeason = {
 
 export type PlayerPerformanceData = {
     playerId: number;
+
+    position?:
+        | string
+        | null;
+
+    playerType?:
+        | "skater"
+        | "goalie";
 
     seasons:
         PlayerPerformanceSeason[];
@@ -156,13 +198,31 @@ type Props = {
 };
 
 
-type MetricKey =
+// ---------------------------------------------------------
+// METRICS
+// ---------------------------------------------------------
+
+type SkaterMetricKey =
     | "points"
     | "goals"
     | "assists"
     | "points_per_game"
     | "points_per_60"
     | "avg_toi_minutes";
+
+
+type GoalieMetricKey =
+    | "save_pct"
+    | "gaa"
+    | "saves"
+    | "shots_against"
+    | "goals_against"
+    | "toi_minutes";
+
+
+type MetricKey =
+    | SkaterMetricKey
+    | GoalieMetricKey;
 
 
 type MetricDefinition = {
@@ -172,7 +232,7 @@ type MetricDefinition = {
 };
 
 
-const METRICS:
+const SKATER_METRICS:
     MetricDefinition[] = [
         {
             key: "points",
@@ -213,23 +273,99 @@ const METRICS:
     ];
 
 
+const GOALIE_METRICS:
+    MetricDefinition[] = [
+        {
+            key: "save_pct",
+            shortLabel: "SV%",
+            label:
+                "Save Percentage",
+        },
+        {
+            key: "gaa",
+            shortLabel: "GAA",
+            label:
+                "Goals Against Average",
+        },
+        {
+            key: "saves",
+            shortLabel: "Saves",
+            label: "Saves",
+        },
+        {
+            key:
+                "shots_against",
+            shortLabel: "SA",
+            label:
+                "Shots Against",
+        },
+        {
+            key:
+                "goals_against",
+            shortLabel: "GA",
+            label:
+                "Goals Against",
+        },
+        {
+            key:
+                "toi_minutes",
+            shortLabel: "TOI",
+            label:
+                "Time on Ice",
+        },
+    ];
+
+
+// ---------------------------------------------------------
+// COMPONENT
+// ---------------------------------------------------------
+
 export default function PlayerPerformancePanel({
     data,
 }: Props) {
+    const isGoalie =
+        data.playerType ===
+            "goalie" ||
+        data.position
+            ?.toUpperCase() ===
+            "G";
+
+    const metrics =
+        isGoalie
+            ? GOALIE_METRICS
+            : SKATER_METRICS;
+
     const [
         selectedMetric,
         setSelectedMetric,
     ] =
         useState<MetricKey>(
-            "points"
+            isGoalie
+                ? "save_pct"
+                : "points"
         );
+
+    /*
+    Reset the selected metric when
+    switching between a skater and goalie.
+    */
+    useEffect(() => {
+        setSelectedMetric(
+            isGoalie
+                ? "save_pct"
+                : "points"
+        );
+    }, [
+        isGoalie,
+        data.playerId,
+    ]);
 
     const seasons =
         useMemo(
             () =>
                 [...data.seasons]
                     .filter(
-                        (season) =>
+                        season =>
                             season.seasonPart ===
                             "RegularSeason"
                     )
@@ -253,23 +389,25 @@ export default function PlayerPerformancePanel({
             : null;
 
     const metricDefinition =
-        METRICS.find(
-            (metric) =>
+        metrics.find(
+            metric =>
                 metric.key ===
                 selectedMetric
-        ) ?? METRICS[0];
+        ) ?? metrics[0];
 
     const chartData =
         seasons.map(
-            (season) => ({
+            season => ({
                 season:
                     formatSeason(
                         season.season
                     ),
+
                 value:
-                    season[
+                    getMetricValue(
+                        season,
                         selectedMetric
-                    ] ?? 0,
+                    ),
             })
         );
 
@@ -300,7 +438,8 @@ export default function PlayerPerformancePanel({
                                 latest.season
                             )}
 
-                            {latest.team_code
+                            {!isGoalie &&
+                            latest.team_code
                                 ? ` · ${latest.team_code}`
                                 : ""}
                         </div>
@@ -308,148 +447,129 @@ export default function PlayerPerformancePanel({
 
                 </div>
 
-                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-
-                    <HeadlineMetric
-                        label="GP"
-                        value={
-                            latest.games_played ??
-                            0
+                {isGoalie ? (
+                    <GoalieHeadlineMetrics
+                        season={
+                            latest
                         }
                     />
-
-                    <HeadlineMetric
-                        label="G"
-                        value={
-                            latest.goals ??
-                            0
+                ) : (
+                    <SkaterHeadlineMetrics
+                        season={
+                            latest
                         }
                     />
-
-                    <HeadlineMetric
-                        label="A"
-                        value={
-                            latest.assists ??
-                            0
-                        }
-                    />
-
-                    <HeadlineMetric
-                        label="P"
-                        value={
-                            latest.points ??
-                            0
-                        }
-                        highlight
-                    />
-
-                    <HeadlineMetric
-                        label="P/GP"
-                        value={formatDecimal(
-                            latest.points_per_game,
-                            2
-                        )}
-                    />
-
-                    <HeadlineMetric
-                        label="P/60"
-                        value={formatDecimal(
-                            latest.points_per_60,
-                            2
-                        )}
-                    />
-
-                </div>
+                )}
 
             </section>
 
 
-            {/* RELATIVE PERFORMANCE */}
+            {/* SKATER RELATIVE PERFORMANCE */}
 
-            <section className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
+            {!isGoalie && (
+                <section className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
 
-                <div className="text-sm font-semibold text-white">
-                    Relative Performance
-                </div>
+                    <div className="text-sm font-semibold text-white">
+                        Relative Performance
+                    </div>
 
-                <div className="mt-5 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-3">
+                    <div className="mt-5 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-3">
 
-                    <RankMetric
-                        icon={
-                            <Trophy
-                                size={18}
-                            />
-                        }
-                        label="Team Points Rank"
-                        value={
-                            latest.team_points_rank
-                        }
-                    />
+                        <RankMetric
+                            icon={
+                                <Trophy
+                                    size={
+                                        18
+                                    }
+                                />
+                            }
+                            label="Team Points Rank"
+                            value={
+                                latest.team_points_rank ??
+                                null
+                            }
+                        />
 
-                    <RankMetric
-                        icon={
-                            <BarChart3
-                                size={18}
-                            />
-                        }
-                        label="League Points Rank"
-                        value={
-                            latest.league_points_rank
-                        }
-                    />
+                        <RankMetric
+                            icon={
+                                <BarChart3
+                                    size={
+                                        18
+                                    }
+                                />
+                            }
+                            label="League Points Rank"
+                            value={
+                                latest.league_points_rank ??
+                                null
+                            }
+                        />
 
-                    <RankMetric
-                        icon={
-                            <Clock3
-                                size={18}
-                            />
-                        }
-                        label="Team TOI Rank"
-                        value={
-                            latest.team_avg_toi_rank ??
-                            latest.team_toi_rank
-                        }
-                    />
+                        <RankMetric
+                            icon={
+                                <Clock3
+                                    size={
+                                        18
+                                    }
+                                />
+                            }
+                            label="Team TOI Rank"
+                            value={
+                                latest.team_avg_toi_rank ??
+                                latest.team_toi_rank ??
+                                null
+                            }
+                        />
 
-                    <RankMetric
-                        icon={
-                            <Target
-                                size={18}
-                            />
-                        }
-                        label="Team Goals Rank"
-                        value={
-                            latest.team_goals_rank
-                        }
-                    />
+                        <RankMetric
+                            icon={
+                                <Target
+                                    size={
+                                        18
+                                    }
+                                />
+                            }
+                            label="Team Goals Rank"
+                            value={
+                                latest.team_goals_rank ??
+                                null
+                            }
+                        />
 
-                    <RankMetric
-                        icon={
-                            <Activity
-                                size={18}
-                            />
-                        }
-                        label="Team P/GP Rank"
-                        value={
-                            latest.team_points_per_game_rank
-                        }
-                    />
+                        <RankMetric
+                            icon={
+                                <Activity
+                                    size={
+                                        18
+                                    }
+                                />
+                            }
+                            label="Team P/GP Rank"
+                            value={
+                                latest.team_points_per_game_rank ??
+                                null
+                            }
+                        />
 
-                    <RankMetric
-                        icon={
-                            <TrendingUp
-                                size={18}
-                            />
-                        }
-                        label="Team P/60 Rank"
-                        value={
-                            latest.team_points_per_60_rank
-                        }
-                    />
+                        <RankMetric
+                            icon={
+                                <TrendingUp
+                                    size={
+                                        18
+                                    }
+                                />
+                            }
+                            label="Team P/60 Rank"
+                            value={
+                                latest.team_points_per_60_rank ??
+                                null
+                            }
+                        />
 
-                </div>
+                    </div>
 
-            </section>
+                </section>
+            )}
 
 
             {/* TRAJECTORY */}
@@ -471,6 +591,9 @@ export default function PlayerPerformancePanel({
                     <MetricSelector
                         value={
                             selectedMetric
+                        }
+                        metrics={
+                            metrics
                         }
                         onChange={
                             setSelectedMetric
@@ -544,6 +667,15 @@ export default function PlayerPerformancePanel({
                                     false
                                 }
                                 width={42}
+                                tickFormatter={
+                                    value =>
+                                        formatAxisValue(
+                                            selectedMetric,
+                                            Number(
+                                                value
+                                            )
+                                        )
+                                }
                             />
 
                             <Tooltip
@@ -565,6 +697,9 @@ export default function PlayerPerformancePanel({
                                 stroke="#60a5fa"
                                 strokeWidth={
                                     3
+                                }
+                                connectNulls={
+                                    false
                                 }
                                 dot={{
                                     r: 4,
@@ -599,16 +734,22 @@ export default function PlayerPerformancePanel({
                         {[...seasons]
                             .reverse()
                             .map(
-                                (
-                                    season
-                                ) => (
-                                    <SeasonRow
-                                        key={`${season.season}-${season.team_code}`}
-                                        season={
-                                            season
-                                        }
-                                    />
-                                )
+                                season =>
+                                    isGoalie ? (
+                                        <GoalieSeasonRow
+                                            key={`${season.season}-${season.playerId}`}
+                                            season={
+                                                season
+                                            }
+                                        />
+                                    ) : (
+                                        <SkaterSeasonRow
+                                            key={`${season.season}-${season.team_code}`}
+                                            season={
+                                                season
+                                            }
+                                        />
+                                    )
                             )}
 
                     </div>
@@ -622,15 +763,149 @@ export default function PlayerPerformancePanel({
 }
 
 
+// ---------------------------------------------------------
+// CURRENT SEASON
+// ---------------------------------------------------------
+
+function SkaterHeadlineMetrics({
+    season,
+}: {
+    season:
+        PlayerPerformanceSeason;
+}) {
+    return (
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+
+            <HeadlineMetric
+                label="GP"
+                value={
+                    season.games_played ??
+                    0
+                }
+            />
+
+            <HeadlineMetric
+                label="G"
+                value={
+                    season.goals ??
+                    0
+                }
+            />
+
+            <HeadlineMetric
+                label="A"
+                value={
+                    season.assists ??
+                    0
+                }
+            />
+
+            <HeadlineMetric
+                label="P"
+                value={
+                    season.points ??
+                    0
+                }
+                highlight
+            />
+
+            <HeadlineMetric
+                label="P/GP"
+                value={formatDecimal(
+                    season.points_per_game,
+                    2
+                )}
+            />
+
+            <HeadlineMetric
+                label="P/60"
+                value={formatDecimal(
+                    season.points_per_60,
+                    2
+                )}
+            />
+
+        </div>
+    );
+}
+
+
+function GoalieHeadlineMetrics({
+    season,
+}: {
+    season:
+        PlayerPerformanceSeason;
+}) {
+    return (
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+
+            <HeadlineMetric
+                label="GP"
+                value={
+                    season.games_played ??
+                    0
+                }
+            />
+
+            <HeadlineMetric
+                label="SV%"
+                value={formatSavePct(
+                    season.save_pct
+                )}
+                highlight
+            />
+
+            <HeadlineMetric
+                label="GAA"
+                value={formatDecimal(
+                    season.gaa,
+                    2
+                )}
+            />
+
+            <HeadlineMetric
+                label="Saves"
+                value={
+                    season.saves ??
+                    0
+                }
+            />
+
+            <HeadlineMetric
+                label="SA"
+                value={
+                    season.shots_against ??
+                    0
+                }
+            />
+
+            <HeadlineMetric
+                label="TOI"
+                value={formatMinutes(
+                    season.toi_minutes
+                )}
+            />
+
+        </div>
+    );
+}
+
+
+// ---------------------------------------------------------
+// HEADLINE / RANK
+// ---------------------------------------------------------
+
 function HeadlineMetric({
     label,
     value,
     highlight = false,
 }: {
     label: string;
+
     value:
         | string
         | number;
+
     highlight?: boolean;
 }) {
     return (
@@ -665,7 +940,9 @@ function RankMetric({
     value,
 }: {
     icon: React.ReactNode;
+
     label: string;
+
     value:
         | number
         | null;
@@ -696,11 +973,19 @@ function RankMetric({
 }
 
 
+// ---------------------------------------------------------
+// METRIC SELECTOR
+// ---------------------------------------------------------
+
 function MetricSelector({
     value,
+    metrics,
     onChange,
 }: {
     value: MetricKey;
+
+    metrics:
+        MetricDefinition[];
 
     onChange: (
         value: MetricKey
@@ -709,8 +994,8 @@ function MetricSelector({
     return (
         <div className="grid w-full min-w-0 grid-cols-2 gap-1 rounded-lg border border-slate-800 bg-slate-950 p-1 min-[420px]:grid-cols-3 sm:flex sm:w-auto sm:flex-wrap">
 
-            {METRICS.map(
-                (metric) => (
+            {metrics.map(
+                metric => (
                     <button
                         key={
                             metric.key
@@ -740,7 +1025,11 @@ function MetricSelector({
 }
 
 
-function SeasonRow({
+// ---------------------------------------------------------
+// SEASON ROWS
+// ---------------------------------------------------------
+
+function SkaterSeasonRow({
     season,
 }: {
     season:
@@ -752,6 +1041,7 @@ function SeasonRow({
             <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
 
                 <div className="min-w-0">
+
                     <div className="text-sm font-semibold text-white">
                         {formatSeason(
                             season.season
@@ -766,6 +1056,7 @@ function SeasonRow({
                             0}{" "}
                         GP
                     </div>
+
                 </div>
 
                 <div className="grid min-w-0 grid-cols-4 gap-2 sm:flex sm:items-center sm:gap-5 sm:text-right">
@@ -811,11 +1102,81 @@ function SeasonRow({
 }
 
 
+function GoalieSeasonRow({
+    season,
+}: {
+    season:
+        PlayerPerformanceSeason;
+}) {
+    return (
+        <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-3 sm:px-4">
+
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+
+                <div className="min-w-0">
+
+                    <div className="text-sm font-semibold text-white">
+                        {formatSeason(
+                            season.season
+                        )}
+                    </div>
+
+                    <div className="mt-0.5 text-xs text-slate-500">
+                        {season.games_played ??
+                            0}{" "}
+                        GP
+                    </div>
+
+                </div>
+
+                <div className="grid min-w-0 grid-cols-4 gap-2 sm:flex sm:items-center sm:gap-5 sm:text-right">
+
+                    <SeasonStat
+                        label="SV%"
+                        value={formatSavePct(
+                            season.save_pct
+                        )}
+                    />
+
+                    <SeasonStat
+                        label="GAA"
+                        value={formatDecimal(
+                            season.gaa,
+                            2
+                        )}
+                    />
+
+                    <SeasonStat
+                        label="Saves"
+                        value={
+                            season.saves ??
+                            0
+                        }
+                    />
+
+                    <SeasonStat
+                        label="SA"
+                        value={
+                            season.shots_against ??
+                            0
+                        }
+                    />
+
+                </div>
+
+            </div>
+
+        </div>
+    );
+}
+
+
 function SeasonStat({
     label,
     value,
 }: {
     label: string;
+
     value:
         | number
         | string;
@@ -836,6 +1197,10 @@ function SeasonStat({
 }
 
 
+// ---------------------------------------------------------
+// TOOLTIP
+// ---------------------------------------------------------
+
 function PerformanceTooltip({
     active,
     payload,
@@ -848,6 +1213,7 @@ function PerformanceTooltip({
         value:
             | number
             | string;
+
         payload?: {
             season?: string;
         };
@@ -893,11 +1259,51 @@ function PerformanceTooltip({
 }
 
 
+// ---------------------------------------------------------
+// HELPERS
+// ---------------------------------------------------------
+
+function getMetricValue(
+    season:
+        PlayerPerformanceSeason,
+    metric: MetricKey
+): number | null {
+    const value =
+        season[metric];
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return null;
+    }
+
+    const numeric =
+        Number(value);
+
+    return Number.isFinite(
+        numeric
+    )
+        ? numeric
+        : null;
+}
+
+
 function formatMetricValue(
     metric: MetricKey,
     value: number
 ) {
     if (
+        metric ===
+        "save_pct"
+    ) {
+        return formatSavePct(
+            value
+        );
+    }
+
+    if (
+        metric === "gaa" ||
         metric ===
             "points_per_game" ||
         metric ===
@@ -910,7 +1316,9 @@ function formatMetricValue(
 
     if (
         metric ===
-        "avg_toi_minutes"
+            "avg_toi_minutes" ||
+        metric ===
+            "toi_minutes"
     ) {
         return `${value.toFixed(
             1
@@ -919,14 +1327,92 @@ function formatMetricValue(
 
     return Math.round(
         value
+    ).toLocaleString();
+}
+
+
+function formatAxisValue(
+    metric: MetricKey,
+    value: number
+) {
+    if (
+        metric ===
+        "save_pct"
+    ) {
+        return value.toFixed(
+            3
+        );
+    }
+
+    if (
+        metric === "gaa" ||
+        metric ===
+            "points_per_game" ||
+        metric ===
+            "points_per_60"
+    ) {
+        return value.toFixed(
+            2
+        );
+    }
+
+    return Math.round(
+        value
     ).toString();
+}
+
+
+function formatSavePct(
+    value:
+        | number
+        | null
+        | undefined
+) {
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "—";
+    }
+
+    return Number(
+        value
+    ).toFixed(
+        3
+    );
+}
+
+
+function formatMinutes(
+    value:
+        | number
+        | null
+        | undefined
+) {
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "—";
+    }
+
+    return Number(
+        value
+    ).toLocaleString(
+        undefined,
+        {
+            maximumFractionDigits:
+                0,
+        }
+    );
 }
 
 
 function formatDecimal(
     value:
         | number
-        | null,
+        | null
+        | undefined,
     places: number
 ) {
     if (

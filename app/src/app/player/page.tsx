@@ -649,38 +649,83 @@ export default function PlayerPage() {
 
             value:
                 latestPerformance
-                    ? `${latestPerformance.points ?? 0} P`
+                    ? performance?.playerType ===
+                    "goalie"
+                        ? [
+                            latestPerformance.save_pct !=
+                            null
+                                ? `${Number(
+                                        latestPerformance.save_pct
+                                    ).toFixed(
+                                        3
+                                    )}%`
+                                : null,
+                            latestPerformance.gaa !=
+                            null
+                                ? `${Number(
+                                        latestPerformance.gaa
+                                    ).toFixed(
+                                        2
+                                    )} GAA`
+                                : null,
+                        ]
+                            .filter(
+                                Boolean
+                            )
+                            .join(
+                                " · "
+                            )
+                        : `${latestPerformance.points ?? 0} P`
                     : performanceLoading
-                      ? "Loading..."
-                      : "—",
+                    ? "Loading..."
+                    : "—",
 
             detail:
                 latestPerformance
-                    ? [
-                          formatSeason(
-                              latestPerformance.season
-                          ),
-
-                          latestPerformance.points_per_game !=
-                          null
-                              ? `${Number(
-                                    latestPerformance.points_per_game
-                                ).toFixed(
-                                    2
-                                )} P/GP`
-                              : null,
-
-                          latestPerformance.team_code,
-                      ]
-                          .filter(
-                              Boolean
-                          )
-                          .join(
-                              " · "
-                          )
+                    ? performance?.playerType ===
+                    "goalie"
+                        ? [
+                            formatSeason(
+                                latestPerformance.season
+                            ),
+                            latestPerformance.games_played !=
+                            null
+                                ? `${latestPerformance.games_played} GP`
+                                : null,
+                            latestPerformance.shots_against !=
+                            null
+                                ? `${latestPerformance.shots_against} SA`
+                                : null,
+                        ]
+                            .filter(
+                                Boolean
+                            )
+                            .join(
+                                " · "
+                            )
+                        : [
+                            formatSeason(
+                                latestPerformance.season
+                            ),
+                            latestPerformance.points_per_game !=
+                            null
+                                ? `${Number(
+                                        latestPerformance.points_per_game
+                                    ).toFixed(
+                                        2
+                                    )} P/GP`
+                                : null,
+                            latestPerformance.team_code,
+                        ]
+                            .filter(
+                                Boolean
+                            )
+                            .join(
+                                " · "
+                            )
                     : performanceLoading
-                      ? "Loading season performance"
-                      : "Season performance and career trend",
+                    ? "Loading season performance"
+                    : "Season performance and career trend",
 
             content:
                 performanceLoading ? (

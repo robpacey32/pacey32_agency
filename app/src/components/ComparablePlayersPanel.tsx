@@ -21,53 +21,39 @@ export interface ComparablePlayer {
 
     overall_similarity: number;
 
-    playing_style_similarity: number;
-    playing_style_rank: number;
-
-    production_similarity: number;
-    production_rank: number;
-
-    effectiveness_similarity: number;
-    effectiveness_rank: number;
-
-    usage_similarity: number;
-    usage_rank: number;
-
-    trajectory_similarity: number;
-    trajectory_rank: number;
+    playing_style_similarity: number | null;
+    production_similarity: number | null;
+    effectiveness_similarity: number | null;
+    usage_similarity: number | null;
+    trajectory_similarity: number | null;
 
     models_available: number;
-
-    current_aav: number | null;
-    current_contract_term: number | null;
-    current_contract_to: string | null;
-    current_contract_cap_pct: number | null;
+    trajectory_periods_available: number;
 
     headshot_url: string | null;
+
+    comparison_detail?: unknown;
 }
 
 export interface ComparablePlayersData {
     source: "model" | "cache";
     playerId: number;
-    player?: string;
-    position?: string;
+    player?: string | null;
+    position?: string | null;
     comparables: ComparablePlayer[];
 }
 
 // ---------------------------------------------------------
-// EXPLANATION TYPES
+// V3 EXPLANATION TYPES
 // ---------------------------------------------------------
 
-interface SimilarityExplanationFeature {
+interface V3Feature {
     feature: string;
     label: string;
     description: string;
 
     targetRaw: number | null;
     comparableRaw: number | null;
-
-    targetModelValue: number | null;
-    comparableModelValue: number | null;
 
     targetStandardised: number | null;
     comparableStandardised: number | null;
@@ -77,30 +63,58 @@ interface SimilarityExplanationFeature {
     distanceContributionPct: number | null;
 }
 
-interface SimilarityExplanation {
-    model: ComparisonModel;
-    title: string;
-    description: string;
+interface V3Component {
+    group?: string;
+    component?: string;
 
-    target: {
-        playerId: number;
-        player: string;
-    };
+    similarity: number | null;
 
-    comparable: {
-        playerId: number;
-        player: string;
-    };
+    featuresAvailable: number;
+    featuresRequired: number;
 
-    featureCount: number;
+    features?: V3Feature[];
 
-    meanSquaredDifference: number;
-    distance: number;
+    meanSquaredDifference?: number | null;
+    distance?: number | null;
+}
+
+interface V3TrajectoryPeriod {
+    period: string;
+    similarity: number | null;
+
+    production?: number | null;
+    role?: number | null;
+
+    performance?: number | null;
+    effectiveness?: number | null;
+
+    components?: V3Component[];
+}
+
+interface V3ModelExplanation {
     similarity: number;
 
-    formula: string;
+    components?: V3Component[];
 
-    features: SimilarityExplanationFeature[];
+    groupsAvailable?: number;
+    groupsTotal?: number;
+
+    periods?: V3TrajectoryPeriod[];
+
+    periodsAvailable?: number;
+}
+
+interface SimilarityExplanationResponse {
+    playerId: number;
+    comparablePlayerId: number;
+    comparablePlayer: string | null;
+
+    model: ComparisonModel;
+
+    similarity: number | null;
+    available: boolean;
+
+    explanation?: V3ModelExplanation;
 }
 
 // ---------------------------------------------------------
@@ -178,13 +192,25 @@ export default function ComparablePlayersPanel({
 
             {/* Players */}
             <div className="min-w-0 space-y-2">
-                {data.comparables.map((player) => (
-                    <ComparableRow
-                        key={player.comparable_playerId}
-                        targetPlayerId={data.playerId}
-                        player={player}
-                    />
-                ))}
+                {data.comparables.map(
+                    player => (
+                        <ComparableRow
+                            key={
+                                player.comparable_playerId
+                            }
+                            targetPlayerId={
+                                data.playerId
+                            }
+                            targetPlayer={
+                                data.player ??
+                                "Selected player"
+                            }
+                            player={
+                                player
+                            }
+                        />
+                    )
+                )}
             </div>
 
             {/* Legend */}
@@ -227,40 +253,79 @@ export default function ComparablePlayersPanel({
 
 function ComparableRow({
     targetPlayerId,
+    targetPlayer,
     player,
 }: {
     targetPlayerId: number;
+    targetPlayer: string;
     player: ComparablePlayer;
 }) {
-    const [selectedModel, setSelectedModel] =
-        useState<ComparisonModel | null>(null);
+    const [
+        selectedModel,
+        setSelectedModel,
+    ] =
+        useState<ComparisonModel | null>(
+            null
+        );
 
-    const [explanation, setExplanation] =
-        useState<SimilarityExplanation | null>(null);
+    const [
+        explanation,
+        setExplanation,
+    ] =
+        useState<SimilarityExplanationResponse | null>(
+            null
+        );
 
-    const [loading, setLoading] =
+    const [
+        loading,
+        setLoading,
+    ] =
         useState(false);
 
-    const [error, setError] =
-        useState<string | null>(null);
+    const [
+        error,
+        setError,
+    ] =
+        useState<string | null>(
+            null
+        );
 
     async function openExplanation(
         model: ComparisonModel
     ) {
         if (
-            selectedModel === model &&
-            explanation
+            selectedModel === model
         ) {
-            setSelectedModel(null);
-            setExplanation(null);
-            setError(null);
+            setSelectedModel(
+                null
+            );
+
+            setExplanation(
+                null
+            );
+
+            setError(
+                null
+            );
+
             return;
         }
 
-        setSelectedModel(model);
-        setExplanation(null);
-        setError(null);
-        setLoading(true);
+        setSelectedModel(
+            model
+        );
+
+        setExplanation(
+            null
+        );
+
+        setError(
+            null
+        );
+
+        setLoading(
+            true
+        );
 
         try {
             const response =
@@ -279,7 +344,7 @@ function ComparableRow({
             }
 
             setExplanation(
-                result as SimilarityExplanation
+                result as SimilarityExplanationResponse
             );
         } catch (err) {
             setError(
@@ -288,7 +353,9 @@ function ComparableRow({
                     : "Failed to load explanation"
             );
         } finally {
-            setLoading(false);
+            setLoading(
+                false
+            );
         }
     }
 
@@ -313,20 +380,27 @@ function ComparableRow({
                 <div className="hidden grid-cols-[48px_280px_1.4fr_repeat(5,1fr)] items-center gap-4 xl:grid">
 
                     <div className="text-xl font-bold text-slate-400">
-                        {player.comparable_rank}
+                        {
+                            player.comparable_rank
+                        }
                     </div>
 
                     <PlayerIdentity
-                        player={player}
+                        player={
+                            player
+                        }
                     />
 
                     <OverallMatch
-                        value={player.overall_similarity}
+                        value={
+                            player.overall_similarity
+                        }
                     />
 
                     <SimilarityMetric
-                        value={player.playing_style_similarity}
-                        rank={player.playing_style_rank}
+                        value={
+                            player.playing_style_similarity
+                        }
                         active={
                             selectedModel ===
                             "playing_style"
@@ -339,8 +413,9 @@ function ComparableRow({
                     />
 
                     <SimilarityMetric
-                        value={player.production_similarity}
-                        rank={player.production_rank}
+                        value={
+                            player.production_similarity
+                        }
                         active={
                             selectedModel ===
                             "production"
@@ -353,8 +428,9 @@ function ComparableRow({
                     />
 
                     <SimilarityMetric
-                        value={player.effectiveness_similarity}
-                        rank={player.effectiveness_rank}
+                        value={
+                            player.effectiveness_similarity
+                        }
                         active={
                             selectedModel ===
                             "effectiveness"
@@ -367,8 +443,9 @@ function ComparableRow({
                     />
 
                     <SimilarityMetric
-                        value={player.usage_similarity}
-                        rank={player.usage_rank}
+                        value={
+                            player.usage_similarity
+                        }
                         active={
                             selectedModel ===
                             "usage"
@@ -381,8 +458,9 @@ function ComparableRow({
                     />
 
                     <SimilarityMetric
-                        value={player.trajectory_similarity}
-                        rank={player.trajectory_rank}
+                        value={
+                            player.trajectory_similarity
+                        }
                         active={
                             selectedModel ===
                             "trajectory"
@@ -402,18 +480,25 @@ function ComparableRow({
                     <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] gap-3 sm:grid-cols-[auto_minmax(0,1fr)_112px]">
 
                         <div className="pt-2 text-lg font-bold text-slate-500">
-                            #{player.comparable_rank}
+                            #
+                            {
+                                player.comparable_rank
+                            }
                         </div>
 
                         <div className="min-w-0">
                             <PlayerIdentity
-                                player={player}
+                                player={
+                                    player
+                                }
                             />
                         </div>
 
                         <div className="col-span-2 min-w-0 border-t border-slate-800 pt-3 sm:col-span-1 sm:border-0 sm:pt-0">
                             <OverallMatch
-                                value={player.overall_similarity}
+                                value={
+                                    player.overall_similarity
+                                }
                             />
                         </div>
 
@@ -423,8 +508,9 @@ function ComparableRow({
 
                         <MobileMetric
                             label="Style"
-                            value={player.playing_style_similarity}
-                            rank={player.playing_style_rank}
+                            value={
+                                player.playing_style_similarity
+                            }
                             active={
                                 selectedModel ===
                                 "playing_style"
@@ -438,8 +524,9 @@ function ComparableRow({
 
                         <MobileMetric
                             label="Production"
-                            value={player.production_similarity}
-                            rank={player.production_rank}
+                            value={
+                                player.production_similarity
+                            }
                             active={
                                 selectedModel ===
                                 "production"
@@ -453,8 +540,9 @@ function ComparableRow({
 
                         <MobileMetric
                             label="Effectiveness"
-                            value={player.effectiveness_similarity}
-                            rank={player.effectiveness_rank}
+                            value={
+                                player.effectiveness_similarity
+                            }
                             active={
                                 selectedModel ===
                                 "effectiveness"
@@ -468,8 +556,9 @@ function ComparableRow({
 
                         <MobileMetric
                             label="Usage"
-                            value={player.usage_similarity}
-                            rank={player.usage_rank}
+                            value={
+                                player.usage_similarity
+                            }
                             active={
                                 selectedModel ===
                                 "usage"
@@ -483,8 +572,9 @@ function ComparableRow({
 
                         <MobileMetric
                             label="Trajectory"
-                            value={player.trajectory_similarity}
-                            rank={player.trajectory_rank}
+                            value={
+                                player.trajectory_similarity
+                            }
                             active={
                                 selectedModel ===
                                 "trajectory"
@@ -492,9 +582,9 @@ function ComparableRow({
                             onClick={() =>
                                 openExplanation(
                                     "trajectory"
-                                )
-                            }
-                        />
+                            )
+                        }
+                    />
 
                     </div>
 
@@ -506,7 +596,7 @@ function ComparableRow({
 
                     {loading && (
                         <div className="px-4 py-5 text-sm text-slate-500 sm:px-5 sm:py-6">
-                            Calculating explanation...
+                            Loading explanation...
                         </div>
                     )}
 
@@ -523,6 +613,9 @@ function ComparableRow({
                                 explanation={
                                     explanation
                                 }
+                                targetPlayer={
+                                    targetPlayer
+                                }
                             />
                         )}
 
@@ -538,168 +631,230 @@ function ComparableRow({
 
 function SimilarityExplanationPanel({
     explanation,
+    targetPlayer,
 }: {
-    explanation: SimilarityExplanation;
+    explanation: SimilarityExplanationResponse;
+    targetPlayer: string;
 }) {
-    const sortedFeatures =
-        [...explanation.features].sort(
-            (a, b) =>
-                (b.distanceContributionPct ?? 0) -
-                (a.distanceContributionPct ?? 0)
+    const detail =
+        explanation.explanation;
+
+    const modelTitle =
+        modelLabel(
+            explanation.model
         );
+
+    if (
+        !explanation.available ||
+        !detail
+    ) {
+        return (
+            <div className="bg-slate-950/40 px-4 py-5 text-sm text-slate-500 sm:px-5 sm:py-6">
+                {modelTitle} similarity is not
+                available for this comparison.
+            </div>
+        );
+    }
+
+    const hasComponents =
+        detail.components &&
+        detail.components.length >
+            0;
+
+    const hasPeriods =
+        detail.periods &&
+        detail.periods.length >
+            0;
 
     return (
         <div className="w-full min-w-0 max-w-full space-y-6 bg-slate-950/40 px-3 py-5 sm:px-5 sm:py-6">
 
-            {/* Explanation heading */}
+            {/* Heading */}
             <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 
                 <div className="min-w-0">
+
                     <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        {explanation.title} similarity
+                        {
+                            modelTitle
+                        }{" "}
+                        similarity
                     </div>
 
                     <div className="mt-1 break-words text-base font-semibold text-white sm:text-lg">
-                        {explanation.target.player}
+                        {
+                            targetPlayer
+                        }
+
                         <span className="mx-2 text-slate-600">
                             vs
                         </span>
-                        {explanation.comparable.player}
+
+                        {
+                            explanation.comparablePlayer
+                        }
                     </div>
 
                     <div className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
-                        {explanation.description}
+                        {
+                            modelDescription(
+                                explanation.model
+                            )
+                        }
                     </div>
+
                 </div>
 
                 <div className="w-full shrink-0 rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-left sm:w-auto sm:px-5 sm:text-right">
+
                     <div className="text-xs uppercase tracking-wide text-slate-500">
                         Similarity
                     </div>
 
                     <div
                         className={`mt-1 text-3xl font-bold ${scoreTextClass(
-                            explanation.similarity
+                            detail.similarity
                         )}`}
                     >
-                        {explanation.similarity.toFixed(
-                            1
-                        )}
+                        {
+                            detail.similarity.toFixed(
+                                1
+                            )
+                        }
                         %
                     </div>
+
                 </div>
 
             </div>
 
-            {/* Feature values */}
-            <div className="min-w-0">
-                <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                    Feature comparison
-                </div>
+            {/* Standard component models */}
+            {hasComponents && (
+                <div className="min-w-0">
 
-                <div className="grid min-w-0 grid-cols-1 gap-2 xl:grid-cols-2">
-                    {explanation.features.map(
-                        (feature) => (
-                            <FeatureComparison
-                                key={
-                                    feature.feature
-                                }
-                                feature={
-                                    feature
-                                }
-                                targetName={
-                                    explanation.target
-                                        .player
-                                }
-                                comparableName={
-                                    explanation
-                                        .comparable
-                                        .player
-                                }
-                            />
-                        )
+                    <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                        Model components
+                    </div>
+
+                    <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
+
+                        {detail.components!.map(
+                            (
+                                component,
+                                index
+                            ) => (
+                                <ComponentCard
+                                    key={
+                                        component.group ??
+                                        component.component ??
+                                        index
+                                    }
+                                    component={
+                                        component
+                                    }
+                                />
+                            )
+                        )}
+
+                    </div>
+
+                    {detail.groupsTotal !=
+                        null && (
+                        <div className="mt-3 text-xs text-slate-500">
+                            {
+                                detail.groupsAvailable ??
+                                0
+                            }{" "}
+                            of{" "}
+                            {
+                                detail.groupsTotal
+                            }{" "}
+                            model groups
+                            available
+                        </div>
                     )}
-                </div>
-            </div>
 
-            {/* Contribution */}
-            <div className="min-w-0">
-                <div className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                    What drives the difference?
                 </div>
+            )}
 
-                <div className="mb-4 text-xs text-slate-500">
-                    Share of the total squared statistical
-                    distance contributed by each metric.
+            {/* Trajectory */}
+            {hasPeriods && (
+                <div className="min-w-0">
+
+                    <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                        Trajectory periods
+                    </div>
+
+                    <div className="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-2">
+
+                        {detail.periods!.map(
+                            period => (
+                                <TrajectoryPeriodCard
+                                    key={
+                                        period.period
+                                    }
+                                    period={
+                                        period
+                                    }
+                                />
+                            )
+                        )}
+
+                    </div>
+
+                    <div className="mt-3 text-xs text-slate-500">
+                        {
+                            detail.periodsAvailable ??
+                            detail.periods!
+                                .length
+                        }{" "}
+                        trajectory period
+                        {(
+                            detail.periodsAvailable ??
+                            detail.periods!
+                                .length
+                        ) === 1
+                            ? ""
+                            : "s"}{" "}
+                        available
+                    </div>
+
                 </div>
+            )}
 
-                <div className="min-w-0 space-y-3">
-                    {sortedFeatures.map(
-                        (feature) => (
-                            <ContributionBar
-                                key={
-                                    feature.feature
-                                }
-                                feature={
-                                    feature
-                                }
-                            />
-                        )
-                    )}
-                </div>
-            </div>
-
-            {/* Calculation */}
+            {/* Summary */}
             <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-900/40 p-3 sm:p-4">
 
                 <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                    Calculation
+                    Model result
                 </div>
 
-                <div className="mt-4 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 sm:grid-cols-3">
-
-                    <CalculationMetric
-                        label="Mean squared difference"
-                        value={explanation.meanSquaredDifference.toFixed(
-                            4
-                        )}
-                    />
-
-                    <CalculationMetric
-                        label="RMS distance"
-                        value={explanation.distance.toFixed(
-                            4
-                        )}
-                    />
+                <div className="mt-4 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2">
 
                     <CalculationMetric
                         label="Similarity"
-                        value={`${explanation.similarity.toFixed(
+                        value={`${detail.similarity.toFixed(
                             1
                         )}%`}
                     />
 
+                    <CalculationMetric
+                        label="Match"
+                        value={
+                            matchLabel(
+                                detail.similarity
+                            )
+                        }
+                    />
+
                 </div>
 
-                <div className="mt-4 min-w-0 break-words rounded-lg bg-slate-950/70 px-3 py-3 font-mono text-xs leading-6 text-slate-300 sm:px-4 sm:text-sm">
-                    similarity = e
-                    <sup>
-                        −
-                        {explanation.distance.toFixed(
-                            4
-                        )}
-                    </sup>
-                    {" × 100 = "}
-                    <span
-                        className={scoreTextClass(
-                            explanation.similarity
-                        )}
-                    >
-                        {explanation.similarity.toFixed(
-                            1
-                        )}
-                        %
-                    </span>
+                <div className="mt-4 text-xs leading-5 text-slate-500">
+                    The model score is calculated
+                    from the available statistical
+                    components shown above. Higher
+                    scores indicate a closer
+                    statistical match.
                 </div>
 
             </div>
@@ -709,248 +864,476 @@ function SimilarityExplanationPanel({
 }
 
 // ---------------------------------------------------------
-// FEATURE VISUAL
+// COMPONENT CARD
+// ---------------------------------------------------------
+
+function ComponentCard({
+    component,
+}: {
+    component: V3Component;
+}) {
+    const [
+        expanded,
+        setExpanded,
+    ] =
+        useState(false);
+
+    const available =
+        component.similarity != null;
+
+    const features =
+        component.features ?? [];
+
+    const componentName =
+        component.group ??
+        component.component ??
+        "component";
+
+    const hasDetail =
+        features.length > 0;
+
+    return (
+        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-900/30">
+
+            {/* Component summary */}
+            <button
+                type="button"
+                onClick={() => {
+                    if (hasDetail) {
+                        setExpanded(
+                            value => !value
+                        );
+                    }
+                }}
+                disabled={!hasDetail}
+                className={`
+                    w-full
+                    min-w-0
+                    p-4
+                    text-left
+                    ${
+                        hasDetail
+                            ? "cursor-pointer transition hover:bg-slate-900/60"
+                            : "cursor-default"
+                    }
+                `}
+            >
+                <div className="flex min-w-0 items-start justify-between gap-4">
+
+                    <div className="min-w-0">
+
+                        <div className="flex items-center gap-2">
+
+                            <div className="text-sm font-medium text-slate-200">
+                                {
+                                    groupLabel(
+                                        componentName
+                                    )
+                                }
+                            </div>
+
+                            {hasDetail && (
+                                <span className="text-xs text-slate-600">
+                                    {expanded
+                                        ? "−"
+                                        : "+"}
+                                </span>
+                            )}
+
+                        </div>
+
+                        <div className="mt-1 text-xs text-slate-600">
+                            {
+                                component.featuresAvailable
+                            }{" "}
+                            /{" "}
+                            {
+                                component.featuresRequired
+                            }{" "}
+                            features available
+                        </div>
+
+                    </div>
+
+                    <div
+                        className={`shrink-0 text-xl font-bold ${
+                            available
+                                ? scoreTextClass(
+                                      component.similarity!
+                                  )
+                                : "text-slate-600"
+                        }`}
+                    >
+                        {available
+                            ? `${component.similarity!.toFixed(
+                                  1
+                              )}%`
+                            : "N/A"}
+                    </div>
+
+                </div>
+
+                {available && (
+                    <div className="mt-3">
+                        <SimilarityBar
+                            value={
+                                component.similarity!
+                            }
+                        />
+                    </div>
+                )}
+
+                {hasDetail && (
+                    <div className="mt-3 text-[10px] font-medium uppercase tracking-[0.12em] text-slate-600">
+                        {expanded
+                            ? "Hide feature detail"
+                            : "Show feature detail"}
+                    </div>
+                )}
+
+            </button>
+
+            {/* Expanded feature detail */}
+            {expanded && hasDetail && (
+                <div className="border-t border-slate-800 px-4 pb-4 pt-4">
+
+                    <div className="mb-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                        Feature comparison
+                    </div>
+
+                    <div className="space-y-5">
+
+                        {features.map(
+                            feature => (
+                                <FeatureComparison
+                                    key={
+                                        feature.feature
+                                    }
+                                    feature={
+                                        feature
+                                    }
+                                />
+                            )
+                        )}
+
+                    </div>
+
+                    {available &&
+                        component.distance != null && (
+                            <div className="mt-5 grid grid-cols-1 gap-3 border-t border-slate-800 pt-4 min-[420px]:grid-cols-2">
+
+                                <CalculationMetric
+                                    label="RMS Distance"
+                                    value={
+                                        component.distance.toFixed(
+                                            3
+                                        )
+                                    }
+                                />
+
+                                <CalculationMetric
+                                    label="Mean Squared Difference"
+                                    value={
+                                        component.meanSquaredDifference !=
+                                        null
+                                            ? component.meanSquaredDifference.toFixed(
+                                                  3
+                                              )
+                                            : "N/A"
+                                    }
+                                />
+
+                            </div>
+                        )}
+
+                </div>
+            )}
+
+        </div>
+    );
+}
+
+// ---------------------------------------------------------
+// FEATURE COMPARISON
 // ---------------------------------------------------------
 
 function FeatureComparison({
     feature,
-    targetName,
-    comparableName,
 }: {
-    feature: SimilarityExplanationFeature;
-    targetName: string;
-    comparableName: string;
+    feature: V3Feature;
 }) {
-    const target =
-        feature.targetStandardised ?? 0;
+    const hasValues =
+        feature.targetRaw != null &&
+        feature.comparableRaw != null;
 
-    const comparable =
-        feature.comparableStandardised ?? 0;
+    const hasStandardised =
+        feature.targetStandardised != null &&
+        feature.comparableStandardised != null;
 
-    const targetPosition =
-        zPosition(target);
-
-    const comparablePosition =
-        zPosition(comparable);
-
-    const left =
-        Math.min(
-            targetPosition,
-            comparablePosition
-        );
-
-    const width =
-        Math.max(
-            1,
-            Math.abs(
-                comparablePosition -
-                targetPosition
-            )
-        );
+    const featureSimilarity =
+        hasStandardised
+            ? Math.exp(
+                  -Math.abs(
+                      feature.comparableStandardised! -
+                          feature.targetStandardised!
+                  )
+              ) * 100
+            : null;
 
     return (
-        <div className="min-w-0 rounded-lg border border-slate-800 bg-slate-900/30 px-3 py-3 sm:px-4">
+        <div className="min-w-0">
 
-            <div className="grid min-w-0 gap-3">
+            <div className="flex min-w-0 items-start justify-between gap-3">
 
                 <div className="min-w-0">
-                    <div className="text-sm font-medium text-slate-200">
+
+                    <div className="text-xs font-medium text-slate-300">
                         {feature.label}
                     </div>
 
-                    <div
-                        className="mt-0.5 line-clamp-2 text-[11px] text-slate-600 sm:truncate"
-                        title={
-                            feature.description
-                        }
-                    >
+                    <div className="mt-0.5 text-[11px] leading-4 text-slate-600">
                         {feature.description}
                     </div>
-                </div>
-
-                {/* Mobile values */}
-                <div className="grid grid-cols-2 gap-2 sm:hidden">
-
-                    <div className="min-w-0 rounded-lg bg-slate-950/40 px-3 py-2">
-                        <div className="truncate text-[10px] text-slate-600">
-                            {shortName(
-                                targetName
-                            )}
-                        </div>
-
-                        <div className="mt-0.5 font-semibold text-sky-300">
-                            {formatFeatureValue(
-                                feature.targetRaw
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="min-w-0 rounded-lg bg-slate-950/40 px-3 py-2 text-right">
-                        <div className="truncate text-[10px] text-slate-600">
-                            {shortName(
-                                comparableName
-                            )}
-                        </div>
-
-                        <div className="mt-0.5 font-semibold text-violet-300">
-                            {formatFeatureValue(
-                                feature.comparableRaw
-                            )}
-                        </div>
-                    </div>
 
                 </div>
 
-                {/* Mobile scale */}
-                <div className="sm:hidden">
-                    <FeatureScale
-                        targetPosition={
-                            targetPosition
-                        }
-                        comparablePosition={
-                            comparablePosition
-                        }
-                        left={left}
-                        width={width}
-                        targetName={
-                            targetName
-                        }
-                        comparableName={
-                            comparableName
-                        }
-                        target={target}
-                        comparable={
-                            comparable
-                        }
-                    />
-                </div>
-
-                {/* Tablet / Desktop */}
-                <div className="hidden min-w-0 grid-cols-[76px_minmax(0,1fr)_76px] items-center gap-2 sm:grid lg:grid-cols-[90px_minmax(0,1fr)_90px] lg:gap-3">
-
-                    <div className="min-w-0 text-right text-sm">
-                        <div className="font-semibold text-sky-300">
-                            {formatFeatureValue(
-                                feature.targetRaw
-                            )}
-                        </div>
-
-                        <div className="truncate text-[10px] text-slate-600">
-                            {shortName(
-                                targetName
-                            )}
-                        </div>
+                {featureSimilarity != null && (
+                    <div
+                        className={`shrink-0 text-sm font-semibold ${scoreTextClass(
+                            featureSimilarity
+                        )}`}
+                    >
+                        {featureSimilarity.toFixed(
+                            1
+                        )}
+                        %
                     </div>
-
-                    <FeatureScale
-                        targetPosition={
-                            targetPosition
-                        }
-                        comparablePosition={
-                            comparablePosition
-                        }
-                        left={left}
-                        width={width}
-                        targetName={
-                            targetName
-                        }
-                        comparableName={
-                            comparableName
-                        }
-                        target={target}
-                        comparable={
-                            comparable
-                        }
-                    />
-
-                    <div className="min-w-0 text-sm">
-                        <div className="font-semibold text-violet-300">
-                            {formatFeatureValue(
-                                feature.comparableRaw
-                            )}
-                        </div>
-
-                        <div className="truncate text-[10px] text-slate-600">
-                            {shortName(
-                                comparableName
-                            )}
-                        </div>
-                    </div>
-
-                </div>
+                )}
 
             </div>
+
+            {hasValues ? (
+                <div className="mt-3">
+
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+
+                        <FeatureValue
+                            value={
+                                feature.targetRaw!
+                            }
+                            align="left"
+                        />
+
+                        <div className="text-[10px] uppercase tracking-wide text-slate-700">
+                            vs
+                        </div>
+
+                        <FeatureValue
+                            value={
+                                feature.comparableRaw!
+                            }
+                            align="right"
+                        />
+
+                    </div>
+
+                    {hasStandardised && (
+                        <StandardisedScale
+                            target={
+                                feature.targetStandardised!
+                            }
+                            comparable={
+                                feature.comparableStandardised!
+                            }
+                        />
+                    )}
+
+                    {featureSimilarity != null && (
+                        <div className="mt-3">
+
+                            <div className="mb-1 flex items-center justify-between gap-3 text-[10px] text-slate-600">
+
+                                <span>
+                                    Feature similarity
+                                </span>
+
+                                <span>
+                                    {featureSimilarity.toFixed(
+                                        1
+                                    )}
+                                    %
+                                </span>
+
+                            </div>
+
+                            <SimilarityBar
+                                value={
+                                    featureSimilarity
+                                }
+                            />
+
+                        </div>
+                    )}
+
+                    {feature.distanceContributionPct !=
+                        null && (
+                        <div className="mt-2 text-[10px] text-slate-600">
+                            Share of component difference:{" "}
+                            {feature.distanceContributionPct.toFixed(
+                                1
+                            )}
+                            %
+                        </div>
+                    )}
+
+                </div>
+            ) : (
+                <div className="mt-2 text-xs text-slate-600">
+                    Feature not available for both players.
+                </div>
+            )}
 
         </div>
     );
 }
 
-function FeatureScale({
-    targetPosition,
-    comparablePosition,
-    left,
-    width,
-    targetName,
-    comparableName,
+function FeatureValue({
+    value,
+    align,
+}: {
+    value: number;
+    align: "left" | "right";
+}) {
+    return (
+        <div
+            className={
+                align === "left"
+                    ? "text-left"
+                    : "text-right"
+            }
+        >
+            <div className="text-sm font-semibold text-slate-200">
+                {
+                    formatFeatureValue(
+                        value
+                    )
+                }
+            </div>
+        </div>
+    );
+}
+
+function StandardisedScale({
     target,
     comparable,
 }: {
-    targetPosition: number;
-    comparablePosition: number;
-    left: number;
-    width: number;
-    targetName: string;
-    comparableName: string;
     target: number;
     comparable: number;
 }) {
+    const MIN_Z =
+        -3;
+
+    const MAX_Z =
+        3;
+
+    function position(
+        value: number
+    ) {
+        const clamped =
+            Math.max(
+                MIN_Z,
+                Math.min(
+                    MAX_Z,
+                    value
+                )
+            );
+
+        return (
+            ((clamped -
+                MIN_Z) /
+                (MAX_Z -
+                    MIN_Z)) *
+            100
+        );
+    }
+
+    const targetPosition =
+        position(
+            target
+        );
+
+    const comparablePosition =
+        position(
+            comparable
+        );
+
     return (
-        <div className="min-w-0">
+        <div className="mt-3">
 
-            <div className="relative h-6">
+            <div className="relative h-5">
 
-                <div className="absolute left-0 right-0 top-1/2 h-px bg-slate-700" />
+                <div className="absolute left-0 right-0 top-2 h-px bg-slate-700" />
 
-                <div className="absolute left-1/2 top-0 h-6 w-px bg-slate-600" />
-
-                <div
-                    className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-slate-500"
-                    style={{
-                        left:
-                            `${left}%`,
-                        width:
-                            `${width}%`,
-                    }}
-                />
+                <div className="absolute left-1/2 top-0 h-4 w-px bg-slate-600" />
 
                 <div
-                    className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-400 ring-2 ring-slate-950"
+                    className="absolute top-0 h-4 w-1 -translate-x-1/2 rounded-full bg-white"
                     style={{
                         left:
                             `${targetPosition}%`,
                     }}
-                    title={`${targetName}: z=${target.toFixed(
+                    title={`Target z-score: ${target.toFixed(
                         2
                     )}`}
                 />
 
                 <div
-                    className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-400 ring-2 ring-slate-950"
+                    className="absolute top-1 h-3 w-1 -translate-x-1/2 rounded-full bg-slate-400"
                     style={{
                         left:
                             `${comparablePosition}%`,
                     }}
-                    title={`${comparableName}: z=${comparable.toFixed(
+                    title={`Comparable z-score: ${comparable.toFixed(
                         2
                     )}`}
                 />
 
             </div>
 
-            <div className="mt-1 flex justify-between text-[9px] text-slate-700">
-                <span>-3σ</span>
-                <span>Avg</span>
-                <span>+3σ</span>
+            <div className="flex justify-between text-[9px] text-slate-700">
+                <span>
+                    -3σ
+                </span>
+
+                <span>
+                    Population average
+                </span>
+
+                <span>
+                    +3σ
+                </span>
+            </div>
+
+            <div className="mt-1 flex justify-between gap-3 text-[10px] text-slate-600">
+
+                <span>
+                    Target z{" "}
+                    {
+                        target.toFixed(
+                            2
+                        )
+                    }
+                </span>
+
+                <span className="text-right">
+                    Comparable z{" "}
+                    {
+                        comparable.toFixed(
+                            2
+                        )
+                    }
+                </span>
+
             </div>
 
         </div>
@@ -958,97 +1341,134 @@ function FeatureScale({
 }
 
 // ---------------------------------------------------------
-// CONTRIBUTION
+// TRAJECTORY PERIOD
 // ---------------------------------------------------------
 
-function ContributionBar({
-    feature,
+function TrajectoryPeriodCard({
+    period,
 }: {
-    feature: SimilarityExplanationFeature;
+    period: V3TrajectoryPeriod;
 }) {
-    const contribution =
-        Math.max(
-            0,
-            Math.min(
-                100,
-                feature.distanceContributionPct ??
-                0
-            )
+    const metrics =
+        trajectoryMetrics(
+            period
         );
 
+    const components =
+        period.components ?? [];
+
     return (
-        <div className="min-w-0">
+        <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-900/30 p-4">
 
-            <div className="mb-1.5 flex min-w-0 items-center justify-between gap-3 sm:hidden">
+            <div className="flex min-w-0 items-start justify-between gap-4">
 
-                <div className="min-w-0 truncate text-xs text-slate-400">
-                    {feature.label}
+                <div>
+                    <div className="text-sm font-medium text-slate-200">
+                        {
+                            periodLabel(
+                                period.period
+                            )
+                        }
+                    </div>
+
+                    <div className="mt-1 text-xs text-slate-600">
+                        Development similarity
+                    </div>
                 </div>
 
-                <div className="shrink-0 text-xs font-medium text-slate-300">
-                    {contribution.toFixed(
-                        1
-                    )}
-                    %
-                </div>
-
-            </div>
-
-            <div className="h-2 overflow-hidden rounded-full bg-slate-800 sm:hidden">
                 <div
-                    className="h-full rounded-full bg-slate-500"
-                    style={{
-                        width:
-                            `${contribution}%`,
-                    }}
-                />
-            </div>
-
-            <div className="hidden min-w-0 grid-cols-[140px_minmax(0,1fr)_55px] items-center gap-3 sm:grid lg:grid-cols-[170px_minmax(0,1fr)_60px]">
-
-                <div className="truncate text-xs text-slate-400">
-                    {feature.label}
+                    className={`shrink-0 text-xl font-bold ${
+                        period.similarity !=
+                        null
+                            ? scoreTextClass(
+                                  period.similarity
+                              )
+                            : "text-slate-600"
+                    }`}
+                >
+                    {period.similarity !=
+                    null
+                        ? `${period.similarity.toFixed(
+                              1
+                          )}%`
+                        : "N/A"}
                 </div>
 
-                <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-                    <div
-                        className="h-full rounded-full bg-slate-500"
-                        style={{
-                            width:
-                                `${contribution}%`,
-                        }}
+            </div>
+
+            {period.similarity !=
+                null && (
+                <div className="mt-3">
+                    <SimilarityBar
+                        value={
+                            period.similarity
+                        }
                     />
                 </div>
+            )}
 
-                <div className="text-right text-xs font-medium text-slate-300">
-                    {contribution.toFixed(
-                        1
+            {metrics.length >
+                0 && (
+                <div className="mt-4 space-y-2 border-t border-slate-800 pt-3">
+
+                    {metrics.map(
+                        metric => (
+                            <div
+                                key={
+                                    metric.label
+                                }
+                                className="flex items-center justify-between gap-3"
+                            >
+                                <span className="text-xs text-slate-500">
+                                    {
+                                        metric.label
+                                    }
+                                </span>
+
+                                <span
+                                    className={`text-sm font-semibold ${scoreTextClass(
+                                        metric.value
+                                    )}`}
+                                >
+                                    {
+                                        metric.value.toFixed(
+                                            1
+                                        )
+                                    }
+                                    %
+                                </span>
+                            </div>
+                        )
                     )}
-                    %
+
                 </div>
+            )}
 
-            </div>
+            {components.length >
+                0 && (
+                <div className="mt-4 space-y-3 border-t border-slate-800 pt-4">
 
-        </div>
-    );
-}
+                    {components.map(
+                        (
+                            component,
+                            index
+                        ) => (
+                            <ComponentCard
+                                key={
+                                    component.component ??
+                                    component.group ??
+                                    index
+                                }
+                                component={
+                                    component
+                                }
+                            />
+                        )
+                    )}
 
-function CalculationMetric({
-    label,
-    value,
-}: {
-    label: string;
-    value: string;
-}) {
-    return (
-        <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-wide text-slate-600">
-                {label}
-            </div>
+                </div>
+            )}
 
-            <div className="mt-1 break-words text-lg font-semibold text-slate-200">
-                {value}
-            </div>
         </div>
     );
 }
@@ -1066,21 +1486,23 @@ function PlayerIdentity({
         <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
 
             <PlayerHeadshot
-                player={player}
+                player={
+                    player
+                }
             />
 
             <div className="min-w-0">
 
                 <div className="truncate text-sm font-semibold text-white sm:text-base">
-                    {player.comparable_player}
+                    {
+                        player.comparable_player
+                    }
                 </div>
 
                 <div className="mt-0.5 text-xs text-slate-500">
-                    {player.comparable_position}
-                </div>
-
-                <div className="mt-1 truncate text-[11px] text-slate-400 sm:text-xs">
-                    {contractText(player)}
+                    {
+                        player.comparable_position
+                    }
                 </div>
 
             </div>
@@ -1094,7 +1516,10 @@ function PlayerHeadshot({
 }: {
     player: ComparablePlayer;
 }) {
-    const [imageError, setImageError] =
+    const [
+        imageError,
+        setImageError,
+    ] =
         useState(false);
 
     const showImage =
@@ -1124,14 +1549,18 @@ function PlayerHeadshot({
                     }
                     className="h-full w-full object-cover object-top"
                     onError={() =>
-                        setImageError(true)
+                        setImageError(
+                            true
+                        )
                     }
                 />
             ) : (
                 <div className="flex h-full w-full items-center justify-center text-sm font-bold text-slate-300">
-                    {initials(
-                        player.comparable_player
-                    )}
+                    {
+                        initials(
+                            player.comparable_player
+                        )
+                    }
                 </div>
             )}
         </div>
@@ -1151,12 +1580,19 @@ function OverallMatch({
         <div className="min-w-0">
 
             <div className="text-xl font-bold text-white">
-                {value.toFixed(1)}%
+                {
+                    value.toFixed(
+                        1
+                    )
+                }
+                %
             </div>
 
             <div className="mt-1">
                 <SimilarityBar
-                    value={value}
+                    value={
+                        value
+                    }
                     large
                 />
             </div>
@@ -1166,7 +1602,11 @@ function OverallMatch({
                     value
                 )}`}
             >
-                {matchLabel(value)}
+                {
+                    matchLabel(
+                        value
+                    )
+                }
             </div>
 
         </div>
@@ -1179,19 +1619,27 @@ function OverallMatch({
 
 function SimilarityMetric({
     value,
-    rank,
     active,
     onClick,
 }: {
-    value: number;
-    rank: number;
+    value: number | null;
     active: boolean;
     onClick: () => void;
 }) {
+    const available =
+        value != null;
+
     return (
         <button
             type="button"
-            onClick={onClick}
+            onClick={
+                available
+                    ? onClick
+                    : undefined
+            }
+            disabled={
+                !available
+            }
             className={`
                 min-w-0
                 rounded-lg
@@ -1201,33 +1649,43 @@ function SimilarityMetric({
                 ${
                     active
                         ? "bg-slate-800/80 ring-1 ring-slate-600"
-                        : "hover:bg-slate-900"
+                        : available
+                        ? "hover:bg-slate-900"
+                        : "cursor-default opacity-50"
                 }
             `}
-            title="Click to explain this score"
+            title={
+                available
+                    ? "Click to explain this score"
+                    : "Model not available"
+            }
         >
 
-            <div className="flex items-baseline justify-between gap-2">
-
-                <span
-                    className={`text-sm font-semibold ${scoreTextClass(
-                        value
-                    )}`}
-                >
-                    {value.toFixed(1)}%
-                </span>
-
-                <span className="text-[11px] text-slate-600">
-                    #{rank}
-                </span>
-
+            <div
+                className={`text-sm font-semibold ${
+                    available
+                        ? scoreTextClass(
+                              value
+                          )
+                        : "text-slate-600"
+                }`}
+            >
+                {available
+                    ? `${value.toFixed(
+                          1
+                      )}%`
+                    : "N/A"}
             </div>
 
-            <div className="mt-2">
-                <SimilarityBar
-                    value={value}
-                />
-            </div>
+            {available && (
+                <div className="mt-2">
+                    <SimilarityBar
+                        value={
+                            value
+                        }
+                    />
+                </div>
+            )}
 
         </button>
     );
@@ -1236,20 +1694,28 @@ function SimilarityMetric({
 function MobileMetric({
     label,
     value,
-    rank,
     active,
     onClick,
 }: {
     label: string;
-    value: number;
-    rank: number;
+    value: number | null;
     active: boolean;
     onClick: () => void;
 }) {
+    const available =
+        value != null;
+
     return (
         <button
             type="button"
-            onClick={onClick}
+            onClick={
+                available
+                    ? onClick
+                    : undefined
+            }
+            disabled={
+                !available
+            }
             className={`
                 min-w-0
                 rounded-lg
@@ -1260,36 +1726,44 @@ function MobileMetric({
                 ${
                     active
                         ? "border-slate-600 bg-slate-800/70"
-                        : "border-slate-800 bg-slate-900/30 hover:border-slate-700"
+                        : available
+                        ? "border-slate-800 bg-slate-900/30 hover:border-slate-700"
+                        : "cursor-default border-slate-800 bg-slate-900/20 opacity-50"
                 }
             `}
         >
 
             <div className="truncate text-[10px] uppercase tracking-wide text-slate-500">
-                {label}
+                {
+                    label
+                }
             </div>
 
-            <div className="mt-1 flex items-baseline justify-between gap-2">
-
-                <span
-                    className={`font-semibold ${scoreTextClass(
-                        value
-                    )}`}
-                >
-                    {value.toFixed(1)}%
-                </span>
-
-                <span className="shrink-0 text-[10px] text-slate-600">
-                    #{rank}
-                </span>
-
+            <div
+                className={`mt-1 font-semibold ${
+                    available
+                        ? scoreTextClass(
+                              value
+                          )
+                        : "text-slate-600"
+                }`}
+            >
+                {available
+                    ? `${value.toFixed(
+                          1
+                      )}%`
+                    : "N/A"}
             </div>
 
-            <div className="mt-2">
-                <SimilarityBar
-                    value={value}
-                />
-            </div>
+            {available && (
+                <div className="mt-2">
+                    <SimilarityBar
+                        value={
+                            value
+                        }
+                    />
+                </div>
+            )}
 
         </button>
     );
@@ -1340,6 +1814,36 @@ function SimilarityBar({
                         `${safeValue}%`,
                 }}
             />
+        </div>
+    );
+}
+
+// ---------------------------------------------------------
+// CALCULATION METRIC
+// ---------------------------------------------------------
+
+function CalculationMetric({
+    label,
+    value,
+}: {
+    label: string;
+    value: string;
+}) {
+    return (
+        <div className="min-w-0">
+
+            <div className="text-[10px] uppercase tracking-wide text-slate-600">
+                {
+                    label
+                }
+            </div>
+
+            <div className="mt-1 break-words text-lg font-semibold text-slate-200">
+                {
+                    value
+                }
+            </div>
+
         </div>
     );
 }
@@ -1433,7 +1937,9 @@ function LegendDot({
             />
 
             <span>
-                {label}
+                {
+                    label
+                }
             </span>
 
         </div>
@@ -1441,132 +1947,244 @@ function LegendDot({
 }
 
 // ---------------------------------------------------------
-// EXPLANATION HELPERS
+// LABEL HELPERS
 // ---------------------------------------------------------
 
-function zPosition(
-    value: number
+function modelLabel(
+    model: ComparisonModel
 ) {
-    const clamped =
-        Math.max(
-            -3,
-            Math.min(
-                3,
-                value
-            )
-        );
+    switch (model) {
+        case "playing_style":
+            return "Playing Style";
+
+        case "production":
+            return "Production";
+
+        case "effectiveness":
+            return "Effectiveness";
+
+        case "usage":
+            return "Usage";
+
+        case "trajectory":
+            return "Trajectory";
+    }
+}
+
+function modelDescription(
+    model: ComparisonModel
+) {
+    switch (model) {
+        case "playing_style":
+            return "How similarly the players play, based on the statistical profile of their style of play.";
+
+        case "production":
+            return "How similar the players are in the results they produce.";
+
+        case "effectiveness":
+            return "How similarly effective the players are within the situations measured by the model.";
+
+        case "usage":
+            return "How similarly the players are deployed and used by their teams.";
+
+        case "trajectory":
+            return "How similarly the players' performance and roles have developed over recent seasons.";
+    }
+}
+
+function groupLabel(
+    group: string
+) {
+    const labels:
+        Record<
+            string,
+            string
+        > = {
+        shot_location:
+            "Shot Location",
+        shot_volume:
+            "Shot Volume",
+        faceoffs:
+            "Faceoffs",
+        discipline:
+            "Discipline",
+        puck_management:
+            "Puck Management",
+        physical:
+            "Physical",
+
+        scoring:
+            "Scoring",
+        playmaking:
+            "Playmaking",
+
+        shooting:
+            "Shooting Effectiveness",
+        overall_effectiveness:
+            "Overall Effectiveness",
+        location_effectiveness:
+            "Location Effectiveness",
+
+        ice_time_role:
+            "Ice Time / Role",
+        shift_usage:
+            "Shift Usage",
+        faceoff_usage:
+            "Faceoff Usage",
+
+        deployment:
+            "Deployment",
+        workload:
+            "Workload",
+
+        production:
+            "Production Development",
+        performance:
+            "Performance Development",
+        effectiveness:
+            "Effectiveness Development",
+        role:
+            "Role Development",
+    };
 
     return (
-        ((clamped + 3) / 6) *
-        100
+        labels[group] ??
+        titleCase(
+            group
+        )
     );
+}
+
+function periodLabel(
+    period: string
+) {
+    if (
+        period ===
+        "recent"
+    ) {
+        return "Recent Trajectory";
+    }
+
+    if (
+        period ===
+        "previous"
+    ) {
+        return "Previous Trajectory";
+    }
+
+    return titleCase(
+        period
+    );
+}
+
+function trajectoryMetrics(
+    period: V3TrajectoryPeriod
+) {
+    const metrics: {
+        label: string;
+        value: number;
+    }[] = [];
+
+    if (
+        period.production !=
+        null
+    ) {
+        metrics.push({
+            label:
+                "Production Development",
+            value:
+                period.production,
+        });
+    }
+
+    if (
+        period.performance !=
+        null
+    ) {
+        metrics.push({
+            label:
+                "Performance Development",
+            value:
+                period.performance,
+        });
+    }
+
+    if (
+        period.effectiveness !=
+        null
+    ) {
+        metrics.push({
+            label:
+                "Effectiveness Development",
+            value:
+                period.effectiveness,
+        });
+    }
+
+    if (
+        period.role !=
+        null
+    ) {
+        metrics.push({
+            label:
+                "Role Development",
+            value:
+                period.role,
+        });
+    }
+
+    return metrics;
+}
+
+function titleCase(
+    value: string
+) {
+    return value
+        .replace(
+            /_/g,
+            " "
+        )
+        .replace(
+            /\b\w/g,
+            character =>
+                character.toUpperCase()
+        );
 }
 
 function formatFeatureValue(
-    value: number | null
+    value: number
 ) {
-    if (value == null) {
-        return "—";
-    }
-
     const absolute =
-        Math.abs(value);
+        Math.abs(
+            value
+        );
 
     if (absolute >= 100) {
-        return value.toFixed(0);
+        return value.toFixed(
+            1
+        );
     }
 
     if (absolute >= 10) {
-        return value.toFixed(1);
+        return value.toFixed(
+            2
+        );
     }
 
-    return value.toFixed(2);
-}
+    if (absolute >= 1) {
+        return value.toFixed(
+            3
+        );
+    }
 
-function shortName(
-    name: string
-) {
-    const parts =
-        name.split(" ");
-
-    return (
-        parts[
-            parts.length - 1
-        ] ?? name
+    return value.toFixed(
+        4
     );
 }
 
 // ---------------------------------------------------------
-// FORMATTERS
+// PLAYER HELPERS
 // ---------------------------------------------------------
-
-function contractText(
-    player: ComparablePlayer
-) {
-    const parts: string[] = [];
-
-    if (
-        player.current_aav != null
-    ) {
-        parts.push(
-            `${money(
-                player.current_aav
-            )} AAV`
-        );
-    }
-
-    if (
-        player.current_contract_term != null
-    ) {
-        parts.push(
-            `${player.current_contract_term} years`
-        );
-    }
-
-    if (
-        player.current_contract_to
-    ) {
-        parts.push(
-            `through ${player.current_contract_to}`
-        );
-    }
-
-    if (
-        player.current_contract_cap_pct != null
-    ) {
-        parts.push(
-            `${player.current_contract_cap_pct.toFixed(
-                2
-            )}% cap`
-        );
-    }
-
-    return parts.join(" · ");
-}
-
-function money(
-    value: number
-) {
-    if (
-        value >= 1_000_000
-    ) {
-        return `$${(
-            value /
-            1_000_000
-        ).toFixed(2)}m`;
-    }
-
-    if (
-        value >= 1_000
-    ) {
-        return `$${(
-            value /
-            1_000
-        ).toFixed(0)}k`;
-    }
-
-    return `$${value.toLocaleString()}`;
-}
 
 function initials(
     name: string
@@ -1575,10 +2193,13 @@ function initials(
         .split(" ")
         .filter(Boolean)
         .map(
-            (part) =>
+            part =>
                 part[0]
         )
         .join("")
-        .slice(0, 2)
+        .slice(
+            0,
+            2
+        )
         .toUpperCase();
 }
