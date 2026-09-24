@@ -3,6 +3,10 @@ name: Refresh Organisation Detail LLM
 on:
   workflow_dispatch:
 
+  schedule:
+    # Annual: 2 September at 09:00 UTC
+    - cron: "0 9 2 9 *"
+
 env:
   PYTHONUNBUFFERED: "1"
 

@@ -16,9 +16,11 @@ on:
         default: false
 
   schedule:
-    # Runs monthly. tax.py only refreshes cities whose
-    # latest successful load is at least three calendar months old.
+    # Monthly: city tax refresh check
     - cron: "20 5 1 * *"
+
+    # Annual: tax brackets
+    - cron: "0 6 1 1 *"
 
 permissions:
   contents: read
@@ -51,7 +53,7 @@ jobs:
       # ======================================================
 
       - name: Run city tax pipeline
-        if: ${{ github.event_name == 'schedule' || inputs.run_city_tax }}
+        if: ${{ inputs.run_city_tax || (github.event_name == 'schedule' && github.event.schedule == '20 5 1 * *') }}
         env:
           GCP_PROJECT: pacey32-agency
           TEAM_TABLE: pacey32-agency.Team.TeamList
@@ -65,7 +67,7 @@ jobs:
       # ======================================================
 
       - name: Run tax bracket pipeline
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_tax_brackets }}
+        if: ${{ inputs.run_tax_brackets || (github.event_name == 'schedule' && github.event.schedule == '0 6 1 1 *') }}
         env:
           GCP_PROJECT: pacey32-agency
           TAX_BRACKET_TABLE: pacey32-agency.City.tax_brackets

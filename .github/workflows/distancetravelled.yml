@@ -14,6 +14,15 @@ on:
         type: boolean
         default: false
 
+  schedule:
+    # Weekly: Monday at 09:00 UTC
+    # Refreshes current-season travel only
+    - cron: "0 9 * * 1"
+
+    # Monthly: 1st at 09:00 UTC
+    # Refreshes current-season and five-year travel
+    - cron: "0 10 1 * *"
+
 env:
   PYTHONUNBUFFERED: "1"
 
@@ -47,10 +56,15 @@ jobs:
 
       #########################################################
       # CURRENT SEASON
+      #
+      # Runs:
+      # - manually when run_current = true
+      # - every weekly scheduled run
+      # - every monthly scheduled run
       #########################################################
 
       - name: Build Travel_1_ScheduleExpanded
-        if: ${{ inputs.run_current }}
+        if: ${{ github.event_name == 'schedule' || inputs.run_current }}
         env:
           GCP_PROJECT: pacey32-agency
 
@@ -70,7 +84,7 @@ jobs:
         run: python distancetravelled/1_ScheduleExpanded.py
 
       - name: Build Travel_2_Legs
-        if: ${{ inputs.run_current }}
+        if: ${{ github.event_name == 'schedule' || inputs.run_current }}
         env:
           GCP_PROJECT: pacey32-agency
 
@@ -81,10 +95,14 @@ jobs:
 
       #########################################################
       # FIVE YEAR
+      #
+      # Runs:
+      # - manually when run_5yr = true
+      # - monthly scheduled run only
       #########################################################
 
       - name: Build Travel_1_ScheduleExpanded_5yr
-        if: ${{ inputs.run_5yr }}
+        if: ${{ inputs.run_5yr || (github.event_name == 'schedule' && github.event.schedule == '0 10 1 * *') }}
         env:
           GCP_PROJECT: pacey32-agency
 
@@ -105,7 +123,7 @@ jobs:
         run: python distancetravelled/1b_ScheduleExpanded_5yr.py
 
       - name: Build Travel_2_Legs_5yr
-        if: ${{ inputs.run_5yr }}
+        if: ${{ inputs.run_5yr || (github.event_name == 'schedule' && github.event.schedule == '0 10 1 * *') }}
         env:
           GCP_PROJECT: pacey32-agency
 

@@ -3,6 +3,10 @@ name: Refresh Retired Numbers Data
 on:
   workflow_dispatch:
 
+  schedule:
+    # Annual: 3 September at 08:00 UTC
+    - cron: "0 8 3 9 *"
+
 jobs:
   refresh-retired-numbers:
 

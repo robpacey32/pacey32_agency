@@ -3,6 +3,11 @@ name: Refresh City Summary Data
 on:
   workflow_dispatch:
 
+  schedule:
+    # Annual: 1 September at 08:00 UTC
+    # Runs after the annual City Reference refresh
+    - cron: "0 8 1 9 *"
+
 env:
   PYTHONUNBUFFERED: "1"
 

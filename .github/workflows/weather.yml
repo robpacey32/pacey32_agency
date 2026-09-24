@@ -3,6 +3,10 @@ name: Refresh Weather Data
 on:
   workflow_dispatch:
 
+  schedule:
+    # Annual: 1 September at 07:30 UTC
+    - cron: "30 7 1 9 *"
+
 jobs:
   refresh-weather:
 

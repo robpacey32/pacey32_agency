@@ -3,6 +3,10 @@ name: Refresh Player Birthplaces
 on:
   workflow_dispatch:
 
+  schedule:
+    # Monthly: 3rd at 07:00 UTC
+    - cron: "0 7 3 * *"
+
 jobs:
   refresh-player-birthplaces:
 

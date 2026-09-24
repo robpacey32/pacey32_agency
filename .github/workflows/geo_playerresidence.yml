@@ -10,6 +10,10 @@ on:
         required: true
         default: false
 
+  schedule:
+    # Annual: 2 September at 07:00 UTC
+    - cron: "0 7 2 9 *"
+
 env:
   PYTHONUNBUFFERED: "1"
 
@@ -50,6 +54,6 @@ jobs:
           GCP_PROJECT: pacey32-agency
           GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          FORCE_REFRESH: ${{ inputs.force_refresh }}
+          FORCE_REFRESH: ${{ github.event_name == 'schedule' && 'false' || inputs.force_refresh }}
         run: |
           python -m geospatial.geo_playerresidence

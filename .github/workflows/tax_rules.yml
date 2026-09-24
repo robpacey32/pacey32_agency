@@ -1,0 +1,40 @@
+name: Refresh Tax Rules
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  refresh-tax-rules:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Tax Rules
+        env:
+          GCP_PROJECT: pacey32-agency
+          TAX_RULES_TABLE: pacey32-agency.City.tax_rules
+          TAX_YEAR: "2026"
+        run: python -u tax/tax_rules.py

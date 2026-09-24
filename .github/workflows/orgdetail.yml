@@ -3,6 +3,10 @@ name: Refresh Organisation Details
 on:
   workflow_dispatch:
 
+  schedule:
+    # Monthly: 2nd at 07:00 UTC
+    - cron: "0 7 2 * *"
+
 env:
   PYTHONUNBUFFERED: "1"
 

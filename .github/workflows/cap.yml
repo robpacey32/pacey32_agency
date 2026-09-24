@@ -22,6 +22,10 @@ on:
         required: true
         default: true
 
+  schedule:
+    # Weekly: Monday at 06:30 UTC
+    - cron: "30 6 * * 1"
+
 env:
   PYTHONUNBUFFERED: "1"
 
@@ -64,21 +68,21 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Refresh Team Cap
-        if: ${{ inputs.run_team }}
+        if: ${{ github.event_name == 'schedule' || inputs.run_team }}
         env:
           GCP_PROJECT: pacey32-agency
         run: |
           python -m cap.teamcap
 
       - name: Refresh Player Cap
-        if: ${{ inputs.run_player }}
+        if: ${{ github.event_name == 'schedule' || inputs.run_player }}
         env:
           GCP_PROJECT: pacey32-agency
         run: |
           python -m cap.playercap
 
       - name: Refresh Player Detail
-        if: ${{ inputs.run_player_detail }}
+        if: ${{ github.event_name == 'schedule' || inputs.run_player_detail }}
         env:
           GCP_PROJECT: pacey32-agency
         run: |

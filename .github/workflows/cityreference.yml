@@ -25,6 +25,10 @@ on:
         required: false
         default: ""
 
+  schedule:
+    # Annual: 1 September at 07:00 UTC
+    - cron: "0 7 1 9 *"
+
 env:
   PYTHONUNBUFFERED: "1"
 
@@ -60,15 +64,15 @@ jobs:
         env:
           GCP_PROJECT: pacey32-agency
 
-          TEAM_TABLE: ${{ github.event.inputs.team_table }}
+          TEAM_TABLE: ${{ github.event_name == 'schedule' && 'pacey32-agency.Team.TeamList' || inputs.team_table }}
 
           CITY_REFERENCE_TABLE: pacey32-agency.City.CityReference
           CITY_REFERENCE_STAGING_TABLE: pacey32-agency.City.CityReference_staging
 
           SOURCE_CITY_COLUMN: venueLocation
 
-          FORCE_REFRESH: ${{ github.event.inputs.force_refresh }}
-          FORCE_CITIES: ${{ github.event.inputs.force_cities }}
+          FORCE_REFRESH: ${{ github.event_name == 'schedule' && 'false' || inputs.force_refresh }}
+          FORCE_CITIES: ${{ github.event_name == 'schedule' && '' || inputs.force_cities }}
 
           REQUEST_TIMEOUT: "60"
           GEOCODE_SLEEP_SECONDS: "0.25"
