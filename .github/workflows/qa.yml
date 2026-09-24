@@ -1,0 +1,90 @@
+name: Agency Data Quality
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    # Daily at 11:00 UTC
+    # Runs after the daily NHL source ingestion / QA.
+    - cron: "0 11 * * *"
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  player-qa:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Run Player QA
+        env:
+          GCP_PROJECT: pacey32-agency
+
+        run: |
+          python - <<'PY'
+          import os
+          from google.cloud import bigquery
+
+          project_id = os.environ["GCP_PROJECT"]
+
+          client = bigquery.Client(
+              project=project_id
+          )
+
+          with open("QA/Player.sql", "r") as f:
+              sql = f.read()
+
+          job = client.query(sql)
+          results = list(job.result())
+
+          print("")
+          print("Player QA complete.")
+          print("")
+
+          fail_count = 0
+          warn_count = 0
+
+          for row in results:
+              print(
+                  f"{row.test_id}: "
+                  f"{row.status} "
+                  f"({row.failure_count} failures)"
+              )
+
+              if row.status == "FAIL":
+                  fail_count += 1
+
+              if row.status == "WARN":
+                  warn_count += 1
+
+          print("")
+          print(
+              f"Summary: "
+              f"{len(results)} tests, "
+              f"{fail_count} FAIL, "
+              f"{warn_count} WARN"
+          )
+          PY
