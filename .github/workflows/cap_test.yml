@@ -1,0 +1,128 @@
+name: Test PuckPedia Access
+
+on:
+  workflow_dispatch:
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  test-puckpedia:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Test PuckPedia with urllib
+        run: |
+          python - <<'PY'
+          import urllib.request
+          import urllib.error
+
+
+          URLS = [
+              "https://puckpedia.com/teams",
+              "https://puckpedia.com/e/teams",
+          ]
+
+
+          headers = {
+              "User-Agent": (
+                  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/138.0.0.0 Safari/537.36"
+              ),
+              "Accept": (
+                  "text/html,application/xhtml+xml,application/xml;"
+                  "q=0.9,image/avif,image/webp,*/*;q=0.8"
+              ),
+              "Accept-Language": "en-US,en;q=0.9",
+              "Cache-Control": "no-cache",
+          }
+
+
+          for url in URLS:
+
+              print("")
+              print("=" * 70)
+              print(f"Testing: {url}")
+              print("=" * 70)
+
+              request = urllib.request.Request(
+                  url,
+                  headers=headers,
+              )
+
+              try:
+
+                  with urllib.request.urlopen(
+                      request,
+                      timeout=30,
+                  ) as response:
+
+                      body = response.read().decode(
+                          "utf-8",
+                          errors="replace",
+                      )
+
+                      print(f"HTTP status: {response.status}")
+                      print(
+                          f"Final URL: {response.geturl()}"
+                      )
+                      print(
+                          f"Server: "
+                          f"{response.headers.get('server')}"
+                      )
+                      print(
+                          f"Content-Type: "
+                          f"{response.headers.get('content-type')}"
+                      )
+                      print(
+                          f"Content-Length: {len(body):,}"
+                      )
+
+                      print("")
+                      print("First 1,000 characters:")
+                      print(body[:1000])
+
+              except urllib.error.HTTPError as e:
+
+                  body = e.read().decode(
+                      "utf-8",
+                      errors="replace",
+                  )
+
+                  print(f"HTTP status: {e.code}")
+                  print(f"Reason: {e.reason}")
+                  print(
+                      f"Server: "
+                      f"{e.headers.get('server')}"
+                  )
+                  print(
+                      f"Content-Type: "
+                      f"{e.headers.get('content-type')}"
+                  )
+
+                  print("")
+                  print("Error response:")
+                  print(body[:2000])
+
+              except Exception as e:
+
+                  print(
+                      f"Request failed: "
+                      f"{type(e).__name__}: {e}"
+                  )
+
+          PY
