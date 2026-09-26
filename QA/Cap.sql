@@ -140,8 +140,7 @@ SELECT
 FROM `pacey32-agency.Cap.Team`
 
 WHERE projected_cap_hit < 0
-   OR dead_cap_space < 0
-   OR retained_salary_remaining < 0;
+OR retained_salary_remaining < 0;
 
 
 -- ============================================================
@@ -740,9 +739,10 @@ FROM `pacey32-agency.Cap.PlayerReference`
 
 WHERE match_type IS NOT NULL
   AND match_type NOT IN (
-      'Exact',
-      'Normalised'
-  );
+    'Exact',
+    'Normalised',
+    'DOB + Surname'
+);
 
 
 -- ============================================================
@@ -1462,7 +1462,7 @@ UNION ALL SELECT
 UNION ALL SELECT
     'CP004', 'Team monetary validity',
     'VALIDITY', 'Team', 'HIGH',
-    'Cap hit, dead cap and retained salary must not be negative; cap-space measures may legitimately be negative.'
+    'Projected cap hit and retained salary must not be negative; cap-space and dead-cap measures may legitimately be negative.'
 
 UNION ALL SELECT
     'CP005', 'Team roster validity',
@@ -1547,7 +1547,7 @@ UNION ALL SELECT
 UNION ALL SELECT
     'CP022', 'PlayerReference match type',
     'VALIDITY', 'PlayerReference', 'MEDIUM',
-    'Match type must be Exact, Normalised or NULL.'
+    'Match type must be Exact, Normalised, DOB + Surname or NULL.'
 
 UNION ALL SELECT
     'CP023', 'PlayerReference matched fields',
