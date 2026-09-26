@@ -932,10 +932,18 @@ export default function QASection({
                             className="grid gap-1"
                             style={{
                                 gridTemplateColumns:
-                                    "minmax(100px, 150px) repeat(30, minmax(0, 1fr))",
+                                    "minmax(100px, 150px) 40px 1px repeat(30, minmax(0, 1fr))",
                             }}
                         >
                             <div />
+
+                            <div className="flex h-10 items-end justify-center pb-1">
+                                <span className="whitespace-nowrap text-[10px] font-medium text-gray-500">
+                                    Latest
+                                </span>
+                            </div>
+
+                            <div className="mx-auto h-full w-px bg-gray-800" />
 
                             {historyDates.map(
                                 (
@@ -976,6 +984,36 @@ export default function QASection({
                                                 domain.domain
                                             }
                                         </div>
+
+                                        <button
+                                            type="button"
+                                            title={[
+                                                `${domain.domain} · Latest`,
+                                                domain.overall_status,
+                                                `${domain.pass_count}/${domain.test_count} passed`,
+                                                `${domain.warn_count} warnings`,
+                                                `${domain.fail_count} failures`,
+                                                new Date(
+                                                    domain.run_datetime
+                                                ).toLocaleString(),
+                                            ].join(" · ")}
+                                            onClick={() =>
+                                                loadDomain(domain)
+                                            }
+                                            className={`
+                                                h-7
+                                                min-w-0
+                                                rounded-sm
+                                                border
+                                                transition
+                                                cursor-pointer
+                                                ${historyCellClasses(
+                                                    domain.overall_status
+                                                )}
+                                            `}
+                                        />
+
+                                        <div className="mx-auto h-7 w-px bg-gray-800" />
 
                                         {historyDates.map(
                                             (
