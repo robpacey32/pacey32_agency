@@ -16,6 +16,7 @@ Designed to run locally or from GitHub Actions.
 
 from __future__ import annotations
 
+import argparse
 import os
 import re
 import time
@@ -325,7 +326,22 @@ def tax_table_exists() -> bool:
         return False
 
 
-def get_nhl_cities_to_refresh() -> pd.DataFrame:
+def get_nhl_cities_to_refresh(
+    force: bool = False,
+) -> pd.DataFrame:
+    if force:
+        query = f"""
+        SELECT DISTINCT
+            TRIM(venueLocation) AS venueLocation,
+            CAST(NULL AS TIMESTAMP) AS last_scrape_datetime
+        FROM `{TEAM_TABLE}`
+        WHERE venueLocation IS NOT NULL
+          AND TRIM(venueLocation) != ''
+        ORDER BY venueLocation
+        """
+
+        return BQ.query(query).to_dataframe()
+    
     """
     Return cities which have never been loaded or whose latest
     scrape date is at least REFRESH_MONTHS calendar months old.
@@ -602,10 +618,13 @@ def scrape_us_sales_tax() -> pd.DataFrame:
                     header_index["State Tax Rate"]
                 ].get_text(" ", strip=True)
             ),
-            "sales_tax_average_local_rate": parse_percentage(
-                cells[
-                    header_index["Avg. Local Tax Rate"]
-                ].get_text(" ", strip=True)
+            "sales_tax_average_local_rate": max(
+                0.0,
+                parse_percentage(
+                    cells[
+                        header_index["Avg. Local Tax Rate"]
+                    ].get_text(" ", strip=True)
+                ) or 0.0,
             ),
             "combined_sales_tax_rate": parse_percentage(
                 cells[
@@ -720,10 +739,14 @@ def scrape_us_state_income_tax() -> pd.DataFrame:
 
         rate_lower = rate_text.lower()
 
-        if rate_lower == "none":
+        if current_state == "Washington":
+            # Washington has no individual ordinary wage income tax.
+            # Tax Foundation may report its capital gains tax in this
+            # table, which is not applicable to NHL salary income.
+            rate = 0.0
+        elif rate_lower == "none":
             rate = 0.0
         elif "capital gains" in rate_lower:
-            # Washington has no ordinary wage income tax.
             rate = 0.0
         else:
             rate = parse_percentage(rate_text)
@@ -1398,12 +1421,27 @@ def load_to_bigquery(df: pd.DataFrame) -> None:
 # ============================================================
 
 def main() -> None:
-    print(
-        f"Selecting cities not refreshed in the last "
-        f"{REFRESH_MONTHS} calendar months..."
+    parser = argparse.ArgumentParser(
+        description="Refresh NHL city tax data."
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Refresh all NHL cities regardless of last refresh date.",
+    )
+    args = parser.parse_args()
 
-    due_cities_df = get_nhl_cities_to_refresh()
+    if args.force:
+        print("Force refresh enabled. Selecting all NHL cities...")
+    else:
+        print(
+            f"Selecting cities not refreshed in the last "
+            f"{REFRESH_MONTHS} calendar months..."
+        )
+
+    due_cities_df = get_nhl_cities_to_refresh(
+        force=args.force
+    )
 
     if due_cities_df.empty:
         print("No NHL cities require refreshing.")

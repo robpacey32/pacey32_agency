@@ -93,6 +93,12 @@ PITTSBURGH_TAX_URL = (
     "City-Government/Finance-Budget/Taxes"
 )
 
+SWEDEN_ASINK_URL = (
+    "https://www.skatteverket.se/foretag/internationellt/"
+    "utomlandsbosattaartisterartistskatt."
+    "4.71004e4c133e23bf6db800028935.html"
+)
+
 
 # =========================================================
 # HELPERS
@@ -376,8 +382,10 @@ add_rule(
     rate=0.15,
     calculation_base="allocated_income",
     applies_to="nonresident_athlete",
+    source_url=SWEDEN_ASINK_URL,
     notes=(
-        "V1 treatment for NHL salary allocated to games "
+        "Swedish A-SINK rate for non-resident athletes is 15%. "
+        "NHL model applies this rate to salary allocated to games "
         "played in Sweden."
     ),
 )

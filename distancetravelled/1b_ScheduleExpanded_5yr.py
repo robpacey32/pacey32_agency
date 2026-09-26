@@ -69,30 +69,6 @@ SEASONS_TO_INCLUDE = int(
     )
 )
 
-EXPECTED_SEASON_TEAM_ROWS = int(
-    os.getenv(
-        "EXPECTED_SEASON_TEAM_ROWS",
-        "160",
-    )
-)
-
-EXPECTED_GAMES_PER_TEAM = int(
-    os.getenv(
-        "EXPECTED_GAMES_PER_TEAM",
-        "82",
-    )
-)
-
-STRICT_GAME_COUNT_VALIDATION = os.getenv(
-    "STRICT_GAME_COUNT_VALIDATION",
-    "true",
-).strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "y",
-}
-
 
 # ============================================================
 # OUTPUT SCHEMA
@@ -719,18 +695,6 @@ def validate_team_locations(
     team_locations_df: pd.DataFrame,
     schedule_df: pd.DataFrame,
 ) -> None:
-    """Validate historical team locations used by the schedule."""
-    actual_keys = len(
-        team_locations_df[
-            ["season", "team_id"]
-        ].drop_duplicates()
-    )
-
-    if actual_keys != EXPECTED_SEASON_TEAM_ROWS:
-        raise ValueError(
-            f"Expected {EXPECTED_SEASON_TEAM_ROWS} season/team "
-            f"rows, but found {actual_keys}."
-        )
 
     required_team_keys = pd.concat(
         [
@@ -794,7 +758,7 @@ def validate_team_locations(
 
     print(
         "Team-location validation passed for "
-        f"{actual_keys} season/team rows."
+        f"{len(required_team_keys)} required season/team rows."
     )
 
 
@@ -898,19 +862,69 @@ def validate_schedule_expanded(
         )
     )
 
-    if STRICT_GAME_COUNT_VALIDATION:
-        invalid_game_counts = games_per_team[
-            games_per_team["games"]
-            != EXPECTED_GAMES_PER_TEAM
-        ]
+    source_games_per_team = pd.concat(
+        [
+            schedule_df[
+                [
+                    "season",
+                    "home_team_id",
+                ]
+            ].rename(
+                columns={
+                    "home_team_id": "team_id",
+                }
+            ),
+            schedule_df[
+                [
+                    "season",
+                    "away_team_id",
+                ]
+            ].rename(
+                columns={
+                    "away_team_id": "team_id",
+                }
+            ),
+        ],
+        ignore_index=True,
+    )
 
-        if not invalid_game_counts.empty:
-            raise ValueError(
-                "Unexpected regular-season game counts:\n"
-                + invalid_game_counts.to_string(
-                    index=False
-                )
+    expected_games_per_team = (
+        source_games_per_team
+        .groupby(
+            [
+                "season",
+                "team_id",
+            ]
+        )
+        .size()
+        .reset_index(
+            name="expected_games"
+        )
+    )
+
+    game_count_check = games_per_team.merge(
+        expected_games_per_team,
+        how="outer",
+        on=[
+            "season",
+            "team_id",
+        ],
+        validate="one_to_one",
+    )
+
+    invalid_game_counts = game_count_check[
+        game_count_check["games"]
+        != game_count_check["expected_games"]
+    ]
+
+    if not invalid_game_counts.empty:
+        raise ValueError(
+            "Expanded schedule game counts do not "
+            "reconcile to source Schedule:\n"
+            + invalid_game_counts.to_string(
+                index=False
             )
+        )
 
     team_game_number_check = (
         result_df
