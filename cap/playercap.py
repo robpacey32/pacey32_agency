@@ -15,6 +15,7 @@ PROJECT_ID = "pacey32-agency"
 
 TEAM_TABLE = f"{PROJECT_ID}.Cap.Team"
 PLAYER_TABLE = f"{PROJECT_ID}.Cap.Player"
+PLAYER_INDEX_TABLE = f"{PROJECT_ID}.Cap.PlayerIndex"
 
 BASE_URL = "https://puckpedia.com"
 
@@ -50,6 +51,24 @@ PLAYER_SCHEMA = [
     bigquery.SchemaField("modified_no_trade_clause", "BOOLEAN"),
     bigquery.SchemaField("two_way_contract", "BOOLEAN"),
     bigquery.SchemaField("performance_bonus", "BOOLEAN"),
+
+    bigquery.SchemaField("source_url", "STRING", mode="REQUIRED"),
+    bigquery.SchemaField("scrape_datetime", "TIMESTAMP", mode="REQUIRED"),
+]
+
+
+PLAYER_INDEX_SCHEMA = [
+    bigquery.SchemaField("team_slug", "STRING", mode="REQUIRED"),
+    bigquery.SchemaField("team_name", "STRING", mode="REQUIRED"),
+    bigquery.SchemaField("contract_section", "STRING"),
+
+    bigquery.SchemaField("player", "STRING", mode="REQUIRED"),
+    bigquery.SchemaField("player_url", "STRING", mode="REQUIRED"),
+
+    bigquery.SchemaField("position", "STRING"),
+    bigquery.SchemaField("catches", "STRING"),
+
+    bigquery.SchemaField("has_contract_data", "BOOLEAN", mode="REQUIRED"),
 
     bigquery.SchemaField("source_url", "STRING", mode="REQUIRED"),
     bigquery.SchemaField("scrape_datetime", "TIMESTAMP", mode="REQUIRED"),
@@ -189,23 +208,24 @@ async def fetch_team_html(page, team_name, url):
 # PARSE CONTRACT PAGE
 # =====================================================================
 
-def parse_contract_page(
+def parse_team_page(
     html,
     team_slug,
     team_name,
     source_url,
 ):
     """
-    Parse every PuckPedia player contract table.
+    Parse one rendered PuckPedia team page.
 
-    Produces one row per:
-        team
-        player
-        contract year
+    Returns:
+        contract_df
+            Existing Cap.Player output.
+            One row per player / contract year.
 
-    Stores both:
-        year   -> 1, 2, 3...
-        season -> 2026-27, 2027-28...
+        player_index_df
+            New Cap.PlayerIndex output.
+            One row per player discovered on the team page, including
+            players with no current contract data.
     """
 
     soup = BeautifulSoup(
@@ -214,14 +234,13 @@ def parse_contract_page(
     )
 
     # -----------------------------------------------------------------
-    # Find contract tables only.
+    # Find every roster-style table containing at least one player.
     #
-    # Excludes:
-    # - salary-cap summary table
-    # - GearGeek equipment tables
+    # This deliberately does NOT require td[data-sal]. That is the key
+    # difference which allows unsigned / RFA players to enter the index.
     # -----------------------------------------------------------------
 
-    contract_tables = []
+    player_tables = []
 
     for table in soup.select(
         "table.pp_table-roster"
@@ -233,31 +252,26 @@ def parse_contract_page(
             )
         )
 
-        has_salary = bool(
-            table.select_one(
-                "td[data-sal]"
-            )
-        )
+        if has_player:
+            player_tables.append(table)
 
-        if has_player and has_salary:
-            contract_tables.append(table)
-
-    if not contract_tables:
+    if not player_tables:
         raise ValueError(
-            f"No player contract tables found for {team_name}."
+            f"No player tables found for {team_name}."
         )
 
-    records = []
+    contract_records = []
+    player_index_records = []
 
     scrape_datetime = datetime.now(
         timezone.utc
     )
 
     # -----------------------------------------------------------------
-    # Parse every contract table
+    # Parse every player table
     # -----------------------------------------------------------------
 
-    for table in contract_tables:
+    for table in player_tables:
 
         section = "Unknown"
 
@@ -268,44 +282,49 @@ def parse_contract_page(
 
         if wrapper:
 
-            header = wrapper.find("div", class_="flex items-center")
+            header = wrapper.find(
+                "div",
+                class_="flex items-center",
+            )
 
             if header:
 
-                divs = header.find_all("div", recursive=False)
+                divs = header.find_all(
+                    "div",
+                    recursive=False,
+                )
 
                 # div[0] = count
                 # div[1] = section name
                 if len(divs) >= 2:
-                    section = divs[1].get_text(strip=True)
+                    section = divs[1].get_text(
+                        strip=True
+                    )
 
         # -------------------------------------------------------------
         # Read season headings for THIS table
-        #
-        # Example:
-        # 2026-27
-        # 2027-28
-        # 2028-29
         # -------------------------------------------------------------
 
         season_headers = []
 
-        for th in table.select("thead th"):
+        for th in table.select(
+            "thead th"
+        ):
 
-            text = th.get_text(
+            header_text = th.get_text(
                 " ",
                 strip=True,
             )
 
-            # Season headers on these tables have a data-column
-            # greater than zero and text such as 2026-27.
             if (
-                len(text) == 7
-                and text[:4].isdigit()
-                and text[4] == "-"
-                and text[5:].isdigit()
+                len(header_text) == 7
+                and header_text[:4].isdigit()
+                and header_text[4] == "-"
+                and header_text[5:].isdigit()
             ):
-                season_headers.append(text)
+                season_headers.append(
+                    header_text
+                )
 
         # -------------------------------------------------------------
         # Player rows
@@ -323,7 +342,7 @@ def parse_contract_page(
                 continue
 
             # ---------------------------------------------------------
-            # Player name
+            # Player identity
             # "Matthews, Auston" -> "Auston Matthews"
             # ---------------------------------------------------------
 
@@ -348,8 +367,14 @@ def parse_contract_page(
                 player = raw_name
 
             relative_player_url = (
-                player_link.get("href", "")
+                player_link.get(
+                    "href",
+                    "",
+                )
             )
+
+            if not relative_player_url:
+                continue
 
             player_url = (
                 BASE_URL
@@ -363,7 +388,9 @@ def parse_contract_page(
             position = None
             catches = None
 
-            first_td = row.find("td")
+            first_td = row.find(
+                "td"
+            )
 
             if first_td is not None:
 
@@ -404,21 +431,63 @@ def parse_contract_page(
                         catches = value
 
             # ---------------------------------------------------------
-            # Contract salary cells
+            # Salary cells
             # ---------------------------------------------------------
 
             salary_cells = row.select(
                 "td[data-sal]"
             )
 
+            has_contract_data = bool(
+                salary_cells
+            )
+
+            # ---------------------------------------------------------
+            # Player index record
+            #
+            # This is written regardless of whether salary cells exist.
+            # ---------------------------------------------------------
+
+            player_index_records.append({
+                "team_slug":
+                    team_slug,
+
+                "team_name":
+                    team_name,
+
+                "contract_section":
+                    section,
+
+                "player":
+                    player,
+
+                "player_url":
+                    player_url,
+
+                "position":
+                    position,
+
+                "catches":
+                    catches,
+
+                "has_contract_data":
+                    has_contract_data,
+
+                "source_url":
+                    source_url,
+
+                "scrape_datetime":
+                    scrape_datetime,
+            })
+
+            # ---------------------------------------------------------
+            # Existing contract-year records
+            # ---------------------------------------------------------
+
             for year, td in enumerate(
                 salary_cells,
                 start=1,
             ):
-
-                # -----------------------------------------------------
-                # Match contract year to actual season
-                # -----------------------------------------------------
 
                 if year <= len(
                     season_headers
@@ -438,11 +507,9 @@ def parse_contract_page(
                         f"{team_name}."
                     )
 
-                html_cell = str(td).lower()
-
-                # -----------------------------------------------------
-                # Contract flags
-                # -----------------------------------------------------
+                html_cell = str(
+                    td
+                ).lower()
 
                 no_movement_clause = (
                     "no movement clause"
@@ -474,16 +541,15 @@ def parse_contract_page(
                     in html_cell
                 )
 
-                # -----------------------------------------------------
-                # Record
-                # -----------------------------------------------------
-
-                records.append({
+                contract_records.append({
                     "team_slug":
                         team_slug,
 
                     "team_name":
                         team_name,
+
+                    "contract_section":
+                        section,
 
                     "player":
                         player,
@@ -558,24 +624,23 @@ def parse_contract_page(
 
                     "scrape_datetime":
                         scrape_datetime,
-
-                    "contract_section":
-                        section,
                 })
 
-    if not records:
+    # -----------------------------------------------------------------
+    # Existing Cap.Player dataframe
+    # -----------------------------------------------------------------
+
+    if not contract_records:
         raise ValueError(
-            f"Contract tables were found for {team_name}, "
-            "but no player records were extracted."
+            f"Player tables were found for {team_name}, "
+            "but no contract-year records were extracted."
         )
 
-    df = pd.DataFrame(records)
+    contract_df = pd.DataFrame(
+        contract_records
+    )
 
-    # -----------------------------------------------------------------
-    # Final column order
-    # -----------------------------------------------------------------
-
-    df = df[
+    contract_df = contract_df[
         [
             "team_slug",
             "team_name",
@@ -601,10 +666,6 @@ def parse_contract_page(
         ]
     ].copy()
 
-    # -----------------------------------------------------------------
-    # BigQuery-friendly pandas dtypes
-    # -----------------------------------------------------------------
-
     integer_columns = [
         "year",
         "cap_hit",
@@ -615,8 +676,11 @@ def parse_contract_page(
     ]
 
     for col in integer_columns:
-        df[col] = df[col].astype(
-            "Int64"
+        contract_df[col] = (
+            contract_df[col]
+            .astype(
+                "Int64"
+            )
         )
 
     boolean_columns = [
@@ -628,16 +692,17 @@ def parse_contract_page(
     ]
 
     for col in boolean_columns:
-        df[col] = df[col].astype(
-            "boolean"
+        contract_df[col] = (
+            contract_df[col]
+            .astype(
+                "boolean"
+            )
         )
 
-    # -----------------------------------------------------------------
-    # QA
-    # -----------------------------------------------------------------
-
     missing_position = (
-        df["position"]
+        contract_df[
+            "position"
+        ]
         .isna()
         .sum()
     )
@@ -656,7 +721,7 @@ def parse_contract_page(
         "contract_section",
     ]
 
-    duplicated = df.duplicated(
+    duplicated = contract_df.duplicated(
         subset=duplicate_key,
         keep=False,
     )
@@ -668,7 +733,7 @@ def parse_contract_page(
         )
 
         print(
-            df.loc[
+            contract_df.loc[
                 duplicated,
                 duplicate_key,
             ]
@@ -685,7 +750,98 @@ def parse_contract_page(
             f"found for {team_name}."
         )
 
-    return df
+    # -----------------------------------------------------------------
+    # New Cap.PlayerIndex dataframe
+    #
+    # A player can appear in more than one PuckPedia table/section.
+    # Keep one row per team/player URL. Prefer a row which contains
+    # contract data when duplicates exist.
+    # -----------------------------------------------------------------
+
+    if not player_index_records:
+        raise ValueError(
+            f"No player index records were "
+            f"extracted for {team_name}."
+        )
+
+    player_index_df = pd.DataFrame(
+        player_index_records
+    )
+
+    player_index_df[
+        "has_contract_data"
+    ] = (
+        player_index_df[
+            "has_contract_data"
+        ]
+        .astype(
+            "boolean"
+        )
+    )
+
+    player_index_df = (
+        player_index_df
+        .sort_values(
+            by=[
+                "has_contract_data",
+                "contract_section",
+            ],
+            ascending=[
+                False,
+                True,
+            ],
+            na_position="last",
+        )
+        .drop_duplicates(
+            subset=[
+                "team_slug",
+                "player_url",
+            ],
+            keep="first",
+        )
+        .reset_index(
+            drop=True
+        )
+    )
+
+    player_index_df = player_index_df[
+        [
+            "team_slug",
+            "team_name",
+            "contract_section",
+            "player",
+            "player_url",
+            "position",
+            "catches",
+            "has_contract_data",
+            "source_url",
+            "scrape_datetime",
+        ]
+    ].copy()
+
+    duplicate_index_key = [
+        "team_slug",
+        "player_url",
+    ]
+
+    duplicated_index = (
+        player_index_df
+        .duplicated(
+            subset=duplicate_index_key,
+            keep=False,
+        )
+    )
+
+    if duplicated_index.any():
+        raise ValueError(
+            f"Duplicate PlayerIndex records "
+            f"found for {team_name}."
+        )
+
+    return (
+        contract_df,
+        player_index_df,
+    )
 
 
 # =====================================================================
@@ -725,6 +881,44 @@ def ensure_player_table(client):
 
         print(
             "Target table created."
+        )
+
+
+def ensure_player_index_table(
+    client,
+):
+    """
+    Create Cap.PlayerIndex if it does not already exist.
+    """
+
+    try:
+        client.get_table(
+            PLAYER_INDEX_TABLE
+        )
+
+        print(
+            f"Target table exists: "
+            f"{PLAYER_INDEX_TABLE}"
+        )
+
+    except Exception:
+
+        print(
+            f"Creating target table: "
+            f"{PLAYER_INDEX_TABLE}"
+        )
+
+        table = bigquery.Table(
+            PLAYER_INDEX_TABLE,
+            schema=PLAYER_INDEX_SCHEMA,
+        )
+
+        client.create_table(
+            table
+        )
+
+        print(
+            "Player index table created."
         )
 
 
@@ -803,6 +997,63 @@ def replace_team_rows(
     )
 
 
+def replace_player_index_rows(
+    client,
+    team_slug,
+    df,
+):
+    """
+    Replace one team's rows in Cap.PlayerIndex.
+    """
+
+    delete_sql = f"""
+        DELETE FROM `{PLAYER_INDEX_TABLE}`
+        WHERE team_slug = @team_slug
+    """
+
+    delete_config = (
+        bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter(
+                    "team_slug",
+                    "STRING",
+                    team_slug,
+                )
+            ]
+        )
+    )
+
+    client.query(
+        delete_sql,
+        job_config=delete_config,
+    ).result()
+
+    load_config = (
+        bigquery.LoadJobConfig(
+            schema=PLAYER_INDEX_SCHEMA,
+            write_disposition=(
+                bigquery.WriteDisposition
+                .WRITE_APPEND
+            ),
+        )
+    )
+
+    load_job = (
+        client.load_table_from_dataframe(
+            df,
+            PLAYER_INDEX_TABLE,
+            job_config=load_config,
+        )
+    )
+
+    load_job.result()
+
+    print(
+        f"  Uploaded "
+        f"{len(df):,} player-index rows."
+    )
+
+
 # =====================================================================
 # MAIN PIPELINE
 # =====================================================================
@@ -818,7 +1069,11 @@ async def main():
     )
 
     print(
-        f"Output:      {PLAYER_TABLE}"
+        f"Contract output: {PLAYER_TABLE}"
+    )
+
+    print(
+        f"Player index:    {PLAYER_INDEX_TABLE}"
     )
 
     print()
@@ -832,6 +1087,10 @@ async def main():
     )
 
     ensure_player_table(
+        client
+    )
+
+    ensure_player_index_table(
         client
     )
 
@@ -915,21 +1174,36 @@ async def main():
                 # Parse
                 # -----------------------------------------------------
 
-                team_df = (
-                    parse_contract_page(
-                        html=html,
-                        team_slug=team_slug,
-                        team_name=team_name,
-                        source_url=url,
-                    )
+                (
+                    team_df,
+                    player_index_df,
+                ) = parse_team_page(
+                    html=html,
+                    team_slug=team_slug,
+                    team_name=team_name,
+                    source_url=url,
                 )
 
-                unique_players = (
+                contracted_players = (
                     team_df[
                         "player"
                     ]
                     .nunique()
                 )
+
+                indexed_players = (
+                    player_index_df[
+                        "player_url"
+                    ]
+                    .nunique()
+                )
+
+                unsigned_players = (
+                    ~player_index_df[
+                        "has_contract_data"
+                    ]
+                    .fillna(False)
+                ).sum()
 
                 unique_seasons = (
                     team_df[
@@ -939,8 +1213,18 @@ async def main():
                 )
 
                 print(
-                    f"  Players: "
-                    f"{unique_players}"
+                    f"  Contracted players: "
+                    f"{contracted_players}"
+                )
+
+                print(
+                    f"  Indexed players: "
+                    f"{indexed_players}"
+                )
+
+                print(
+                    f"  Without contract data: "
+                    f"{unsigned_players}"
                 )
 
                 print(
@@ -963,6 +1247,12 @@ async def main():
                     df=team_df,
                 )
 
+                replace_player_index_rows(
+                    client=client,
+                    team_slug=team_slug,
+                    df=player_index_df,
+                )
+
                 successes.append({
                     "team_slug":
                         team_slug,
@@ -970,8 +1260,16 @@ async def main():
                     "team_name":
                         team_name,
 
-                    "players":
-                        unique_players,
+                    "contracted_players":
+                        contracted_players,
+
+                    "indexed_players":
+                        indexed_players,
+
+                    "without_contract":
+                        int(
+                            unsigned_players
+                        ),
 
                     "rows":
                         len(team_df),

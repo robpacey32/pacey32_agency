@@ -12,7 +12,7 @@ from google.cloud import bigquery
 # ============================================================
 
 PROJECT_ID = "pacey32-agency"
-SOURCE_TABLE = "pacey32-agency.Cap.Player"
+SOURCE_TABLE = "pacey32-agency.Cap.PlayerIndex"
 OUTPUT_TABLE = "pacey32-agency.Cap.PlayerDetail"
 
 BATCH_SIZE = 50
