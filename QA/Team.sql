@@ -1741,6 +1741,22 @@ FROM counts;
 --   recently signed or changed team and does not resolve.
 -- ============================================================
 
+-- ============================================================
+-- TM043 - Published depth chart NHL player mapping coverage
+-- ============================================================
+-- Scope:
+--   Players on a published depth chart who have previously
+--   appeared in the NHL roster population.
+--
+-- Excludes:
+--   Prospects / ELC players who have never appeared in the
+--   NHL roster population.
+--
+-- Likely remediation:
+--   If a known NHL roster player does not resolve, refresh
+--   PlayerLanding before investigating the mapping logic.
+-- ============================================================
+
 INSERT INTO `pacey32-agency.QA.TestResults` (
     run_id,
     run_datetime,
@@ -1760,9 +1776,21 @@ INSERT INTO `pacey32-agency.QA.TestResults` (
 WITH nhl_roster_players AS (
 
     SELECT DISTINCT
-        playerID
+        REGEXP_REPLACE(
+            LOWER(
+                REGEXP_REPLACE(
+                    NORMALIZE(player_name, NFD),
+                    r'\pM',
+                    ''
+                )
+            ),
+            r'[^a-z0-9]',
+            ''
+        ) AS match_name
+
     FROM `nhl-pacey32-github.NHL_Views.Roster`
-    WHERE playerID IS NOT NULL
+
+    WHERE player_name IS NOT NULL
 
 ),
 
@@ -1774,7 +1802,17 @@ failures AS (
     FROM `pacey32-agency.Team.TeamDepthChart` d
 
     INNER JOIN nhl_roster_players r
-        ON d.playerId_source = r.playerID
+        ON REGEXP_REPLACE(
+            LOWER(
+                REGEXP_REPLACE(
+                    NORMALIZE(d.player, NFD),
+                    r'\pM',
+                    ''
+                )
+            ),
+            r'[^a-z0-9]',
+            ''
+        ) = r.match_name
 
     WHERE d.is_depth_chart = TRUE
       AND d.playerId IS NULL
@@ -1785,6 +1823,7 @@ counts AS (
 
     SELECT
         COUNT(*) AS failure_count
+
     FROM failures
 
 )
@@ -1801,12 +1840,13 @@ SELECT
     'HIGH',
     IF(failure_count = 0, 'PASS', 'FAIL'),
     failure_count,
-    'NHL roster players on a published depth chart must resolve through Cap.PlayerReference to an NHL playerId.',
+    'Every published depth chart player with previous NHL roster history must resolve through Cap.PlayerReference to an NHL playerId.',
     IF(
         failure_count = 0,
         CAST(NULL AS STRING),
-        'Known NHL roster player is unmapped. Check whether PlayerLanding is stale and refresh PlayerLanding before investigating the mapping logic.'
+        'Known NHL roster player is unmapped. Refresh PlayerLanding first, then rerun the downstream mapping and QA.'
     )
+
 FROM counts;
 
 
@@ -1824,9 +1864,21 @@ INSERT INTO `pacey32-agency.QA.TestFailures` (
 WITH nhl_roster_players AS (
 
     SELECT DISTINCT
-        playerID
+        REGEXP_REPLACE(
+            LOWER(
+                REGEXP_REPLACE(
+                    NORMALIZE(player_name, NFD),
+                    r'\pM',
+                    ''
+                )
+            ),
+            r'[^a-z0-9]',
+            ''
+        ) AS match_name
+
     FROM `nhl-pacey32-github.NHL_Views.Roster`
-    WHERE playerID IS NOT NULL
+
+    WHERE player_name IS NOT NULL
 
 )
 
@@ -1837,13 +1889,23 @@ SELECT
     'TeamDepthChart',
     CAST(NULL AS INT64),
     CONCAT(t.team_code, '|', t.player),
-    'Known NHL roster player does not resolve to NHL playerId. Check whether PlayerLanding requires refreshing.',
+    'Known NHL roster player does not resolve to NHL playerId. Refresh PlayerLanding first.',
     TO_JSON(t)
 
 FROM `pacey32-agency.Team.TeamDepthChart` t
 
 INNER JOIN nhl_roster_players r
-    ON t.playerId_source = r.playerID
+    ON REGEXP_REPLACE(
+        LOWER(
+            REGEXP_REPLACE(
+                NORMALIZE(t.player, NFD),
+                r'\pM',
+                ''
+            )
+        ),
+        r'[^a-z0-9]',
+        ''
+    ) = r.match_name
 
 WHERE t.is_depth_chart = TRUE
   AND t.playerId IS NULL;
