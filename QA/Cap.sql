@@ -741,7 +741,8 @@ WHERE match_type IS NOT NULL
   AND match_type NOT IN (
     'Exact',
     'Normalised',
-    'DOB + Surname'
+    'DOB + Surname',
+    'DOB + Partial Name'
 );
 
 
@@ -807,20 +808,28 @@ WHERE
     OR
     (
         match_type = 'Normalised'
-        AND LOWER(
-            REGEXP_REPLACE(
-                NORMALIZE(nhl_player, NFD),
-                r'\pM',
-                ''
-            )
+        AND REGEXP_REPLACE(
+            LOWER(
+                REGEXP_REPLACE(
+                    NORMALIZE(nhl_player, NFD),
+                    r'\pM',
+                    ''
+                )
+            ),
+            r'[^a-z0-9]',
+            ''
         )
         !=
-        LOWER(
-            REGEXP_REPLACE(
-                NORMALIZE(puckpedia_player, NFD),
-                r'\pM',
-                ''
-            )
+        REGEXP_REPLACE(
+            LOWER(
+                REGEXP_REPLACE(
+                    NORMALIZE(puckpedia_player, NFD),
+                    r'\pM',
+                    ''
+                )
+            ),
+            r'[^a-z0-9]',
+            ''
         )
     );
 

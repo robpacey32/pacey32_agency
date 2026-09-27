@@ -1726,27 +1726,74 @@ FROM counts;
 
 
 -- ============================================================
--- TM043 - Published depth chart player mapping coverage
+-- TM043 - Published depth chart NHL player mapping coverage
+-- ============================================================
+-- Scope:
+--   Players on a published depth chart who have previously
+--   appeared in the NHL roster population.
+--
+-- Excludes:
+--   Prospects / ELC players who have never appeared in the
+--   NHL roster population.
+--
+-- Likely remediation:
+--   Refresh PlayerLanding if a known NHL roster player has
+--   recently signed or changed team and does not resolve.
 -- ============================================================
 
 INSERT INTO `pacey32-agency.QA.TestResults` (
-    run_id, run_datetime, test_id, test_name, category,
-    source_dataset, source_object, season, severity, status,
-    failure_count, description, details
+    run_id,
+    run_datetime,
+    test_id,
+    test_name,
+    category,
+    source_dataset,
+    source_object,
+    season,
+    severity,
+    status,
+    failure_count,
+    description,
+    details
 )
-WITH failures AS (
-    SELECT *
-    FROM `pacey32-agency.Team.TeamDepthChart`
-    WHERE is_depth_chart = TRUE
-      AND playerId IS NULL
+
+WITH nhl_roster_players AS (
+
+    SELECT DISTINCT
+        playerID
+    FROM `nhl-pacey32-github.NHL_Views.Roster`
+    WHERE playerID IS NOT NULL
+
 ),
+
+failures AS (
+
+    SELECT
+        d.*
+
+    FROM `pacey32-agency.Team.TeamDepthChart` d
+
+    INNER JOIN nhl_roster_players r
+        ON d.playerId_source = r.playerID
+
+    WHERE d.is_depth_chart = TRUE
+      AND d.playerId IS NULL
+
+),
+
 counts AS (
-    SELECT COUNT(*) AS failure_count FROM failures
+
+    SELECT
+        COUNT(*) AS failure_count
+    FROM failures
+
 )
+
 SELECT
-    v_run_id, v_run_datetime,
+    v_run_id,
+    v_run_datetime,
     'TM043',
-    'Published depth chart player mapping coverage',
+    'Published depth chart NHL player mapping coverage',
     'Referential Integrity',
     'Team',
     'TeamDepthChart',
@@ -1754,26 +1801,52 @@ SELECT
     'HIGH',
     IF(failure_count = 0, 'PASS', 'FAIL'),
     failure_count,
-    'Every player on a published depth chart must resolve through Cap.PlayerReference to an NHL playerId.',
-    CAST(NULL AS STRING)
+    'NHL roster players on a published depth chart must resolve through Cap.PlayerReference to an NHL playerId.',
+    IF(
+        failure_count = 0,
+        CAST(NULL AS STRING),
+        'Known NHL roster player is unmapped. Check whether PlayerLanding is stale and refresh PlayerLanding before investigating the mapping logic.'
+    )
 FROM counts;
 
+
 INSERT INTO `pacey32-agency.QA.TestFailures` (
-    run_id, run_datetime, test_id, source_object,
-    season, record_key, failure_reason, record_json
+    run_id,
+    run_datetime,
+    test_id,
+    source_object,
+    season,
+    record_key,
+    failure_reason,
+    record_json
 )
+
+WITH nhl_roster_players AS (
+
+    SELECT DISTINCT
+        playerID
+    FROM `nhl-pacey32-github.NHL_Views.Roster`
+    WHERE playerID IS NOT NULL
+
+)
+
 SELECT
     v_run_id,
     v_run_datetime,
     'TM043',
     'TeamDepthChart',
     CAST(NULL AS INT64),
-    CONCAT(team_code, '|', player),
-    'Published depth chart player does not resolve to NHL playerId',
+    CONCAT(t.team_code, '|', t.player),
+    'Known NHL roster player does not resolve to NHL playerId. Check whether PlayerLanding requires refreshing.',
     TO_JSON(t)
+
 FROM `pacey32-agency.Team.TeamDepthChart` t
-WHERE is_depth_chart = TRUE
-  AND playerId IS NULL;
+
+INNER JOIN nhl_roster_players r
+    ON t.playerId_source = r.playerID
+
+WHERE t.is_depth_chart = TRUE
+  AND t.playerId IS NULL;
 
 
 -- ============================================================
