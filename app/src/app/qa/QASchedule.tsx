@@ -5,7 +5,12 @@ import {
     useState,
 } from "react";
 
+type Layer =
+    | "NHL Source"
+    | "Agency";
+
 type Cadence =
+    | "Daily"
     | "Weekly"
     | "Monthly"
     | "Quarterly"
@@ -14,6 +19,7 @@ type Cadence =
 
 type ScheduleItem = {
     name: string;
+    layer: Layer;
     cadence: Cadence;
     description?: string;
 
@@ -32,13 +38,108 @@ type CalendarDay = {
     runs: ScheduleItem[];
 };
 
+const layers: Layer[] = [
+    "NHL Source",
+    "Agency",
+];
+
 const schedule: ScheduleItem[] = [
+    // =========================================================
+    // NHL SOURCE
+    // =========================================================
+
+    // ---------------------------------------------------------
+    // DAILY
+    // ---------------------------------------------------------
+
+    {
+        name: "Roster",
+        layer: "NHL Source",
+        cadence: "Daily",
+        hour: 8,
+        minute: 0,
+    },
+    {
+        name: "PlayerLanding",
+        layer: "NHL Source",
+        cadence: "Daily",
+        hour: 8,
+        minute: 0,
+    },
+    {
+        name: "Boxscore",
+        layer: "NHL Source",
+        cadence: "Daily",
+        hour: 8,
+        minute: 0,
+    },
+    {
+        name: "GameAction",
+        layer: "NHL Source",
+        cadence: "Daily",
+        hour: 8,
+        minute: 0,
+    },
+    {
+        name: "Standings",
+        layer: "NHL Source",
+        cadence: "Daily",
+        hour: 8,
+        minute: 0,
+    },
+    {
+        name: "TeamSummary",
+        layer: "NHL Source",
+        cadence: "Daily",
+        hour: 8,
+        minute: 0,
+    },
+    {
+        name: "Full NHL QA",
+        layer: "NHL Source",
+        cadence: "Daily",
+        hour: 8,
+        minute: 0,
+    },
+
+    // ---------------------------------------------------------
+    // MONTHLY
+    // ---------------------------------------------------------
+
+    {
+        name: "Schedule",
+        layer: "NHL Source",
+        cadence: "Monthly",
+        dayOfMonth: 2,
+        hour: 6,
+        minute: 0,
+    },
+
+    // ---------------------------------------------------------
+    // ANNUAL
+    // ---------------------------------------------------------
+
+    {
+        name: "Team",
+        layer: "NHL Source",
+        cadence: "Annual",
+        months: [8],
+        dayOfMonth: 1,
+        hour: 6,
+        minute: 0,
+    },
+
+    // =========================================================
+    // AGENCY
+    // =========================================================
+
     // ---------------------------------------------------------
     // WEEKLY
     // ---------------------------------------------------------
 
     {
         name: "Cap",
+        layer: "Agency",
         cadence: "Weekly",
         dayOfWeek: 1,
         hour: 6,
@@ -46,6 +147,7 @@ const schedule: ScheduleItem[] = [
     },
     {
         name: "Travel",
+        layer: "Agency",
         cadence: "Weekly",
         dayOfWeek: 1,
         hour: 9,
@@ -54,6 +156,7 @@ const schedule: ScheduleItem[] = [
     },
     {
         name: "Full Agency QA",
+        layer: "Agency",
         cadence: "Weekly",
         dayOfWeek: 1,
         hour: 12,
@@ -66,6 +169,7 @@ const schedule: ScheduleItem[] = [
 
     {
         name: "Tax",
+        layer: "Agency",
         cadence: "Monthly",
         dayOfMonth: 1,
         hour: 5,
@@ -73,6 +177,7 @@ const schedule: ScheduleItem[] = [
     },
     {
         name: "Travel",
+        layer: "Agency",
         cadence: "Monthly",
         dayOfMonth: 1,
         hour: 10,
@@ -81,6 +186,7 @@ const schedule: ScheduleItem[] = [
     },
     {
         name: "Organisation",
+        layer: "Agency",
         cadence: "Monthly",
         dayOfMonth: 2,
         hour: 7,
@@ -89,6 +195,7 @@ const schedule: ScheduleItem[] = [
     },
     {
         name: "Player",
+        layer: "Agency",
         cadence: "Monthly",
         dayOfMonth: 3,
         hour: 7,
@@ -102,6 +209,7 @@ const schedule: ScheduleItem[] = [
 
     {
         name: "Cost of Living",
+        layer: "Agency",
         cadence: "Quarterly",
         months: [0, 3, 6, 9],
         dayOfMonth: 1,
@@ -110,6 +218,7 @@ const schedule: ScheduleItem[] = [
     },
     {
         name: "Geo POIs",
+        layer: "Agency",
         cadence: "Quarterly",
         months: [0, 3, 6, 9],
         dayOfMonth: 1,
@@ -123,6 +232,7 @@ const schedule: ScheduleItem[] = [
 
     {
         name: "City Reference",
+        layer: "Agency",
         cadence: "Annual",
         months: [8],
         dayOfMonth: 1,
@@ -131,6 +241,7 @@ const schedule: ScheduleItem[] = [
     },
     {
         name: "Weather",
+        layer: "Agency",
         cadence: "Annual",
         months: [8],
         dayOfMonth: 1,
@@ -139,6 +250,7 @@ const schedule: ScheduleItem[] = [
     },
     {
         name: "City Summary",
+        layer: "Agency",
         cadence: "Annual",
         months: [8],
         dayOfMonth: 1,
@@ -147,6 +259,7 @@ const schedule: ScheduleItem[] = [
     },
     {
         name: "Player Residential Areas",
+        layer: "Agency",
         cadence: "Annual",
         months: [8],
         dayOfMonth: 2,
@@ -155,6 +268,7 @@ const schedule: ScheduleItem[] = [
     },
     {
         name: "Geo Arena + Practice",
+        layer: "Agency",
         cadence: "Annual",
         months: [8],
         dayOfMonth: 2,
@@ -163,6 +277,7 @@ const schedule: ScheduleItem[] = [
     },
     {
         name: "Organisation LLM",
+        layer: "Agency",
         cadence: "Annual",
         months: [8],
         dayOfMonth: 2,
@@ -171,6 +286,7 @@ const schedule: ScheduleItem[] = [
     },
     {
         name: "Retired Numbers",
+        layer: "Agency",
         cadence: "Annual",
         months: [8],
         dayOfMonth: 3,
@@ -184,19 +300,23 @@ const schedule: ScheduleItem[] = [
 
     {
         name: "Comparison Model",
+        layer: "Agency",
         cadence: "Manual",
     },
     {
         name: "AHL Logos",
+        layer: "Agency",
         cadence: "Manual",
     },
     {
         name: "Tax Rules",
+        layer: "Agency",
         cadence: "Manual",
     },
 ];
 
 const cadenceOrder: Cadence[] = [
+    "Daily",
     "Weekly",
     "Monthly",
     "Quarterly",
@@ -213,6 +333,13 @@ const cadenceStyles: Record<
         background: string;
     }
 > = {
+    Daily: {
+        text: "text-sky-100",
+        dot: "bg-sky-100",
+        border: "border-sky-600/60",
+        background: "bg-sky-950/20",
+    },
+
     Weekly: {
         text: "text-sky-200",
         dot: "bg-sky-200",
@@ -267,6 +394,10 @@ function isScheduledOnDate(
 ) {
     if (item.cadence === "Manual") {
         return false;
+    }
+
+    if (item.cadence === "Daily") {
+        return true;
     }
 
     if (item.cadence === "Weekly") {
@@ -442,74 +573,117 @@ export default function QASchedule() {
                 </button>
 
                 {timelineOpen && (
-                    <div className="mt-4 grid gap-3 md:grid-cols-5">
-                        {cadenceOrder.map(
-                            (cadence) => {
-                                const items =
-                                    schedule.filter(
-                                        (item) =>
-                                            item.cadence ===
+                    <div className="mt-4">
+
+                        <div className="grid gap-3 md:grid-cols-6">
+                            {cadenceOrder.map(
+                                (cadence) => {
+                                    const style =
+                                        cadenceStyles[
                                             cadence
-                                    );
+                                        ];
 
-                                const style =
-                                    cadenceStyles[
-                                        cadence
-                                    ];
+                                    return (
+                                        <div
+                                            key={
+                                                cadence
+                                            }
+                                            className={`rounded-lg border ${style.border} ${style.background}`}
+                                        >
+                                            <div className="flex items-center gap-2 border-b border-neutral-800 p-4">
+                                                <span
+                                                    className={`h-2.5 w-2.5 rounded-full ${style.dot}`}
+                                                />
 
-                                return (
-                                    <div
-                                        key={
-                                            cadence
-                                        }
-                                        className={`rounded-lg border p-4 ${style.border} ${style.background}`}
-                                    >
-                                        <div className="mb-4 flex items-center gap-2">
-                                            <span
-                                                className={`h-2.5 w-2.5 rounded-full ${style.dot}`}
-                                            />
+                                                <div
+                                                    className={`text-sm font-semibold ${style.text}`}
+                                                >
+                                                    {
+                                                        cadence
+                                                    }
+                                                </div>
+                                            </div>
 
-                                            <div
-                                                className={`text-sm font-semibold ${style.text}`}
-                                            >
-                                                {
-                                                    cadence
-                                                }
+                                            <div className="p-4">
+                                                {layers.map(
+                                                    (
+                                                        layer,
+                                                        layerIndex
+                                                    ) => {
+                                                        const items =
+                                                            schedule.filter(
+                                                                (
+                                                                    item
+                                                                ) =>
+                                                                    item.cadence ===
+                                                                        cadence &&
+                                                                    item.layer ===
+                                                                        layer
+                                                            );
+
+                                                        return (
+                                                            <div
+                                                                key={
+                                                                    layer
+                                                                }
+                                                                className={
+                                                                    layerIndex >
+                                                                    0
+                                                                        ? "mt-4 border-t border-neutral-800 pt-4"
+                                                                        : ""
+                                                                }
+                                                            >
+                                                                <div className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
+                                                                    {
+                                                                        layer
+                                                                    }
+                                                                </div>
+
+                                                                {items.length ===
+                                                                0 ? (
+                                                                    <div className="text-xs text-neutral-700">
+                                                                        No runs
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="space-y-3">
+                                                                        {items.map(
+                                                                            (
+                                                                                item,
+                                                                                index
+                                                                            ) => (
+                                                                                <div
+                                                                                    key={`${item.layer}-${item.name}-${index}`}
+                                                                                >
+                                                                                    <div
+                                                                                        className={`text-sm font-medium ${style.text}`}
+                                                                                    >
+                                                                                        {
+                                                                                            item.name
+                                                                                        }
+                                                                                    </div>
+
+                                                                                    {item.description && (
+                                                                                        <div className="mt-0.5 text-xs text-neutral-500">
+                                                                                            {
+                                                                                                item.description
+                                                                                            }
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            )
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    }
+                                                )}
                                             </div>
                                         </div>
-
-                                        <div className="space-y-3">
-                                            {items.map(
-                                                (
-                                                    item,
-                                                    index
-                                                ) => (
-                                                    <div
-                                                        key={`${item.name}-${index}`}
-                                                    >
-                                                        <div
-                                                            className={`text-sm font-medium ${style.text}`}
-                                                        >
-                                                            {
-                                                                item.name
-                                                            }
-                                                        </div>
-
-                                                        {item.description && (
-                                                            <div className="mt-0.5 text-xs text-neutral-500">
-                                                                {
-                                                                    item.description
-                                                                }
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            }
-                        )}
+                                    );
+                                }
+                            )}
+                        </div>
                     </div>
                 )}
             </section>
@@ -547,7 +721,7 @@ export default function QASchedule() {
                                 key={
                                     day.dateKey
                                 }
-                                className={`min-h-[180px] p-3 ${
+                                className={`min-h-[260px] p-3 ${
                                     dayIndex >
                                     0
                                         ? "border-t border-neutral-800 md:border-l md:border-t-0"
@@ -586,64 +760,99 @@ export default function QASchedule() {
                                     </div>
                                 </div>
 
-                                {day.runs
-                                    .length ===
-                                0 ? (
-                                    <div className="text-sm text-neutral-600">
-                                        No runs
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {day.runs.map(
-                                            (
-                                                item,
-                                                index
-                                            ) => {
-                                                const style =
-                                                    cadenceStyles[
-                                                        item
-                                                            .cadence
-                                                    ];
+                                {layers.map(
+                                    (
+                                        layer,
+                                        layerIndex
+                                    ) => {
+                                        const runs =
+                                            day.runs.filter(
+                                                (
+                                                    item
+                                                ) =>
+                                                    item.layer ===
+                                                    layer
+                                            );
 
-                                                return (
-                                                    <div
-                                                        key={`${item.name}-${index}`}
-                                                        className="min-w-0"
-                                                    >
-                                                        <div className="flex items-start gap-2">
-                                                            <span
-                                                                className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${style.dot}`}
-                                                            />
+                                        return (
+                                            <div
+                                                key={
+                                                    layer
+                                                }
+                                                className={
+                                                    layerIndex >
+                                                    0
+                                                        ? "mt-4 border-t border-neutral-800 pt-4"
+                                                        : ""
+                                                }
+                                            >
+                                                <div className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
+                                                    {
+                                                        layer
+                                                    }
+                                                </div>
 
-                                                            <div className="min-w-0">
-                                                                <div className="text-xs text-neutral-500">
-                                                                    {formatTime(
-                                                                        item
-                                                                    )}
-                                                                </div>
-
-                                                                <div
-                                                                    className={`text-sm font-medium leading-tight ${style.text}`}
-                                                                >
-                                                                    {
-                                                                        item.name
-                                                                    }
-                                                                </div>
-
-                                                                {item.description && (
-                                                                    <div className="mt-0.5 text-xs leading-tight text-neutral-600">
-                                                                        {
-                                                                            item.description
-                                                                        }
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
+                                                {runs.length ===
+                                                0 ? (
+                                                    <div className="text-xs text-neutral-700">
+                                                        No runs
                                                     </div>
-                                                );
-                                            }
-                                        )}
-                                    </div>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {runs.map(
+                                                            (
+                                                                item,
+                                                                index
+                                                            ) => {
+                                                                const style =
+                                                                    cadenceStyles[
+                                                                        item
+                                                                            .cadence
+                                                                    ];
+
+                                                                return (
+                                                                    <div
+                                                                        key={`${item.layer}-${item.name}-${index}`}
+                                                                        className="min-w-0"
+                                                                    >
+                                                                        <div className="flex items-start gap-2">
+                                                                            <span
+                                                                                className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${style.dot}`}
+                                                                            />
+
+                                                                            <div className="min-w-0">
+                                                                                <div className="text-xs text-neutral-500">
+                                                                                    {formatTime(
+                                                                                        item
+                                                                                    )}
+                                                                                </div>
+
+                                                                                <div
+                                                                                    className={`text-sm font-medium leading-tight ${style.text}`}
+                                                                                >
+                                                                                    {
+                                                                                        item.name
+                                                                                    }
+                                                                                </div>
+
+                                                                                {item.description && (
+                                                                                    <div className="mt-0.5 text-xs leading-tight text-neutral-600">
+                                                                                        {
+                                                                                            item.description
+                                                                                        }
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            }
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    }
                                 )}
                             </div>
                         )
