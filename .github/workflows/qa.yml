@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
 
   schedule:
-    # Daily at 11:00 UTC
-    # Runs after the daily NHL source ingestion / QA.
-    - cron: "0 11 * * *"
+    # Weekly on Monday at 12:00 UTC.
+    # Runs after the Monday Cap and Travel refreshes.
+    - cron: "0 12 * * 1"
 
 env:
   PYTHONUNBUFFERED: "1"
 
 jobs:
-  player-qa:
+  agency-qa:
 
     runs-on: ubuntu-latest
 
@@ -39,52 +39,9 @@ jobs:
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
-      - name: Run Player QA
+      - name: Run all Agency QA
         env:
           GCP_PROJECT: pacey32-agency
 
         run: |
-          python - <<'PY'
-          import os
-          from google.cloud import bigquery
-
-          project_id = os.environ["GCP_PROJECT"]
-
-          client = bigquery.Client(
-              project=project_id
-          )
-
-          with open("QA/Player.sql", "r") as f:
-              sql = f.read()
-
-          job = client.query(sql)
-          results = list(job.result())
-
-          print("")
-          print("Player QA complete.")
-          print("")
-
-          fail_count = 0
-          warn_count = 0
-
-          for row in results:
-              print(
-                  f"{row.test_id}: "
-                  f"{row.status} "
-                  f"({row.failure_count} failures)"
-              )
-
-              if row.status == "FAIL":
-                  fail_count += 1
-
-              if row.status == "WARN":
-                  warn_count += 1
-
-          print("")
-          print(
-              f"Summary: "
-              f"{len(results)} tests, "
-              f"{fail_count} FAIL, "
-              f"{warn_count} WARN"
-          )
-          PY
+          python QA/run_all.py
