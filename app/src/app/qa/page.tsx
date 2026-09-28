@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 
 import LoginForm from "./LoginForm";
 import QASection from "./QASection";
+import QASchedule from "./QASchedule";
 
 export const metadata = {
     title: "Data Quality | Pacey32",
@@ -60,6 +61,10 @@ export default async function QAPage() {
             <p className="mt-2 text-gray-500">
                 NHL source and Agency data quality monitoring
             </p>
+
+            <div className="mt-8">
+                <QASchedule />
+            </div>
 
             <QASection
                 title="NHL Source"

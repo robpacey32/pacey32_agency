@@ -9,6 +9,11 @@ import {
 
 type QAStatus = "PASS" | "WARN" | "FAIL";
 
+type QAHistoryState =
+    | QAStatus
+    | "NOT_DUE"
+    | "MISSED";
+
 interface QADomain {
     domain: string;
     test_prefix?: string;
@@ -101,7 +106,7 @@ function testStatusClasses(status: QAStatus) {
 }
 
 function historyCellClasses(
-    status?: QAStatus
+    status: QAHistoryState
 ) {
     switch (status) {
         case "PASS":
@@ -113,8 +118,11 @@ function historyCellClasses(
         case "FAIL":
             return "border-red-800 bg-red-900/70 hover:bg-red-800";
 
-        default:
-            return "border-gray-800 bg-gray-900/50";
+        case "MISSED":
+            return "border-red-900 bg-red-950/30";
+
+        case "NOT_DUE":
+            return "border-gray-900 bg-gray-950/30";
     }
 }
 
@@ -176,6 +184,108 @@ function formatHistoryDay(
     );
 }
 
+const SOURCE_QA_START_DATE = "2026-09-24";
+const AGENCY_QA_START_DATE = "2026-09-28";
+
+function getHistoryState(
+    layer: "source" | "agency",
+    date: string,
+    run?: QADomain
+): QAHistoryState {
+    if (run) {
+        return run.overall_status;
+    }
+
+    const now = new Date();
+
+    const [
+        year,
+        month,
+        day,
+    ] = date
+        .split("-")
+        .map(Number);
+
+    const qaDate = new Date(
+        Date.UTC(
+            year,
+            month - 1,
+            day
+        )
+    );
+
+    const todayUtc = new Date(
+        Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate()
+        )
+    );
+
+    if (
+        qaDate.getTime() >
+        todayUtc.getTime()
+    ) {
+        return "NOT_DUE";
+    }
+
+    // ---------------------------------------------------------
+    // NHL SOURCE
+    // Daily QA from 24 September 2026 at 08:00 UTC.
+    // ---------------------------------------------------------
+
+    if (layer === "source") {
+        if (date < SOURCE_QA_START_DATE) {
+            return "NOT_DUE";
+        }
+
+        if (
+            qaDate.getTime() <
+            todayUtc.getTime()
+        ) {
+            return "MISSED";
+        }
+
+        const dueToday =
+            now.getUTCHours() >= 8;
+
+        return dueToday
+            ? "MISSED"
+            : "NOT_DUE";
+    }
+
+    // ---------------------------------------------------------
+    // AGENCY
+    // Weekly QA from 28 September 2026.
+    // Mondays at 12:00 UTC.
+    // ---------------------------------------------------------
+
+    if (date < AGENCY_QA_START_DATE) {
+        return "NOT_DUE";
+    }
+
+    const dayOfWeek =
+        qaDate.getUTCDay();
+
+    if (dayOfWeek !== 1) {
+        return "NOT_DUE";
+    }
+
+    if (
+        qaDate.getTime() <
+        todayUtc.getTime()
+    ) {
+        return "MISSED";
+    }
+
+    const dueToday =
+        now.getUTCHours() >= 12;
+
+    return dueToday
+        ? "MISSED"
+        : "NOT_DUE";
+}
+
 export default function QASection({
     title,
     project,
@@ -198,6 +308,12 @@ export default function QASection({
         setHistoryError,
     ] =
         useState<string | null>(null);
+
+    const [
+        detailOpen,
+        setDetailOpen,
+    ] =
+        useState(false);
 
     const [
         selectedDomain,
@@ -301,7 +417,7 @@ export default function QASection({
                 setHistory(result);
             } catch {
                 setHistoryError(
-                    "Unable to load 30-day history."
+                    "Unable to load 10-day history."
                 );
             }
         }
@@ -313,34 +429,41 @@ export default function QASection({
         () => {
             const dates: string[] = [];
 
-            const today =
-                new Date();
+            const now = new Date();
+
+            const today = new Date(
+                Date.UTC(
+                    now.getUTCFullYear(),
+                    now.getUTCMonth(),
+                    now.getUTCDate()
+                )
+            );
 
             for (
-                let offset = 29;
+                let offset = 9;
                 offset >= 0;
                 offset--
             ) {
                 const date =
                     new Date(today);
 
-                date.setDate(
-                    today.getDate() -
+                date.setUTCDate(
+                    today.getUTCDate() -
                         offset
                 );
 
                 dates.push(
                     [
-                        date.getFullYear(),
+                        date.getUTCFullYear(),
                         String(
-                            date.getMonth() +
+                            date.getUTCMonth() +
                                 1
                         ).padStart(
                             2,
                             "0"
                         ),
                         String(
-                            date.getDate()
+                            date.getUTCDate()
                         ).padStart(
                             2,
                             "0"
@@ -400,19 +523,30 @@ export default function QASection({
         resetTestSelection();
     }
 
+    function toggleDetail() {
+        setDetailOpen(
+            (open) => !open
+        );
+    }
+
     async function loadDomain(
         domain: QADomain,
         historyDate:
             | string
             | null = null
     ) {
+        // Heatmap/domain selection should always expose
+        // the detail area.
+        setDetailOpen(true);
+
         if (
             selectedDomain?.run_id ===
                 domain.run_id &&
+            selectedDomain?.domain ===
+                domain.domain &&
             selectedHistoryDate ===
                 historyDate
         ) {
-            closeDomain();
             return;
         }
 
@@ -420,9 +554,11 @@ export default function QASection({
         setSelectedHistoryDate(
             historyDate
         );
+
         setTests([]);
         setTestsError(null);
         setTestsLoading(true);
+
         resetTestSelection();
 
         try {
@@ -550,7 +686,8 @@ export default function QASection({
                 >
                     <div className="mb-4">
                         <div className="text-sm font-semibold text-white">
-                            {test.test_id} failure records
+                            {test.test_id}{" "}
+                            failure records
                         </div>
 
                         {test.details && (
@@ -564,7 +701,8 @@ export default function QASection({
 
                     {failuresLoading && (
                         <p className="text-sm text-gray-500">
-                            Loading failure records...
+                            Loading failure
+                            records...
                         </p>
                     )}
 
@@ -631,7 +769,9 @@ export default function QASection({
                         failures.length ===
                             0 && (
                             <p className="text-sm text-gray-500">
-                                No failure records stored for this test.
+                                No failure
+                                records stored
+                                for this test.
                             </p>
                         )}
                 </td>
@@ -644,7 +784,9 @@ export default function QASection({
     ) {
         if (
             selectedDomain?.run_id !==
-            domain.run_id
+                domain.run_id ||
+            selectedDomain?.domain !==
+                domain.domain
         ) {
             return null;
         }
@@ -699,7 +841,8 @@ export default function QASection({
 
                         {selectedHistoryDate && (
                             <p className="mt-1 text-xs text-gray-600">
-                                Historical run:{" "}
+                                Historical
+                                run:{" "}
                                 {formatHistoryDate(
                                     selectedHistoryDate
                                 )}
@@ -816,7 +959,10 @@ export default function QASection({
                                                         {test.failure_count >
                                                             0 && (
                                                             <div className="mt-1 text-xs text-gray-600">
-                                                                Click to view records
+                                                                Click
+                                                                to
+                                                                view
+                                                                records
                                                             </div>
                                                         )}
                                                     </td>
@@ -884,7 +1030,8 @@ export default function QASection({
             return (
                 <div className="mt-5 rounded-xl border border-gray-800 p-5">
                     <p className="text-sm text-gray-500">
-                        Loading 30-day history...
+                        Loading 10-day
+                        history...
                     </p>
                 </div>
             );
@@ -895,11 +1042,13 @@ export default function QASection({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h3 className="font-semibold">
-                            30-day history
+                            10-day history
                         </h3>
 
                         <p className="mt-1 text-xs text-gray-500">
-                            Click a coloured cell to inspect that run
+                            Click a coloured
+                            cell to inspect
+                            that run
                         </p>
                     </div>
 
@@ -920,8 +1069,13 @@ export default function QASection({
                         </div>
 
                         <div className="flex items-center gap-1.5">
-                            <span className="h-3 w-3 rounded-sm bg-gray-900" />
-                            NO RUN
+                            <span className="h-3 w-3 rounded-sm border border-gray-800 bg-gray-950" />
+                            NOT DUE
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                            <span className="h-3 w-3 rounded-sm border border-red-900 bg-red-950/30" />
+                            MISSED
                         </div>
                     </div>
                 </div>
@@ -932,7 +1086,7 @@ export default function QASection({
                             className="grid gap-1"
                             style={{
                                 gridTemplateColumns:
-                                    "minmax(100px, 150px) 40px 1px repeat(30, minmax(0, 1fr))",
+                                    "minmax(100px, 150px) 50px 1px repeat(10, minmax(36px, 1fr))",
                             }}
                         >
                             <div />
@@ -946,28 +1100,21 @@ export default function QASection({
                             <div className="mx-auto h-full w-px bg-gray-800" />
 
                             {historyDates.map(
-                                (
-                                    date,
-                                    index
-                                ) => (
+                                (date) => (
                                     <div
                                         key={
                                             date
                                         }
-                                        className="flex h-10 items-end justify-center"
+                                        className="flex h-10 items-end justify-center pb-1"
                                         title={formatHistoryDate(
                                             date
                                         )}
                                     >
-                                        {index %
-                                            3 ===
-                                            0 && (
-                                            <span className="-rotate-45 whitespace-nowrap text-[10px] text-gray-600">
-                                                {formatHistoryDay(
-                                                    date
-                                                )}
-                                            </span>
-                                        )}
+                                        <span className="whitespace-nowrap text-[10px] text-gray-500">
+                                            {formatHistoryDay(
+                                                date
+                                            )}
+                                        </span>
                                     </div>
                                 )
                             )}
@@ -996,9 +1143,13 @@ export default function QASection({
                                                 new Date(
                                                     domain.run_datetime
                                                 ).toLocaleString(),
-                                            ].join(" · ")}
+                                            ].join(
+                                                " · "
+                                            )}
                                             onClick={() =>
-                                                loadDomain(domain)
+                                                loadDomain(
+                                                    domain
+                                                )
                                             }
                                             className={`
                                                 h-7
@@ -1024,6 +1175,13 @@ export default function QASection({
                                                         `${domain.domain}|${date}`
                                                     );
 
+                                                const historyState =
+                                                    getHistoryState(
+                                                        layer,
+                                                        date,
+                                                        run
+                                                    );
+
                                                 const titleText =
                                                     run
                                                         ? [
@@ -1038,9 +1196,18 @@ export default function QASection({
                                                           ].join(
                                                               " · "
                                                           )
-                                                        : `${domain.domain} · ${formatHistoryDate(
-                                                              date
-                                                          )} · No run`;
+                                                        : [
+                                                              domain.domain,
+                                                              formatHistoryDate(
+                                                                  date
+                                                              ),
+                                                              historyState ===
+                                                              "MISSED"
+                                                                  ? "Scheduled QA run missed"
+                                                                  : "QA not due",
+                                                          ].join(
+                                                              " · "
+                                                          );
 
                                                 return (
                                                     <button
@@ -1069,7 +1236,7 @@ export default function QASection({
                                                             border
                                                             transition
                                                             ${historyCellClasses(
-                                                                run?.overall_status
+                                                                historyState
                                                             )}
                                                             ${
                                                                 run
@@ -1087,6 +1254,153 @@ export default function QASection({
                         </div>
                     </div>
                 </div>
+            </div>
+        );
+    }
+
+    function renderDetailSection() {
+        return (
+            <div className="mt-4">
+                <button
+                    type="button"
+                    onClick={
+                        toggleDetail
+                    }
+                    aria-expanded={
+                        detailOpen
+                    }
+                    className="flex w-full items-center gap-3 text-left"
+                >
+                    <span
+                        className={`
+                            inline-block
+                            text-base
+                            text-gray-500
+                            transition-transform
+                            duration-200
+                            ${
+                                detailOpen
+                                    ? "rotate-90"
+                                    : ""
+                            }
+                        `}
+                    >
+                        &gt;
+                    </span>
+
+                    <span className="text-sm font-semibold text-gray-300">
+                        QA Detail
+                    </span>
+
+                    <span className="text-xs text-gray-600">
+                        {data?.results.length ??
+                            0}{" "}
+                        domains
+                    </span>
+                </button>
+
+                {detailOpen && (
+                    <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                        {data?.results.map(
+                            (domain) => (
+                                <div
+                                    key={
+                                        domain.domain
+                                    }
+                                    className="contents"
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            loadDomain(
+                                                domain
+                                            )
+                                        }
+                                        className={`
+                                            rounded-xl
+                                            border
+                                            p-5
+                                            text-left
+                                            transition
+                                            hover:brightness-125
+                                            ${statusClasses(
+                                                domain.overall_status
+                                            )}
+                                        `}
+                                    >
+                                        <div className="flex items-start justify-between gap-3">
+                                            <h3 className="font-semibold">
+                                                {
+                                                    domain.domain
+                                                }
+                                            </h3>
+
+                                            <span className="text-xs font-bold">
+                                                {
+                                                    domain.overall_status
+                                                }
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-5 text-2xl font-bold">
+                                            {
+                                                domain.pass_count
+                                            }
+
+                                            <span className="text-sm font-normal opacity-70">
+                                                {" "}
+                                                /{" "}
+                                                {
+                                                    domain.test_count
+                                                }
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-2 text-xs opacity-70">
+                                            {
+                                                domain.warn_count
+                                            }{" "}
+                                            warnings
+                                            {" · "}
+                                            {
+                                                domain.fail_count
+                                            }{" "}
+                                            failures
+                                        </div>
+
+                                        <div className="mt-4 text-xs opacity-50">
+                                            {new Date(
+                                                domain.run_datetime
+                                            ).toLocaleString()}
+                                        </div>
+                                    </button>
+
+                                    {renderExpandedDomain(
+                                        domain
+                                    )}
+                                </div>
+                            )
+                        )}
+
+                        {selectedDomain &&
+                            selectedHistoryDate &&
+                            !data?.results.some(
+                                (
+                                    domain
+                                ) =>
+                                    domain.run_id ===
+                                        selectedDomain.run_id &&
+                                    domain.domain ===
+                                        selectedDomain.domain
+                            ) && (
+                                <div className="col-span-full">
+                                    {renderExpandedDomain(
+                                        selectedDomain
+                                    )}
+                                </div>
+                            )}
+                    </div>
+                )}
             </div>
         );
     }
@@ -1133,102 +1447,7 @@ export default function QASection({
 
             {renderHistory()}
 
-            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                {data.results.map(
-                    (domain) => (
-                        <div
-                            key={
-                                domain.domain
-                            }
-                            className="contents"
-                        >
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    loadDomain(
-                                        domain
-                                    )
-                                }
-                                className={`
-                                    rounded-xl
-                                    border
-                                    p-5
-                                    text-left
-                                    transition
-                                    hover:brightness-125
-                                    ${statusClasses(
-                                        domain.overall_status
-                                    )}
-                                `}
-                            >
-                                <div className="flex items-start justify-between gap-3">
-                                    <h3 className="font-semibold">
-                                        {
-                                            domain.domain
-                                        }
-                                    </h3>
-
-                                    <span className="text-xs font-bold">
-                                        {
-                                            domain.overall_status
-                                        }
-                                    </span>
-                                </div>
-
-                                <div className="mt-5 text-2xl font-bold">
-                                    {
-                                        domain.pass_count
-                                    }
-
-                                    <span className="text-sm font-normal opacity-70">
-                                        {" "}
-                                        /{" "}
-                                        {
-                                            domain.test_count
-                                        }
-                                    </span>
-                                </div>
-
-                                <div className="mt-2 text-xs opacity-70">
-                                    {
-                                        domain.warn_count
-                                    }{" "}
-                                    warnings
-                                    {" · "}
-                                    {
-                                        domain.fail_count
-                                    }{" "}
-                                    failures
-                                </div>
-
-                                <div className="mt-4 text-xs opacity-50">
-                                    {new Date(
-                                        domain.run_datetime
-                                    ).toLocaleString()}
-                                </div>
-                            </button>
-
-                            {renderExpandedDomain(
-                                domain
-                            )}
-                        </div>
-                    )
-                )}
-
-                {selectedDomain &&
-                    selectedHistoryDate &&
-                    !data.results.some(
-                        (domain) =>
-                            domain.run_id ===
-                            selectedDomain.run_id
-                    ) && (
-                        <div className="col-span-full">
-                            {renderExpandedDomain(
-                                selectedDomain
-                            )}
-                        </div>
-                    )}
-            </div>
+            {renderDetailSection()}
         </section>
     );
 }
