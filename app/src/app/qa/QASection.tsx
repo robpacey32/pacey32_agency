@@ -447,17 +447,70 @@ export default function QASection({
                 )
             );
 
+            // NHL Source:
+            // Last 10 calendar days.
+            if (layer === "source") {
+                for (
+                    let offset = 9;
+                    offset >= 0;
+                    offset--
+                ) {
+                    const date =
+                        new Date(today);
+
+                    date.setUTCDate(
+                        today.getUTCDate() -
+                            offset
+                    );
+
+                    dates.push(
+                        [
+                            date.getUTCFullYear(),
+                            String(
+                                date.getUTCMonth() +
+                                    1
+                            ).padStart(
+                                2,
+                                "0"
+                            ),
+                            String(
+                                date.getUTCDate()
+                            ).padStart(
+                                2,
+                                "0"
+                            ),
+                        ].join("-")
+                    );
+                }
+
+                return dates;
+            }
+
+            // Agency:
+            // Last 4 scheduled Mondays,
+            // including today if today is Monday.
+            const latestMonday =
+                new Date(today);
+
+            const daysSinceMonday =
+                (today.getUTCDay() + 6) % 7;
+
+            latestMonday.setUTCDate(
+                today.getUTCDate() -
+                    daysSinceMonday
+            );
+
             for (
-                let offset = 9;
+                let offset = 3;
                 offset >= 0;
                 offset--
             ) {
                 const date =
-                    new Date(today);
+                    new Date(latestMonday);
 
                 date.setUTCDate(
-                    today.getUTCDate() -
-                        offset
+                    latestMonday.getUTCDate() -
+                        offset * 7
                 );
 
                 dates.push(
@@ -482,7 +535,7 @@ export default function QASection({
 
             return dates;
         },
-        []
+        [layer]
     );
 
     const historyLookup = useMemo(
@@ -1038,7 +1091,10 @@ export default function QASection({
             return (
                 <div className="mt-5 rounded-xl border border-gray-800 p-5">
                     <p className="text-sm text-gray-500">
-                        Loading 10-day
+                        Loading{" "}
+                        {layer === "source"
+                            ? "10-day"
+                            : "4-week"}{" "}
                         history...
                     </p>
                 </div>
@@ -1050,7 +1106,9 @@ export default function QASection({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h3 className="font-semibold">
-                            10-day history
+                            {layer === "source"
+                                ? "10-day history"
+                                : "4-week history"}
                         </h3>
 
                         <p className="mt-1 text-xs text-gray-500">
@@ -1094,7 +1152,7 @@ export default function QASection({
                             className="grid gap-1"
                             style={{
                                 gridTemplateColumns:
-                                    "minmax(100px, 150px) 50px 1px repeat(10, minmax(36px, 1fr))",
+                                    `minmax(100px, 150px) 50px 1px repeat(${historyDates.length}, minmax(36px, 1fr))`,
                             }}
                         >
                             <div />
@@ -1119,9 +1177,9 @@ export default function QASection({
                                         )}
                                     >
                                         <span className="whitespace-nowrap text-[10px] text-gray-500">
-                                            {formatHistoryDay(
-                                                date
-                                            )}
+                                            {layer === "source"
+                                                ? formatHistoryDay(date)
+                                                : formatHistoryDate(date)}
                                         </span>
                                     </div>
                                 )
