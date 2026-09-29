@@ -55,7 +55,7 @@ jobs:
       #########################################################
 
       - name: Build Travel_1_ScheduleExpanded
-        if: ${{ github.event_name == 'schedule' || inputs.run_current }}
+        if: ${{ inputs.run_current }}
         env:
           GCP_PROJECT: pacey32-agency
 
@@ -75,7 +75,7 @@ jobs:
         run: python distancetravelled/1_ScheduleExpanded.py
 
       - name: Build Travel_2_Legs
-        if: ${{ github.event_name == 'schedule' || inputs.run_current }}
+        if: ${{ inputs.run_current }}
         env:
           GCP_PROJECT: pacey32-agency
 
@@ -93,7 +93,7 @@ jobs:
       #########################################################
 
       - name: Build Travel_1_ScheduleExpanded_5yr
-        if: ${{ inputs.run_5yr || (github.event_name == 'schedule' && github.event.schedule == '0 10 1 * *') }}
+        if: ${{ inputs.run_5yr }}
         env:
           GCP_PROJECT: pacey32-agency
 
@@ -114,7 +114,7 @@ jobs:
         run: python distancetravelled/1b_ScheduleExpanded_5yr.py
 
       - name: Build Travel_2_Legs_5yr
-        if: ${{ inputs.run_5yr || (github.event_name == 'schedule' && github.event.schedule == '0 10 1 * *') }}
+        if: ${{ inputs.run_5yr }}
         env:
           GCP_PROJECT: pacey32-agency
 

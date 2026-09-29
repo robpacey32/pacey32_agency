@@ -50,6 +50,6 @@ jobs:
           GCP_PROJECT: pacey32-agency
           GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          FORCE_REFRESH: ${{ github.event_name == 'schedule' && 'false' || inputs.force_refresh }}
+          FORCE_REFRESH: ${{ inputs.force_refresh }}
         run: |
           python -m geospatial.geo_playerresidence

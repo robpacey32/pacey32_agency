@@ -58,7 +58,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Refresh Arena
-        if: ${{ inputs.run_arena || (github.event_name == 'schedule' && github.event.schedule == '0 8 2 9 *') }}
+        if: ${{ inputs.run_arena }}
         env:
           GCP_PROJECT: pacey32-agency
           GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
@@ -66,7 +66,7 @@ jobs:
           python -m geospatial.geo_arena
 
       - name: Refresh Practice Facility
-        if: ${{ inputs.run_practice || (github.event_name == 'schedule' && github.event.schedule == '0 8 2 9 *') }}
+        if: ${{ inputs.run_practice }}
         env:
           GCP_PROJECT: pacey32-agency
           GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
@@ -74,7 +74,7 @@ jobs:
           python -m geospatial.geo_practice_facility
 
       - name: Refresh POI Tables
-        if: ${{ inputs.run_poi || (github.event_name == 'schedule' && github.event.schedule == '0 8 1 1,4,7,10 *') }}
+        if: ${{ inputs.run_poi }}
         env:
           GCP_PROJECT: pacey32-agency
           GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
