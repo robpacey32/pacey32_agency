@@ -14,6 +14,7 @@ type Cadence =
     | "Weekly"
     | "Monthly"
     | "Quarterly"
+    | "Seasonal"
     | "Annual"
     | "Manual";
 
@@ -116,6 +117,21 @@ const schedule: ScheduleItem[] = [
     },
 
     // ---------------------------------------------------------
+    // SEASONAL
+    // ---------------------------------------------------------
+
+    {
+        name: "Playoffs",
+        layer: "NHL Source",
+        cadence: "Seasonal",
+        months: [3, 4, 5, 6],
+        dayOfWeek: 1,
+        hour: 6,
+        minute: 0,
+        description: "Mondays, April–July",
+    },
+
+    // ---------------------------------------------------------
     // ANNUAL
     // ---------------------------------------------------------
 
@@ -144,6 +160,7 @@ const schedule: ScheduleItem[] = [
         dayOfWeek: 1,
         hour: 6,
         minute: 30,
+        description: "Local Mac",
     },
     {
         name: "Travel",
@@ -230,6 +247,16 @@ const schedule: ScheduleItem[] = [
     // ANNUAL
     // ---------------------------------------------------------
 
+    {
+        name: "Tax Brackets",
+        layer: "Agency",
+        cadence: "Annual",
+        months: [0],
+        dayOfMonth: 1,
+        hour: 6,
+        minute: 0,
+        description: "GitHub",
+    },
     {
         name: "City Reference",
         layer: "Agency",
@@ -320,6 +347,7 @@ const cadenceOrder: Cadence[] = [
     "Weekly",
     "Monthly",
     "Quarterly",
+    "Seasonal",
     "Annual",
     "Manual",
 ];
@@ -358,6 +386,13 @@ const cadenceStyles: Record<
         text: "text-sky-600",
         dot: "bg-sky-600",
         border: "border-sky-900/60",
+        background: "bg-sky-950/20",
+    },
+
+    Seasonal: {
+        text: "text-sky-700",
+        dot: "bg-sky-700",
+        border: "border-sky-900/80",
         background: "bg-sky-950/20",
     },
 
@@ -411,6 +446,19 @@ function isScheduledOnDate(
         return (
             item.dayOfMonth ===
             date.getUTCDate()
+        );
+    }
+
+    if (
+        item.months &&
+        item.dayOfWeek !== undefined
+    ) {
+        return (
+            item.months.includes(
+                date.getUTCMonth()
+            ) &&
+            item.dayOfWeek ===
+                date.getUTCDay()
         );
     }
 
@@ -574,8 +622,7 @@ export default function QASchedule() {
 
                 {timelineOpen && (
                     <div className="mt-4">
-
-                        <div className="grid gap-3 md:grid-cols-6">
+                        <div className="grid gap-3 md:grid-cols-7">
                             {cadenceOrder.map(
                                 (cadence) => {
                                     const style =
