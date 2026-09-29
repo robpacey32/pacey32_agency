@@ -25,10 +25,6 @@ on:
         required: false
         default: ""
 
-  schedule:
-    # Annual: 1 September at 07:00 UTC
-    - cron: "0 7 1 9 *"
-
 env:
   PYTHONUNBUFFERED: "1"
 

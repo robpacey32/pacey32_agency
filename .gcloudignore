@@ -1,0 +1,54 @@
+# Ignore everything by default
+**
+
+# Root build files
+!Dockerfile
+!requirements.txt
+
+# Agency pipeline code
+!cap/
+!cap/**
+
+!cityreference/
+!cityreference/**
+
+!citysummary/
+!citysummary/**
+
+!comparisonmodel/
+!comparisonmodel/**
+
+!costofliving/
+!costofliving/**
+
+!distancetravelled/
+!distancetravelled/**
+
+!geospatial/
+!geospatial/**
+
+!organisation/
+!organisation/**
+
+!QA/
+!QA/**
+
+!tax/
+!tax/**
+
+!weather/
+!weather/**
+
+# Supporting scripts
+!scripts/
+!scripts/**
+
+# Manual pipeline, included so the image is complete
+!ahllogos/
+!ahllogos/**
+
+# Exclude generated/cache content even within included directories
+**/__pycache__/
+**/*.pyc
+comparisonmodel/calibration_output/
+comparisonmodel/wip/

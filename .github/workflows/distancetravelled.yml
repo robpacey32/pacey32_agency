@@ -14,15 +14,6 @@ on:
         type: boolean
         default: false
 
-  schedule:
-    # Weekly: Monday at 09:00 UTC
-    # Refreshes current-season travel only
-    - cron: "0 9 * * 1"
-
-    # Monthly: 1st at 09:00 UTC
-    # Refreshes current-season and five-year travel
-    - cron: "0 10 1 * *"
-
 env:
   PYTHONUNBUFFERED: "1"
 

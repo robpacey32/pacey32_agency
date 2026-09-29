@@ -22,15 +22,6 @@ on:
         required: true
         default: true
 
-  schedule:
-    # Annual: 2 September at 08:00 UTC
-    # Refresh Arena and Practice Facility
-    - cron: "0 8 2 9 *"
-
-    # Quarterly: 1 Jan, Apr, Jul, Oct at 08:00 UTC
-    # Refresh POI tables
-    - cron: "0 8 1 1,4,7,10 *"
-
 env:
   PYTHONUNBUFFERED: "1"
 

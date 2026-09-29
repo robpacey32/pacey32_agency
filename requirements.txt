@@ -11,7 +11,6 @@ timezonefinder
 google-genai
 lxml
 playwright
-google-genai
 html5lib
 scikit-learn
 Flask

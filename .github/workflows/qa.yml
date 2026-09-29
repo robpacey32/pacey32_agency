@@ -3,11 +3,6 @@ name: Agency Data Quality
 on:
   workflow_dispatch:
 
-  schedule:
-    # Weekly on Monday at 12:00 UTC.
-    # Runs after the Monday Cap and Travel refreshes.
-    - cron: "0 12 * * 1"
-
 env:
   PYTHONUNBUFFERED: "1"
 
