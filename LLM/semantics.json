@@ -1,0 +1,408 @@
+{
+  "general": {
+    "project": "pacey32-agency",
+    "dataset": "LLM",
+    "domain": "NHL player, team, contract, city and agency analytics",
+    "canonical_player_key": "playerId",
+    "canonical_team_key": "teamId",
+    "rules": [
+      "Use only tables and columns provided in schema.json.",
+      "Never invent a table or column.",
+      "Prefer the LLM dataset views over underlying source datasets.",
+      "Use playerId as the canonical player identifier.",
+      "Use teamId as the canonical team identifier.",
+      "Use teamCode and teamName for display and entity resolution, but prefer teamId for joins.",
+      "If all required columns exist in one table, query that table directly without unnecessary joins.",
+      "Never join a table to itself unless the question genuinely requires a self-join.",
+      "Do not infer relationships from similar-looking names when a canonical ID relationship is available.",
+      "Do not interpret rankings or similarity scores using arbitrary qualitative thresholds.",
+      "A lower rank number means a better rank unless a table definition explicitly states otherwise.",
+      "Do not join LLM.Team solely to identify or filter a team when the target table already contains teamId, teamCode or teamName. Filter the target table directly."
+    ]
+  },
+
+  "context_requirements": {
+    "player_required": [
+      "Questions referring to me, my, myself or the user's own NHL career or situation.",
+      "Player-specific destination questions such as 'Where is best for me?'.",
+      "Player-specific contract value, comparable, team-fit or affordability questions."
+    ],
+    "team_or_city_required": [
+      "Questions using contextual terms such as there, that team or that city when no team or city has been established."
+    ],
+    "behaviour": [
+      "If a question requires a player and no player has been established, ask which player before generating SQL.",
+      "If a question requires a team and no team has been established, ask which team before generating SQL.",
+      "If a question requires a city and no city or associated team has been established, ask which city or team before generating SQL.",
+      "Reuse an established player, team or city from conversation context until the user changes it.",
+      "League-wide questions do not require a player, team or city."
+    ]
+  },
+
+  "relationships": [
+    {
+      "from": "LLM.Player.teamId",
+      "to": "LLM.Team.teamId",
+      "type": "many-to-one"
+    },
+    {
+      "from": "LLM.PlayerPerformance.playerId",
+      "to": "LLM.Player.playerId",
+      "type": "one-to-one"
+    },
+    {
+      "from": "LLM.PlayerComparables.target_playerId",
+      "to": "LLM.Player.playerId",
+      "type": "many-to-one"
+    },
+    {
+      "from": "LLM.PlayerComparables.comparable_playerId",
+      "to": "LLM.Player.playerId",
+      "type": "many-to-one"
+    },
+    {
+      "from": "LLM.PlayerContracts.playerId",
+      "to": "LLM.Player.playerId",
+      "type": "many-to-one"
+    },
+    {
+      "from": "LLM.TeamRoster.playerId",
+      "to": "LLM.Player.playerId",
+      "type": "many-to-one"
+    },
+    {
+      "from": "LLM.TeamRoster.teamId",
+      "to": "LLM.Team.teamId",
+      "type": "many-to-one"
+    },
+    {
+      "from": "LLM.TeamCap.teamId",
+      "to": "LLM.Team.teamId",
+      "type": "one-to-one"
+    },
+    {
+      "from": "LLM.TeamOrganisation.teamId",
+      "to": "LLM.Team.teamId",
+      "type": "one-to-one"
+    },
+    {
+      "from": "LLM.TeamTravel.teamId",
+      "to": "LLM.Team.teamId",
+      "type": "many-to-one"
+    },
+    {
+      "from": "LLM.City.teamId",
+      "to": "LLM.Team.teamId",
+      "type": "one-to-one"
+    },
+    {
+      "from": "LLM.CityTax.teamId",
+      "to": "LLM.Team.teamId",
+      "type": "one-to-one"
+    },
+    {
+      "from": "LLM.CityClimate.teamId",
+      "to": "LLM.Team.teamId",
+      "type": "one-to-one"
+    },
+    {
+      "from": "LLM.CityCostOfLiving.teamId",
+      "to": "LLM.Team.teamId",
+      "type": "one-to-one"
+    },
+    {
+      "from": "LLM.PlayerCurrentContract.playerId",
+      "to": "LLM.Player.playerId",
+      "type": "one-to-one"
+    },
+    {
+      "from": "LLM.PlayerCurrentContract.teamId",
+      "to": "LLM.Team.teamId",
+      "type": "many-to-one"
+    },
+    {
+      "from": "LLM.PlayerTeamFit.playerId",
+      "to": "LLM.Player.playerId",
+      "type": "many-to-one"
+    },
+    {
+      "from": "LLM.PlayerTeamFit.destinationTeamId",
+      "to": "LLM.Team.teamId",
+      "type": "many-to-one"
+    }
+  ],
+
+  "tables": {
+    "LLM.Player": {
+      "description": "Canonical NHL player identity, biography, current team, draft information and career totals.",
+      "grain": "One row per player.",
+      "primary_key": "playerId",
+      "use_for": [
+        "Player identity",
+        "Current team",
+        "Age and biography",
+        "Draft information",
+        "Career regular-season totals",
+        "Career playoff totals"
+      ]
+    },
+
+    "LLM.PlayerPerformance": {
+      "description": "Current analytical performance snapshot used by the player comparison model.",
+      "grain": "One row per player.",
+      "primary_key": "playerId",
+      "use_for": [
+        "Current and career production",
+        "Latest-season performance",
+        "Previous-season performance",
+        "Peak performance",
+        "Performance trajectory"
+      ],
+      "important_definitions": {
+        "careerPPG": "Career points per game.",
+        "latestSeasonPPG": "Points per game in the latest season.",
+        "latestSeasonGPG": "Goals per game in the latest season.",
+        "latestSeasonAPG": "Assists per game in the latest season.",
+        "latestSeasonAvgTOI": "Average time on ice in the latest season.",
+        "ppgGrowth": "Change in points-per-game performance used to represent trajectory.",
+        "toiGrowth": "Change in average time on ice used to represent trajectory."
+      }
+    },
+
+    "LLM.PlayerComparables": {
+      "description": "Precomputed version 3 comparable-player results.",
+      "grain": "One row per target player and comparable player combination.",
+      "use_for": [
+        "Closest overall comparable players",
+        "Playing-style comparables",
+        "Production comparables",
+        "Effectiveness comparables",
+        "Usage comparables",
+        "Career-trajectory comparables"
+      ],
+      "query_rules": [
+        "For overall comparable questions order by comparable_rank ascending.",
+        "For playing-style questions order by playing_style_similarity descending.",
+        "For production questions order by production_similarity descending.",
+        "For effectiveness questions order by effectiveness_similarity descending.",
+        "For usage questions order by usage_similarity descending.",
+        "For trajectory questions order by trajectory_similarity descending.",
+        "Higher similarity values indicate greater similarity.",
+        "Do not assign arbitrary high, medium or low labels to similarity values."
+      ]
+    },
+
+    "LLM.PlayerContracts": {
+      "description": "Historical NHL contracts linked to canonical NHL players and performance around the time of signing.",
+      "grain": "One row per player contract.",
+      "use_for": [
+        "Contract history",
+        "Contract value",
+        "Cap hit",
+        "Cap percentage at signing",
+        "Contract term",
+        "Signing age",
+        "Signing team",
+        "Signing GM and agent",
+        "Performance preceding a contract",
+        "Contract comparable analysis"
+      ]
+    },
+
+    "LLM.Team": {
+      "description": "Canonical current NHL team reference.",
+      "grain": "One row per NHL team.",
+      "primary_key": "teamId",
+      "use_for": [
+        "Team identity",
+        "Conference and division",
+        "Home venue",
+        "Team location"
+      ]
+    },
+
+    "LLM.TeamRoster": {
+      "description": "Current NHL roster and depth-chart information linked to canonical players and teams.",
+      "grain": "One row per player-team roster entry.",
+      "use_for": [
+        "Current roster",
+        "Depth chart",
+        "Position need",
+        "Potential lineup opportunity",
+        "Leadership",
+        "Current player cap hits",
+        "Contract expiry"
+      ],
+      "query_rules": [
+        "Position values may contain multiple comma-separated positions such as \"C,LW\". When matching a player's position to roster players, treat each comma-separated position independently rather than requiring exact equality.",
+        "When answering questions about current positional competition, lineup competition or following up on LLM.PlayerTeamFit.playersAtPosition, filter isDepthChart = TRUE so the result is consistent with the playersAtPosition definition."
+      ]
+    },
+
+    "LLM.TeamCap": {
+      "description": "Current NHL team salary-cap position and roster composition.",
+      "grain": "One row per team.",
+      "primary_key": "teamId",
+      "use_for": [
+        "Current cap space",
+        "Projected cap space",
+        "Deadline cap space",
+        "Dead cap",
+        "Roster size",
+        "Team average age",
+        "Position counts",
+        "Initial affordability analysis"
+      ]
+    },
+
+    "LLM.TeamOrganisation": {
+      "description": "NHL team organisation, leadership, affiliate and qualitative organisation information.",
+      "grain": "One row per team.",
+      "primary_key": "teamId",
+      "use_for": [
+        "Head coach",
+        "General manager",
+        "Ownership",
+        "Arena",
+        "AHL affiliate",
+        "Captain and alternate captains",
+        "Stanley Cups",
+        "Organisation summary",
+        "Fanbase and media pressure",
+        "Typical player neighbourhoods"
+      ]
+    },
+
+    "LLM.TeamTravel": {
+      "description": "NHL team travel workload for a season.",
+      "grain": "One row per team and season.",
+      "use_for": [
+        "Total travel",
+        "Road trips",
+        "Travel burden",
+        "Longest travel legs",
+        "League travel ranking"
+      ],
+      "query_rules": [
+        "Use the most recent season when the user asks about current travel without specifying a season.",
+        "distanceRank of 1 represents the highest total travel distance, not the least travel."
+      ]
+    },
+
+    "LLM.City": {
+      "description": "Canonical NHL team home-city and geographic information.",
+      "grain": "One row per current NHL team location.",
+      "use_for": [
+        "City identity",
+        "State or province",
+        "Country",
+        "Population",
+        "Timezone",
+        "Geographic location"
+      ]
+    },
+
+    "LLM.CityTax": {
+      "description": "High-level tax environment for each NHL team location with league comparisons.",
+      "grain": "One row per NHL team location.",
+      "use_for": [
+        "Income tax comparison",
+        "Sales tax comparison",
+        "Federal and state or provincial tax",
+        "League tax rankings"
+      ],
+      "query_rules": [
+        "These rates describe the location's tax environment and are not an estimate of a specific player's actual tax liability.",
+        "Do not treat top marginal tax rates as effective tax rates.",
+        "Player-specific take-home pay requires the separate schedule-based tax model."
+      ]
+    },
+
+    "LLM.CityClimate": {
+      "description": "Climate characteristics of NHL team locations with league comparisons.",
+      "grain": "One row per NHL team location.",
+      "use_for": [
+        "Temperature",
+        "Winter climate",
+        "Summer climate",
+        "Rain",
+        "Snow",
+        "Cloud cover",
+        "Solar radiation",
+        "Sunshine comparison"
+      ]
+    },
+
+    "LLM.CityCostOfLiving": {
+      "description": "Cost-of-living indices for NHL team locations with league comparisons.",
+      "grain": "One row per NHL team location.",
+      "use_for": [
+        "Overall cost of living",
+        "Housing",
+        "Utilities",
+        "Groceries",
+        "Eating out",
+        "Transport",
+        "Lifestyle costs",
+        "Family costs",
+        "Affordability comparison"
+      ]
+    },
+
+    "LLM.PlayerCurrentContract": {
+      "description": "Current NHL player contract and cap information linked to canonical player and team identifiers.",
+      "grain": "One row per current NHL player.",
+      "primary_key": "playerId",
+      "use_for": [
+        "Current player cap hit",
+        "Current contract term",
+        "Current contract total value",
+        "Contract expiry",
+        "Current agent",
+        "Whether another team has enough cap space for a player's current cap hit"
+      ],
+      "query_rules": [
+        "Use this table instead of LLM.PlayerContracts when the question is specifically about a player's current contract or current cap hit.",
+        "Use LLM.PlayerContracts for historical contracts and contract-at-signing analysis.",
+        "For a basic affordability question, compare the player's current capHit with the destination team's relevant cap-space measure from LLM.TeamCap.",
+        "Do not join LLM.PlayerContracts merely to obtain a player's current cap hit."
+      ]
+    },
+
+    "LLM.PlayerTeamFit": {
+      "description": "Player-by-team destination analysis combining current contract affordability, positional roster competition, tax, cost of living, climate and travel.",
+      "grain": "One row per player and potential destination team.",
+      "use_for": [
+        "Player destination analysis",
+        "Comparing potential teams for a player",
+        "Which teams can currently afford a player",
+        "Positional roster competition",
+        "Tax comparison between destinations",
+        "Cost-of-living comparison between destinations",
+        "Climate comparison between destinations",
+        "Travel comparison between destinations"
+      ],
+      "important_definitions": {
+        "currentCapGap": "Destination team's current cap space minus the player's current cap hit. Positive means sufficient current cap space before considering roster moves or other transactions.",
+        "projectedCapGap": "Destination team's projected cap space minus the player's current cap hit.",
+        "canAffordCurrent": "Whether current cap space is at least the player's current cap hit.",
+        "canAffordProjected": "Whether projected cap space is at least the player's current cap hit.",
+        "playersAtPosition": "Number of current depth-chart players listed at the same position as the player. This is a crude roster competition measure and should not by itself be interpreted as opportunity.",
+        "incomeTaxRank": "League ranking from the city tax data.",
+        "affordabilityRank": "League affordability ranking from cost-of-living data.",
+        "sunshineRank": "League sunshine ranking from climate data.",
+        "distanceRank": "League ranking for total travel distance.",
+        "roadTripRank": "League ranking for road-trip count."
+      },
+      "query_rules": [
+        "Use this table as the primary source for player-specific destination questions.",
+        "Do not describe a destination as objectively the best team using these fields alone.",
+        "Do not create an overall fit score unless explicit weighting rules have been supplied.",
+        "When asked where is best for a player without stated priorities, compare relevant dimensions and explain the trade-offs.",
+        "Treat playersAtPosition only as a basic roster competition indicator, not a definitive measure of playing opportunity.",
+        "canAffordCurrent and canAffordProjected represent cap-space comparisons only. They do not account for trades, buyouts, LTIR, retained salary, roster moves or other cap-management mechanisms.",
+        "Do not treat topMarginalIncomeTaxRate as the player's actual effective tax rate."
+      ]
+    }
+  }
+}
