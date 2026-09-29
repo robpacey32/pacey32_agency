@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+    Suspense,
+    useEffect,
+    useState,
+} from "react";
 import { useSearchParams } from "next/navigation";
 import ExpandableCard from "@/components/ExpandableCard";
 import ClimatePanel from "@/components/ClimatePanel";
@@ -245,7 +249,19 @@ type Card = {
     content: React.ReactNode;
 };
 
+// ---------------------------------------------------------
+// PAGE
+// ---------------------------------------------------------
+
 export default function CityPage() {
+    return (
+        <Suspense fallback={null}>
+            <CityPageContent />
+        </Suspense>
+    );
+}
+
+function CityPageContent() {
     const {
         team: selectedTeam,
         setTeam: setSelectedTeam,

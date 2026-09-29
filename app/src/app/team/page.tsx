@@ -1,11 +1,12 @@
 "use client";
 
 import {
+    Suspense,
     useEffect,
     useState,
 } from "react";
 
-import { 
+import {
     useSearchParams,
 } from "next/navigation";
 
@@ -49,7 +50,20 @@ type Team = {
 };
 
 
+// --------------------------------------------------
+// PAGE WRAPPER
+// --------------------------------------------------
+
 export default function TeamPage() {
+    return (
+        <Suspense fallback={null}>
+            <TeamPageContent />
+        </Suspense>
+    );
+}
+
+
+function TeamPageContent() {
     const {
         team: selectedTeam,
         setTeam: setSelectedTeam,
@@ -1253,6 +1267,7 @@ function getOrganisationPositionCount(
         }
     ).length;
 }
+
 
 function getPlayerPrimaryPosition(
     player: DepthChartPlayer

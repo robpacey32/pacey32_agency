@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+    Suspense,
+    useEffect,
+    useState,
+} from "react";
 import { useSearchParams } from "next/navigation";
 
 import ComparablePlayersPanel, {
@@ -24,7 +28,19 @@ import PlayerProfilePanel, {
 } from "@/components/PlayerProfilePanel";
 import { useAppContext } from "@/context/AppContext";
 
+// ---------------------------------------------------------
+// PAGE
+// ---------------------------------------------------------
+
 export default function PlayerPage() {
+    return (
+        <Suspense fallback={null}>
+            <PlayerPageContent />
+        </Suspense>
+    );
+}
+
+function PlayerPageContent() {
     const {
         selectedPlayer,
         setPlayer,
@@ -238,7 +254,6 @@ export default function PlayerPage() {
         setSelectedPlayer,
         setTeam,
     ]);
-
 
     // ---------------------------------------------------------
     // LOAD PLAYER
