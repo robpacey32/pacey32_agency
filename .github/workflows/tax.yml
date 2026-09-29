@@ -16,10 +16,8 @@ on:
         default: false
 
   schedule:
-    # Monthly: city tax refresh check
-    - cron: "20 5 1 * *"
-
     # Annual: tax brackets
+    # Retained in GitHub because Revenu Québec blocks Cloud Run
     - cron: "0 6 1 1 *"
 
 permissions:
@@ -53,7 +51,7 @@ jobs:
       # ======================================================
 
       - name: Run city tax pipeline
-        if: ${{ inputs.run_city_tax || (github.event_name == 'schedule' && github.event.schedule == '20 5 1 * *') }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_city_tax }}
         env:
           GCP_PROJECT: pacey32-agency
           TEAM_TABLE: pacey32-agency.Team.TeamList
