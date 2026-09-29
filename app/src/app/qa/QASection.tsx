@@ -247,7 +247,11 @@ function getHistoryState(
         }
 
         const dueToday =
-            now.getUTCHours() >= 8;
+            now.getUTCHours() > 8 ||
+            (
+                now.getUTCHours() === 8 &&
+                now.getUTCMinutes() >= 30
+            );
 
         return dueToday
             ? "MISSED"
@@ -279,7 +283,11 @@ function getHistoryState(
     }
 
     const dueToday =
-        now.getUTCHours() >= 12;
+    now.getUTCHours() > 12 ||
+    (
+        now.getUTCHours() === 12 &&
+        now.getUTCMinutes() >= 30
+    );
 
     return dueToday
         ? "MISSED"
