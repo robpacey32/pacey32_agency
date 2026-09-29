@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import ExpandableCard from "@/components/ExpandableCard";
 import ClimatePanel from "@/components/ClimatePanel";
 import CostOfLivingPanel from "@/components/CostOfLivingPanel";
@@ -245,7 +246,20 @@ type Card = {
 };
 
 export default function CityPage() {
-    const { team: selectedTeam } = useAppContext();
+    const {
+        team: selectedTeam,
+        setTeam: setSelectedTeam,
+    } = useAppContext();
+
+    const searchParams =
+        useSearchParams();
+
+    const linkedTeam =
+        searchParams
+            .get("team")
+            ?.trim()
+            .toUpperCase() ??
+        null;
 
     const [data, setData] = useState<CityData | null>(null);
     const [loading, setLoading] = useState(false);
@@ -259,6 +273,32 @@ export default function CityPage() {
         useState<NHLTaxResponse | null>(null);
     const [taxLoading, setTaxLoading] = useState(false);
     const [taxError, setTaxError] = useState<string | null>(null);
+
+    // ---------------------------------------------------------
+    // DEEP LINK TEAM SELECTION
+    // ---------------------------------------------------------
+
+    useEffect(() => {
+        if (
+            !linkedTeam ||
+            linkedTeam === selectedTeam
+        ) {
+            return;
+        }
+
+        setSelectedTeam(
+            linkedTeam
+        );
+
+        localStorage.setItem(
+            "lastSelectedTeam",
+            linkedTeam
+        );
+    }, [
+        linkedTeam,
+        selectedTeam,
+        setSelectedTeam,
+    ]);
 
     useEffect(() => {
         let cancelled = false;

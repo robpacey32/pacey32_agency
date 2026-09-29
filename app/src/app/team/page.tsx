@@ -5,6 +5,10 @@ import {
     useState,
 } from "react";
 
+import { 
+    useSearchParams,
+} from "next/navigation";
+
 import ExpandableCard from "@/components/ExpandableCard";
 
 import SalaryCapPanel, {
@@ -48,8 +52,41 @@ type Team = {
 export default function TeamPage() {
     const {
         team: selectedTeam,
+        setTeam: setSelectedTeam,
         selectedPlayer,
     } = useAppContext();
+
+    const searchParams =
+        useSearchParams();
+
+    const linkedTeam =
+        searchParams
+            .get("team")
+            ?.trim()
+            .toUpperCase() ??
+        null;
+
+    useEffect(() => {
+        if (
+            !linkedTeam ||
+            linkedTeam === selectedTeam
+        ) {
+            return;
+        }
+
+        setSelectedTeam(
+            linkedTeam
+        );
+
+        localStorage.setItem(
+            "lastSelectedTeam",
+            linkedTeam
+        );
+    }, [
+        linkedTeam,
+        selectedTeam,
+        setSelectedTeam,
+    ]);
 
 
     const [

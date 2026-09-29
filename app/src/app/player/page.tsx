@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import ComparablePlayersPanel, {
     ComparablePlayersData,
@@ -24,7 +25,36 @@ import PlayerProfilePanel, {
 import { useAppContext } from "@/context/AppContext";
 
 export default function PlayerPage() {
-    const { player: selectedPlayerId } = useAppContext();
+    const {
+        selectedPlayer,
+        setPlayer,
+        setSelectedPlayer,
+        setTeam,
+    } = useAppContext();
+
+    const searchParams =
+        useSearchParams();
+
+    const linkedPlayerId =
+        searchParams.get(
+            "playerId"
+        );
+
+    const selectedPlayerId =
+        linkedPlayerId
+            ? Number(
+                linkedPlayerId
+            )
+            : selectedPlayer?.playerId ??
+            null;
+
+    const validPlayerId =
+        selectedPlayerId != null &&
+        Number.isFinite(
+            selectedPlayerId
+        )
+            ? selectedPlayerId
+            : null;
 
     // ---------------------------------------------------------
     // DATA
@@ -103,11 +133,119 @@ export default function PlayerPage() {
         useState<string | null>(null);
 
     // ---------------------------------------------------------
+    // DEEP LINK PLAYER SELECTION
+    // ---------------------------------------------------------
+
+    useEffect(() => {
+        if (!linkedPlayerId) {
+            return;
+        }
+
+        const playerId =
+            Number(
+                linkedPlayerId
+            );
+
+        if (
+            !Number.isFinite(
+                playerId
+            )
+        ) {
+            return;
+        }
+
+        if (
+            selectedPlayer?.playerId ===
+            playerId
+        ) {
+            return;
+        }
+
+        let cancelled = false;
+
+        async function initialiseLinkedPlayer() {
+            try {
+                const response =
+                    await fetch(
+                        `/api/player-profile?playerId=${playerId}`
+                    );
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const result =
+                    (await response.json()) as
+                        PlayerProfileData;
+
+                if (cancelled) {
+                    return;
+                }
+
+                setPlayer(
+                    result.player_name
+                );
+
+                setSelectedPlayer({
+                    playerId,
+                    name:
+                        result.player_name,
+                    team:
+                        result.team_code ??
+                        null,
+                    position:
+                        result.position ??
+                        null,
+                    headshot_url:
+                        result.headshot ??
+                        null,
+                });
+
+                if (
+                    result.team_code
+                ) {
+                    setTeam(
+                        result.team_code
+                    );
+
+                    localStorage.setItem(
+                        "lastSelectedTeam",
+                        result.team_code
+                    );
+                }
+
+                localStorage.setItem(
+                    "lastSelectedPlayer",
+                    result.player_name
+                );
+            } catch (error) {
+                console.error(
+                    "Failed to initialise linked player:",
+                    error
+                );
+            }
+        }
+
+        initialiseLinkedPlayer();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        linkedPlayerId,
+        selectedPlayer?.playerId,
+        setPlayer,
+        setSelectedPlayer,
+        setTeam,
+    ]);
+
+
+    // ---------------------------------------------------------
     // LOAD PLAYER
     // ---------------------------------------------------------
 
     useEffect(() => {
-        if (!selectedPlayerId) {
+        if (!validPlayerId) {
             setProfile(null);
             setPerformance(null);
             setComparables(null);
@@ -148,7 +286,7 @@ export default function PlayerPage() {
                 setProfile(null);
 
                 const response = await fetch(
-                    `/api/player-profile?playerId=${selectedPlayerId}`
+                    `/api/player-profile?playerId=${validPlayerId}`
                 );
 
                 if (!response.ok) {
@@ -189,7 +327,7 @@ export default function PlayerPage() {
                 setPerformance(null);
 
                 const response = await fetch(
-                    `/api/player-performance?playerId=${selectedPlayerId}`
+                    `/api/player-performance?playerId=${validPlayerId}`
                 );
 
                 if (!response.ok) {
@@ -226,7 +364,7 @@ export default function PlayerPage() {
                 setComparables(null);
 
                 const response = await fetch(
-                    `/api/comparable-players?playerId=${selectedPlayerId}`
+                    `/api/comparable-players?playerId=${validPlayerId}`
                 );
 
                 const result =
@@ -275,7 +413,7 @@ export default function PlayerPage() {
                 setMarketValue(null);
 
                 const response = await fetch(
-                    `/api/market-value?playerId=${selectedPlayerId}`
+                    `/api/market-value?playerId=${validPlayerId}`
                 );
 
                 const result =
@@ -378,7 +516,7 @@ export default function PlayerPage() {
 
                 const response = await fetch(
                     `/api/event-mapping?playerId=${encodeURIComponent(
-                        String(selectedPlayerId)
+                        String(validPlayerId)
                     )}&position=${encodeURIComponent(
                         position ?? ""
                     )}`
@@ -469,7 +607,7 @@ export default function PlayerPage() {
                 loadContract(
                     profileResult.player_name,
                     String(
-                        selectedPlayerId
+                        validPlayerId
                     )
                 );
             }
@@ -497,7 +635,7 @@ export default function PlayerPage() {
 
         initialiseValuation();
 
-    }, [selectedPlayerId]);
+    }, [validPlayerId]);
 
     // ---------------------------------------------------------
     // CARD TOGGLE
@@ -517,7 +655,7 @@ export default function PlayerPage() {
     // NO PLAYER
     // ---------------------------------------------------------
 
-    if (!selectedPlayerId) {
+    if (!validPlayerId) {
         return (
             <main className="min-h-screen overflow-x-hidden bg-slate-950 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
                 <div className="mx-auto w-full min-w-0 max-w-7xl text-slate-400">

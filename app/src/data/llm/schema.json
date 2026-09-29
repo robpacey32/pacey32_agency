@@ -1,0 +1,2063 @@
+[
+  {
+    "table": "LLM.City",
+    "full_table_id": "pacey32-agency.LLM.City",
+    "description": null,
+    "columns": [
+      {
+        "name": "teamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "cityName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "geocodedCity",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "stateProvince",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "country",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "countryCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "latitude",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "longitude",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "timezone",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "population",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "elevation",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.CityClimate",
+    "full_table_id": "pacey32-agency.LLM.CityClimate",
+    "description": null,
+    "columns": [
+      {
+        "name": "teamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "venueLocation",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "avgAnnualTemp",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "avgWinterTemp",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "avgSummerTemp",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "annualRainMm",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "annualSnowfall",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "avgCloudCover",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "avgSolarRadiation",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "annualTempVsNhlAverage",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "winterTempVsNhlAverage",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "summerTempVsNhlAverage",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "rainVsNhlAveragePct",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "snowfallVsNhlAveragePct",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "cloudVsNhlAveragePct",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "solarVsNhlAveragePct",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "sunshineRank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.CityCostOfLiving",
+    "full_table_id": "pacey32-agency.LLM.CityCostOfLiving",
+    "description": null,
+    "columns": [
+      {
+        "name": "teamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "venueLocation",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "costOfLivingIndex",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "housingIndex",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "utilitiesIndex",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "groceriesIndex",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "eatingOutIndex",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "transportIndex",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "lifestyleIndex",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "familyIndex",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "vsNhlAveragePct",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "affordabilityRank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.CityTax",
+    "full_table_id": "pacey32-agency.LLM.CityTax",
+    "description": null,
+    "columns": [
+      {
+        "name": "teamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "cityName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "stateProvince",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "country",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "countryCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "topMarginalIncomeTaxRate",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "federalIncomeTaxTopRate",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "stateIncomeTaxRate",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "combinedSalesTaxRate",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "gstHstRate",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "pstRate",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "taxYear",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "nhlAverageIncomeTaxRate",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "incomeTaxVsNhlAverage",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "incomeTaxRank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "nhlAverageSalesTaxRate",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "salesTaxVsNhlAverage",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "salesTaxRank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.Player",
+    "full_table_id": "pacey32-agency.LLM.Player",
+    "description": null,
+    "columns": [
+      {
+        "name": "playerId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playerName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "isActive",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamLogo",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "sweaterNumber",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "position",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "shootsCatches",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "heightInches",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "heightCm",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "weightLbs",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "weightKg",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "birthDate",
+        "type": "DATE",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "age",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "birthCity",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "birthCountry",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "nationality",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "draftYear",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "draftTeam",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "draftRound",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "draftPickInRound",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "draftOverall",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "headshot",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "heroImage",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "top100AllTime",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "hallOfFame",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "careerGames",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "careerGoals",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "careerAssists",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "careerPoints",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playoffGames",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playoffGoals",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playoffAssists",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playoffPoints",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "runDate",
+        "type": "TIMESTAMP",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.PlayerComparables",
+    "full_table_id": "pacey32-agency.LLM.PlayerComparables",
+    "description": null,
+    "columns": [
+      {
+        "name": "target_playerId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "target_player",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "target_position",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "comparable_rank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "comparable_playerId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "comparable_player",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "comparable_position",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "overall_similarity",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playing_style_similarity",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "production_similarity",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "effectiveness_similarity",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "usage_similarity",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "trajectory_similarity",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "models_available",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "trajectory_periods_available",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "comparison_detail",
+        "type": "JSON",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "model_version",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "calculated_at",
+        "type": "TIMESTAMP",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.PlayerContracts",
+    "full_table_id": "pacey32-agency.LLM.PlayerContracts",
+    "description": null,
+    "columns": [
+      {
+        "name": "playerId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playerName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "contractId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "contractNumber",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "signingTeam",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "signingTeamSlug",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "contractType",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "signedDate",
+        "type": "DATE",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "signingYear",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "signingStatus",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "signingAge",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "expiryStatus",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "expiryAge",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "term",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "seasonFrom",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "seasonTo",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "capHit",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "totalValue",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "capPctAtSigning",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "signingGM",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "signingAgent",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "offerSheet",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "latestCompletedSeason",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "lastSeason",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "lastSeasonGames",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "lastSeasonGoals",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "lastSeasonAssists",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "lastSeasonPoints",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "lastSeasonPPG",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "lastSeasonAvgTOI",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "lastSeasonPointsPer60",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "ppgChange1Yr",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "ppgChange2Yr",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "avgTOIChange1Yr",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "avgTOIChange2Yr",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.PlayerCurrentContract",
+    "full_table_id": "pacey32-agency.LLM.PlayerCurrentContract",
+    "description": null,
+    "columns": [
+      {
+        "name": "playerId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playerName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "position",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "capHit",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "term",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "totalValue",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "expiryStatus",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "expiryYear",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "agent",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.PlayerPerformance",
+    "full_table_id": "pacey32-agency.LLM.PlayerPerformance",
+    "description": null,
+    "columns": [
+      {
+        "name": "playerId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "age",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "careerSeasons",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "careerGames",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "careerGoals",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "careerAssists",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "careerPoints",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "careerPPG",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "latestSeason",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "latestSeasonGames",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "latestSeasonGoals",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "latestSeasonAssists",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "latestSeasonPoints",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "latestSeasonGPG",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "latestSeasonAPG",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "latestSeasonPPG",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "latestSeasonTOI",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "latestSeasonAvgTOI",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "priorSeason",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "priorSeasonPPG",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "priorSeasonAvgTOI",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "bestSeasonGoals",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "bestSeasonPoints",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "bestSeasonPPG",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "ppgGrowth",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "toiGrowth",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "height_cm",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "weight_kg",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "position",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "draftRound",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "draftPick",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "SnapshotDate",
+        "type": "TIMESTAMP",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.PlayerTeamFit",
+    "full_table_id": "pacey32-agency.LLM.PlayerTeamFit",
+    "description": null,
+    "columns": [
+      {
+        "name": "playerId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playerName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "position",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "currentTeamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "currentTeamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "currentTeamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playerCapHit",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "destinationTeamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "destinationTeamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "destinationTeamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "currentCapSpace",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "projectedCapSpace",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "currentCapGap",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "projectedCapGap",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "canAffordCurrent",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "canAffordProjected",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playersAtPosition",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "topMarginalIncomeTaxRate",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "incomeTaxRank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "costOfLivingIndex",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "affordabilityRank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "avgAnnualTemp",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "avgWinterTemp",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "sunshineRank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "totalDistanceMiles",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "distanceRank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "roadTripCount",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "roadTripRank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.Team",
+    "full_table_id": "pacey32-agency.LLM.Team",
+    "description": null,
+    "columns": [
+      {
+        "name": "teamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "franchiseId",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "venue",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "venueLocation",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "homeName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "homeTeamPlaceName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamLogo",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "conferenceName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "conferenceAbbrev",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "divisionName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "divisionAbbrev",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.TeamCap",
+    "full_table_id": "pacey32-agency.LLM.TeamCap",
+    "description": null,
+    "columns": [
+      {
+        "name": "teamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "projectedCapHit",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "projectedCapSpace",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "currentCapSpace",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "deadlineCapSpace",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "deadCapSpace",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "activeRoster",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "retainedSalaryRemaining",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "contracts",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "draftPickValue2027",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "averageAge",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "forwards",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "defense",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "goalies",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "lastUpdated",
+        "type": "TIMESTAMP",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.TeamOrganisation",
+    "full_table_id": "pacey32-agency.LLM.TeamOrganisation",
+    "description": null,
+    "columns": [
+      {
+        "name": "teamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "arenaName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "arenaCapacity",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "arenaOpened",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "headCoach",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "headCoachSince",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "generalManager",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "generalManagerSince",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "generalManagerPlayingCareer",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "principalOwner",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "ownerSince",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "ahlTeam",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "ahlCity",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "ahlArena",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "ahlHeadCoach",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "captain",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "captainSince",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "captainPosition",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "alternateCaptain1",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "alternateCaptain2",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "alternateCaptain3",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "alternateCaptain4",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "alternateCaptain5",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "alternateCaptain6",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "stanleyCups",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playerNeighbourhoods",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "organizationSummary",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "fanbaseMediaPressure",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.TeamRoster",
+    "full_table_id": "pacey32-agency.LLM.TeamRoster",
+    "description": null,
+    "columns": [
+      {
+        "name": "teamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playerId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "playerName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "position",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "depthChartPosition",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "depthChartLine",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "depthGroup",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "leadershipRole",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "sweaterNumber",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "age",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "capHit",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "term",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "totalValue",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "expiryStatus",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "expiryYear",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "agent",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "isDepthChart",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  },
+  {
+    "table": "LLM.TeamTravel",
+    "full_table_id": "pacey32-agency.LLM.TeamTravel",
+    "description": null,
+    "columns": [
+      {
+        "name": "season",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamId",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamCode",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "teamName",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "totalGames",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "homeGames",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "awayGames",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "travelLegs",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "roadTripCount",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "totalDistanceMiles",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "averageLegKm",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "medianLegKm",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "longestLegKm",
+        "type": "FLOAT",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "legsOver1000Km",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "legsOver2000Km",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "legsOver3000Km",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "distanceRank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "roadTripRank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      },
+      {
+        "name": "longestLegRank",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": null
+      }
+    ]
+  }
+]
