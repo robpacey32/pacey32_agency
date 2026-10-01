@@ -20,6 +20,7 @@ function safeEqual(
 
 export async function POST(request: NextRequest) {
     const password = process.env.QA_PASSWORD;
+    const guestPassword = process.env.QA_GUEST_PASSWORD;
     const sessionSecret = process.env.QA_SESSION_SECRET;
 
     if (!password || !sessionSecret) {
@@ -52,10 +53,30 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    if (
-        typeof body.password !== "string" ||
-        !safeEqual(body.password, password)
-    ) {
+    if (typeof body.password !== "string") {
+        return NextResponse.json(
+            {
+                error: "Invalid password.",
+            },
+            {
+                status: 401,
+            }
+        );
+    }
+
+    const isOwner = safeEqual(
+        body.password,
+        password
+    );
+
+    const isGuest =
+        typeof guestPassword === "string" &&
+        safeEqual(
+            body.password,
+            guestPassword
+        );
+
+    if (!isOwner && !isGuest) {
         return NextResponse.json(
             {
                 error: "Invalid password.",

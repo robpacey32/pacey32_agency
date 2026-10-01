@@ -491,26 +491,38 @@ function formatTime(item: ScheduleItem) {
 }
 
 function formatDayName(date: Date) {
-    return new Intl.DateTimeFormat(
-        "en-GB",
-        {
-            timeZone: "UTC",
-            weekday: "short",
-        }
-    )
-        .format(date)
-        .toUpperCase();
+    const days = [
+        "SUN",
+        "MON",
+        "TUE",
+        "WED",
+        "THU",
+        "FRI",
+        "SAT",
+    ];
+
+    return days[date.getUTCDay()];
 }
 
 function formatDayDate(date: Date) {
-    return new Intl.DateTimeFormat(
-        "en-GB",
-        {
-            timeZone: "UTC",
-            day: "numeric",
-            month: "short",
-        }
-    ).format(date);
+    const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ];
+
+    return `${date.getUTCDate()} ${
+        months[date.getUTCMonth()]
+    }`;
 }
 
 export default function QASchedule() {

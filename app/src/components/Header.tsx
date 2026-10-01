@@ -10,6 +10,7 @@ const tabs = [
     { name: "City", href: "/city" },
     { name: "Team", href: "/team" },
     { name: "Player", href: "/player" },
+    { name: "Chat", href: "/agent" },
     { name: "About", href: "/about" },
 ];
 
