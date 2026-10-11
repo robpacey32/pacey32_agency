@@ -18,8 +18,22 @@ export async function GET(
             searchParams.get("tax_year") ?? 2026
         );
 
+        const now = new Date();
+        const year = now.getUTCFullYear();
+        const month = now.getUTCMonth() + 1;
+
+        // NHL season rolls into the new season during the summer.
+        // From August onwards, use year → year+1.
+        // Before August, use year-1 → year.
+        const seasonStartYear =
+            month >= 8 ? year : year - 1;
+
+        const defaultSeason = Number(
+            `${seasonStartYear}${seasonStartYear + 1}`
+        );
+
         const season = Number(
-            searchParams.get("season") ?? 20252026
+            searchParams.get("season") ?? defaultSeason
         );
 
         const includeLocalTax =
